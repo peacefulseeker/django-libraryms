@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "django-libms"
+version = "0.1.0"
+description = "Library management system"
+authors = ["Alexey Vorobyov <alexey.vorobyov.s@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "~3.11"
+Django = "~5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
