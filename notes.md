@@ -32,3 +32,14 @@ python = "^3.11" # >=3.11.0 <4.0.0
 Tilde requirements specify a minimal version with some ability to update
 python = "~3.11" # >=3.11.0 <3.12
 ```
+
+
+### Django
+```python
+# without password given, create_user will still save the user
+# with ability to add password later
+# https://stackoverflow.com/a/62579906
+l = Librarian.objects.create_user(username="librarian")
+m = Member.objects.create_user(username="member")
+l.has_usable_password() # False
+```
