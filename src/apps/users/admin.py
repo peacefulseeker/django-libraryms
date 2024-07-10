@@ -7,7 +7,8 @@ from .models import User, Member, Librarian
 
 class ModelAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context = None):
-        if len(request.GET) != 0:
+        has_filters = len(request.GET) > 0
+        if has_filters:
             return super().changelist_view(request, extra_context=extra_context)
 
         return self.filter_by_group(request, extra_context)

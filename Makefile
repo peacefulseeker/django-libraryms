@@ -6,3 +6,8 @@ server:
 shell:
 	$(manage) shell
 
+test:
+	# TODO: add test coverage
+	poetry run pytest
+	poetry run pytest --dead-fixtures
+

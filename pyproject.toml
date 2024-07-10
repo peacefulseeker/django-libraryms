@@ -10,6 +10,21 @@ package-mode = false
 python = "~3.11"
 Django = "~5.0"
 bpython = "~0.24"
+pytest = "~8.2.2"
+pytest-django = "~4.8.0"
+mixer = "^7.2.2"
+pytest-deadfixtures = "^2.2.1"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings"
+python_files = "test*.py"
+pythonpath = ". src"
+addopts = [
+# https://pytest-django.readthedocs.io/en/latest/database.html#reuse-db-reuse-the-testing-database-between-test-runs
+    # "--reuse-db",
+    "-s",
+    "-p no:warnings"
+]
 
 
 [build-system]
