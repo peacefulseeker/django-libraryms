@@ -1,11 +1,15 @@
+from typing import Any
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
+from django.utils.translation import gettext_lazy as _
 
 from .models import User, Member, Librarian
 
-class ModelAdmin(admin.ModelAdmin):
+class ModelAdmin(BaseUserAdmin):
     def changelist_view(self, request, extra_context = None):
         has_filters = len(request.GET) > 0
         if has_filters:
@@ -29,13 +33,40 @@ class ModelAdmin(admin.ModelAdmin):
 
 @admin.register(Librarian, Member)
 class PersonAdmin(ModelAdmin):
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
+        (_("Permissions"), {"fields": ("groups",)}),
+    )
+    filter_horizontal = (
+        "groups",
+    )
+    list_display = ("username", "email", "is_staff", "is_active")
+
     def changelist_view(self, request, extra_context = None):
         extra_context = extra_context or {}
         extra_context.update({
-            "group_name": self.model.group_name
+            "group_name": self.model.GROUP_NAME,
         })
 
         return super().changelist_view(request, extra_context=extra_context)
 
 
-admin.site.register(User, UserAdmin)
+@admin.register(User)
+class UseraAdmin(BaseUserAdmin):
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
+        (
+            _("Permissions"),
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                ),
+            },
+        ),
+    )

@@ -6,8 +6,6 @@ from django.db import models
 
 
 class User(AbstractUser):
-    group_name = None
-
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
     class Meta:
@@ -15,26 +13,29 @@ class User(AbstractUser):
             models.Index(fields=("uuid",)),
         ]
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.group_name is not None:
-            self.add_to_group(self.group_name)
-
     def add_to_group(self, group_name: str):
         group, _ = Group.objects.get_or_create(name=group_name)
         self.groups.add(group)
         print(f"User {self.email} was added to group: ", group_name)
 
 
+# TODO: add custom queryset to search on admin views
 class Member(User):
-    group_name = "Members"
-
+    GROUP_NAME = "Member"
     class Meta:
         proxy = True
 
+    def save(self, *args, **kwargs):
+        super(Member, self).save(*args, **kwargs)
+        self.add_to_group(self.GROUP_NAME)
 
 class Librarian(User):
-    group_name = "Librarians"
+    GROUP_NAME = "Librarian"
 
     class Meta:
         proxy = True
+
+    def save(self, *args, **kwargs):
+        self.is_staff = True
+        super(Librarian, self).save(*args, **kwargs)
+        self.add_to_group(self.GROUP_NAME)
