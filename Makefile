@@ -11,3 +11,5 @@ test:
 	poetry run pytest
 	poetry run pytest --dead-fixtures
 
+seed_users:
+	$(manage) seed_users

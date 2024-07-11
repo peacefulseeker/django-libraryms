@@ -42,4 +42,13 @@ python = "~3.11" # >=3.11.0 <3.12
 l = Librarian.objects.create_user(username="librarian")
 m = Member.objects.create_user(username="member")
 l.has_usable_password() # False
+
+```
+
+
+```shell
+# Prints the SQL statements that would be executed for the flush command.
+src/manage.py sqlflush
+# Removes all data from the database and re-executes any post-synchronization handlers
+src/manage.py flush
 ```

@@ -21,7 +21,6 @@ class User(AbstractUser):
     def add_to_group(self, group_name: str):
         group, _ = Group.objects.get_or_create(name=group_name)
         self.groups.add(group)
-        print(f"User {self.email} was added to group: ", group_name)
 
 
 class Member(User):
