@@ -1,8 +1,13 @@
 import uuid
 from django.contrib.auth.models import Group
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+
+
+class GroupManager(UserManager):
+    def get_queryset(self):
+        return super().get_queryset().filter(groups__name=self.model.GROUP_NAME)
 
 
 class User(AbstractUser):
@@ -19,7 +24,6 @@ class User(AbstractUser):
         print(f"User {self.email} was added to group: ", group_name)
 
 
-# TODO: add custom queryset to search on admin views
 class Member(User):
     GROUP_NAME = "Member"
     class Meta:
@@ -28,6 +32,9 @@ class Member(User):
     def save(self, *args, **kwargs):
         super(Member, self).save(*args, **kwargs)
         self.add_to_group(self.GROUP_NAME)
+
+    objects = GroupManager()
+
 
 class Librarian(User):
     GROUP_NAME = "Librarian"
@@ -39,3 +46,5 @@ class Librarian(User):
         self.is_staff = True
         super(Librarian, self).save(*args, **kwargs)
         self.add_to_group(self.GROUP_NAME)
+
+    objects = GroupManager()

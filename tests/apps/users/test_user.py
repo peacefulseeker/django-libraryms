@@ -31,3 +31,13 @@ def test_model_is_staff(model, is_staff):
     instance = mixer.blend(model)
     assert instance.is_staff == is_staff
 
+
+
+def test_manager_objects_expected_to_return_group_members_only():
+    mixer.blend(User)
+    mixer.blend(Librarian)
+    mixer.blend(Member)
+
+    assert User.objects.all().count() == 3
+    assert Librarian.objects.all().count() == 1
+    assert Member.objects.all().count() == 1
