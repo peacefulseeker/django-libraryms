@@ -13,3 +13,14 @@ test:
 
 seed_users:
 	$(manage) seed_users
+
+fmt:
+	poetry run ruff format src tests
+	poetry run ruff check --select I --fix  # sort imports
+	poetry run toml-sort pyproject.toml
+
+lint:
+	$(manage) makemigrations --check --no-input --dry-run
+	poetry run ruff format --check src tests
+	poetry run ruff check src tests
+	poetry run toml-sort pyproject.toml --check

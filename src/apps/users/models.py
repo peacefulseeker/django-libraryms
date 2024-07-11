@@ -1,7 +1,6 @@
 import uuid
-from django.contrib.auth.models import Group
 
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser, Group, UserManager
 from django.db import models
 
 
@@ -25,6 +24,7 @@ class User(AbstractUser):
 
 class Member(User):
     GROUP_NAME = "Member"
+
     class Meta:
         proxy = True
 

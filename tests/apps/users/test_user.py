@@ -1,7 +1,7 @@
-from mixer.backend.django import mixer
 import pytest
+from mixer.backend.django import mixer
 
-from apps.users.models import Member, Librarian, User
+from apps.users.models import Librarian, Member, User
 
 pytestmark = pytest.mark.django_db
 
@@ -30,7 +30,6 @@ def test_model_group_assigned_on_save(model, group_name, group_assigned):
 def test_model_is_staff(model, is_staff):
     instance = mixer.blend(model)
     assert instance.is_staff == is_staff
-
 
 
 def test_manager_objects_expected_to_return_group_members_only():

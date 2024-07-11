@@ -19,6 +19,10 @@ poetry env remove --all
 poetry config --list
 # https://python-poetry.org/docs/configuration/#virtualenvsin-project
 # virtualenvs.in-project = true is responsible for creating .venv within project root(needed for vscode)
+
+petry add --group dev # add to dev deps
+poetry install --no-dev # skip installing dev deps
+
 ```
 
 

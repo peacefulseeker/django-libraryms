@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from .models import User, Member, Librarian
+from apps.users.models import Librarian, Member, User
+
 
 @admin.register(Librarian, Member)
 class PersonAdmin(BaseUserAdmin):
@@ -11,16 +12,12 @@ class PersonAdmin(BaseUserAdmin):
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
         (_("Permissions"), {"fields": ("groups",)}),
     )
-    filter_horizontal = (
-        "groups",
-    )
+    filter_horizontal = ("groups",)
     list_display = ("username", "email", "is_staff", "is_active")
 
-    def changelist_view(self, request, extra_context = None):
+    def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        extra_context.update({
-            "group_name": self.model.GROUP_NAME,
-        })
+        extra_context.update({"group_name": self.model.GROUP_NAME})
 
         return super().changelist_view(request, extra_context=extra_context)
 

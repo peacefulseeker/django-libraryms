@@ -1,8 +1,11 @@
 from django.core.management.base import BaseCommand
+
 from apps.users.models import Librarian, Member, User
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser) -> None:
-        parser.add_argument("--dry-run", action='store_true', required=False, help="Dry run mode")
+        parser.add_argument("--dry-run", action="store_true", required=False, help="Dry run mode")
 
     def handle(self, *args, **options) -> None:
         if options["dry_run"]:
@@ -35,7 +38,3 @@ class Command(BaseCommand):
             password="librarian",
         )
         print(f"Created librarian {librarian}")
-
-
-
-
