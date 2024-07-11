@@ -7,29 +7,18 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.mark.parametrize(
-    ("model", "group_name", "group_assigned"),
+    ("model", "is_staff", "is_member", "is_librarian"),
     [
-        (User, None, False),
-        (Member, Member.GROUP_NAME, True),
-        (Librarian, Librarian.GROUP_NAME, True),
+        (User, False, False, False),
+        (Member, False, True, False),
+        (Librarian, True, False, True),
     ],
 )
-def test_model_group_assigned_on_save(model, group_name, group_assigned):
-    instance = mixer.blend(model)
-    assert instance.groups.filter(name=group_name).exists() == group_assigned
-
-
-@pytest.mark.parametrize(
-    ("model", "is_staff"),
-    [
-        (User, False),
-        (Member, False),
-        (Librarian, True),
-    ],
-)
-def test_model_is_staff(model, is_staff):
+def test_model_properties(model, is_staff, is_member, is_librarian):
     instance = mixer.blend(model)
     assert instance.is_staff == is_staff
+    assert instance.is_member == is_member
+    assert instance.is_librarian == is_librarian
 
 
 def test_manager_objects_expected_to_return_group_members_only():

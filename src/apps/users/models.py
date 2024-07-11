@@ -1,49 +1,48 @@
 import uuid
 
-from django.contrib.auth.models import AbstractUser, Group, UserManager
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
-
-
-class GroupManager(UserManager):
-    def get_queryset(self):
-        return super().get_queryset().filter(groups__name=self.model.GROUP_NAME)
 
 
 class User(AbstractUser):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    is_member = models.BooleanField(default=False)
+    is_librarian = models.BooleanField(default=False)
 
     class Meta:
         indexes = [
             models.Index(fields=("uuid",)),
         ]
 
-    def add_to_group(self, group_name: str):
-        group, _ = Group.objects.get_or_create(name=group_name)
-        self.groups.add(group)
+
+class MemberManager(UserManager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_member=True)
 
 
 class Member(User):
-    GROUP_NAME = "Member"
-
     class Meta:
         proxy = True
 
     def save(self, *args, **kwargs):
+        self.is_member = True
         super(Member, self).save(*args, **kwargs)
-        self.add_to_group(self.GROUP_NAME)
 
-    objects = GroupManager()
+    objects = MemberManager()
+
+
+class LibrarianManager(UserManager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_librarian=True)
 
 
 class Librarian(User):
-    GROUP_NAME = "Librarian"
-
     class Meta:
         proxy = True
 
     def save(self, *args, **kwargs):
         self.is_staff = True
+        self.is_librarian = True
         super(Librarian, self).save(*args, **kwargs)
-        self.add_to_group(self.GROUP_NAME)
 
-    objects = GroupManager()
+    objects = LibrarianManager()
