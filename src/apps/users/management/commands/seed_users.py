@@ -1,8 +1,5 @@
 from django.core.management.base import BaseCommand
 from apps.users.models import Librarian, Member, User
-
-# TODO: create more robust solution using fixtures/mixer/more customization
-# https://nkpremices.com/graphene-testing-factories-and-data-seeding-in-django-pytest-mixer/
 class Command(BaseCommand):
     def add_arguments(self, parser) -> None:
         parser.add_argument("--dry-run", action='store_true', required=False, help="Dry run mode")
