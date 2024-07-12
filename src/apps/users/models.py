@@ -4,6 +4,15 @@ from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 
+class UserRoleManager(UserManager):
+    def __init__(self, role_flag):
+        super().__init__()
+        self.role_flag = role_flag
+
+    def get_queryset(self):
+        return super().get_queryset().filter(**{self.role_flag: True})
+
+
 class User(AbstractUser):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     is_member = models.BooleanField(default=False)
@@ -15,11 +24,6 @@ class User(AbstractUser):
         ]
 
 
-class MemberManager(UserManager):
-    def get_queryset(self):
-        return super().get_queryset().filter(is_member=True)
-
-
 class Member(User):
     class Meta:
         proxy = True
@@ -28,12 +32,7 @@ class Member(User):
         self.is_member = True
         super(Member, self).save(*args, **kwargs)
 
-    objects = MemberManager()
-
-
-class LibrarianManager(UserManager):
-    def get_queryset(self):
-        return super().get_queryset().filter(is_librarian=True)
+    objects = UserRoleManager("is_member")
 
 
 class Librarian(User):
@@ -45,4 +44,4 @@ class Librarian(User):
         self.is_librarian = True
         super(Librarian, self).save(*args, **kwargs)
 
-    objects = LibrarianManager()
+    objects = UserRoleManager("is_librarian")
