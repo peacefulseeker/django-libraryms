@@ -7,8 +7,7 @@ shell:
 	$(manage) shell
 
 test:
-	# TODO: add test coverage
-	poetry run pytest
+	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing
 	poetry run pytest --dead-fixtures
 
 seed_db:
