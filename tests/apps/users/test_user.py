@@ -26,6 +26,6 @@ def test_manager_objects_expected_to_return_group_members_only():
     mixer.blend(Librarian)
     mixer.blend(Member)
 
-    assert User.objects.all().count() == 3
-    assert Librarian.objects.all().count() == 1
-    assert Member.objects.all().count() == 1
+    assert User.objects.count() == 3
+    assert Librarian.objects.count() == 1
+    assert Member.objects.count() == 1
