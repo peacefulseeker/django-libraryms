@@ -56,3 +56,16 @@ src/manage.py sqlflush
 # Removes all data from the database and re-executes any post-synchronization handlers
 src/manage.py flush
 ```
+
+### Lint
+
+```shell
+# would report conflicts + potentially formatted files
+poetry run ruff format --check src/core/conf/installed_apps.py
+# would report potential rule violations
+poetry run ruff check src/core/conf/installed_apps.py
+
+# fmt: off
+this_code_won_t_be_formatted =    "foo"
+# fmt: on
+```
