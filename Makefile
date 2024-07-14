@@ -3,6 +3,9 @@ manage = poetry run python src/manage.py
 server:
 	$(manage) runserver 7070
 
+s:
+	make server
+
 shell:
 	$(manage) shell
 

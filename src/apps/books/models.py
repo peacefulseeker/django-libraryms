@@ -4,13 +4,13 @@ from django.utils.translation import gettext_lazy as _
 from core.utils.models import TimestampedModel
 
 
-class Languages(models.TextChoices):
-    LV = "lv", _("Latvian")
-    EN = "en", _("English")
-    RU = "ru", _("Russian")
-    DE = "de", _("German")
-    ES = "es", _("Spanish")
-    FR = "fr", _("French")
+class Language(models.TextChoices):
+    LATVIAN = "lv"
+    ENGLISH = "en"
+    RUSSIAN = "ru"
+    GERMAN = "de"
+    SPANISH = "es"
+    FRENCH = "fr"
 
 
 # for now keeping models in scope of one app,
@@ -18,7 +18,7 @@ class Languages(models.TextChoices):
 class Book(TimestampedModel):
     title = models.CharField(max_length=200, unique=True)
     author = models.ForeignKey("Author", on_delete=models.CASCADE)
-    language = models.CharField(choices=Languages.choices, max_length=2)
+    language = models.CharField(choices=Language, max_length=2)
     publisher = models.ForeignKey("Publisher", on_delete=models.CASCADE)
     published_at = models.PositiveSmallIntegerField(_("Year of publishing"))
     pages = models.PositiveSmallIntegerField(_("Number of pages"))
@@ -27,6 +27,9 @@ class Book(TimestampedModel):
 
     def __str__(self) -> str:
         return f"{self.title}"
+
+    class Meta:
+        ordering = ["-modified_at"]
 
 
 class Author(TimestampedModel):

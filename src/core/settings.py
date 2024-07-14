@@ -11,6 +11,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 include(
     "conf/common.py",
+    "conf/api.py",
     "conf/auth.py",
     "conf/database.py",
     "conf/installed_apps.py",
