@@ -23,6 +23,9 @@ class User(AbstractUser):
             models.Index(fields=("uuid",)),
         ]
 
+    def __str__(self) -> str:
+        return f"{self.username}"
+
 
 class Member(User):
     class Meta:

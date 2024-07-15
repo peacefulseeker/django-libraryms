@@ -1,8 +1,5 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import filters, generics
 from rest_framework.permissions import AllowAny
-from rest_framework.request import Request
-from rest_framework.response import Response
 
 from apps.books.api.serializers import BookSerializer
 from apps.books.models import Book
