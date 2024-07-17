@@ -94,7 +94,7 @@ def test_book_queued_orders():
 
     queued_orders = book.queued_orders
 
-    assert book.has_members_in_queue
+    assert book.has_orders_in_queue
     assert book.order_set.count() == 3
     assert len(queued_orders) == 2
     assert order1 in queued_orders
@@ -111,4 +111,4 @@ def test_book_no_queued_orders():
 
     assert book.order_set.count() == 2
     assert len(queued_orders) == 0
-    assert not book.has_members_in_queue
+    assert not book.has_orders_in_queue

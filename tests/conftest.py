@@ -1,5 +1,5 @@
-# import pytest
-
-# @pytest.fixture
-# def api_client():
-#     return APIClient
+pytest_plugins = [
+    "tests.fixtures.api",
+    "tests.fixtures.users",
+    "tests.fixtures.books",
+]

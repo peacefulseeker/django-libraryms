@@ -6,6 +6,7 @@ from core.utils.models import TimestampedModel
 class Author(TimestampedModel):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    # TODO: try out db_default instead, truncing year https://docs.djangoproject.com/en/5.0/ref/models/fields/#db-default
     year_of_birth = models.PositiveSmallIntegerField(null=True)
     year_of_death = models.PositiveSmallIntegerField(null=True)
 

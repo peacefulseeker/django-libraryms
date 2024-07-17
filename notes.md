@@ -69,3 +69,36 @@ poetry run ruff check src/core/conf/installed_apps.py
 this_code_won_t_be_formatted =    "foo"
 # fmt: on
 ```
+
+
+### Python
+```python
+# and operator works lazily by default, meaning second won't be evaluated if first returns False
+Rule1 and Rule2
+# & bitwise operator works eagerly by default, meaning second will be evaluated even if first returns False
+Rule1 & Rule2 # now clear why such syntax used in DRF permissions
+```
+In the first expression, the and operator works lazily, as expected. It evaluates the first function, and since the result is false, it doesn’t evaluate the second function. In the second expression, however, the bitwise AND operator (&) calls both functions eagerly even though the first function returns False. Note that in both cases, the final result is False.
+
+
+
+### Relations
+# OneToOne
+When creating associated models outside, need to remember to save both of the models
+```python
+Reservation(member=self.member, book=self.book).save()
+self.book.save()  # without that one, reservation relation won't be created on book instance
+```
+
+
+### Pytest
+```shell
+# it's a built-in pytest fixture and it could be used to dynamically access test data during execution of the test
+request
+# https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.FixtureRequest.getfixturevalue
+
+def test_book_from_request(request):
+    book = request.getfixturevalue("book")
+
+    assert book.id == 1
+```

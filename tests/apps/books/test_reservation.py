@@ -15,7 +15,7 @@ pytestmark = [
 
 def test_reservation_str_method():
     reservation = mixer.blend(Reservation)
-    expected_str = f"{reservation.member.username} - {reservation.status}"
+    expected_str = f"{reservation.member} - {ReservationStatus.RESERVED.label}"
     assert str(reservation) == expected_str
 
 

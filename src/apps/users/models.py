@@ -1,7 +1,12 @@
 import uuid
+from typing import TypeVar
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+
+MemberType = TypeVar("MemberType", bound="Member")
+LibrarianType = TypeVar("LibrarianType", bound="Librarian")
+UserType = TypeVar("UserType", bound="User")
 
 
 class UserRoleManager(UserManager):
@@ -24,7 +29,7 @@ class User(AbstractUser):
         ]
 
     def __str__(self) -> str:
-        return f"{self.username}"
+        return f"{self.get_full_name()}"
 
 
 class Member(User):

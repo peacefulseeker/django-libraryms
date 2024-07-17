@@ -36,8 +36,8 @@ addopts = [
     # https://pytest-django.readthedocs.io/en/latest/database.html#reuse-db-reuse-the-testing-database-between-test-runs
     "--reuse-db",
     "-p no:warnings",
-    # "-v",
     "-s",
+    "-v",
 ]
 python_files = "test*.py"
 pythonpath = ". src"

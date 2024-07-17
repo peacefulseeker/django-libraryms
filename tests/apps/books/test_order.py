@@ -9,7 +9,7 @@ pytestmark = pytest.mark.django_db
 
 def test_order_str_method():
     order = mixer.blend(Order)
-    expected_str = f"{order.member.username} - {order.book.title} - {order.status}"
+    expected_str = f"{order.member} - {order.book} - {order.status}"
     assert str(order) == expected_str
 
 
@@ -34,6 +34,20 @@ def test_reservation_created_on_save():
 
     assert not book.is_available
     assert book.reservation.book.id == book.id
+
+
+def test_orders_processable(create_book_order, book, member, another_member):
+    create_book_order(status=OrderStatus.PROCESSED)
+    create_book_order(status=OrderStatus.IN_QUEUE)
+    create_book_order(status=OrderStatus.UNPROCESSED)
+    create_book_order(status=OrderStatus.MEMBER_CANCELLED)
+    create_book_order(status=OrderStatus.REFUSED)
+
+    create_book_order(member=another_member, status=OrderStatus.MEMBER_CANCELLED)
+    create_book_order(member=another_member, status=OrderStatus.REFUSED)
+
+    assert Order.objects.processable(member.id, book.id).count() == 2
+    assert Order.objects.processable(another_member.id, book.id).count() == 0
 
 
 # TODO:

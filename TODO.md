@@ -10,8 +10,19 @@ https://github.com/chepe4pi/frameworks_compare/blob/main/myapp/management/comman
 via extra field like member_fullname and book_title, which should be unique in the system
 at the moment of order/reservation creation.
 
++ add a comment field about order/resrevation refusal reason for example or any other useful notes
+
 ### 3) Add type hints. Especially useful for self.{model} references within associated model.
 
 ### 4) Delete book orders older then 1 year. Otherwise might collect quite a bunch
 
 ### 5) Add reservation renew / extend functionality
+
+### 6) Notify user about upocoming session expiration(e.g. in 60 minutes)
+Aslo, need to double chekc in which occassions to use refresh token calls
+
+
+### 7) Add issued_by/processed_ny fields, to understand who processed the order/reservation in admin.
+
+
+### 8) Setup proper localization (ru, en, lv)

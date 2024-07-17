@@ -24,9 +24,3 @@ class OrderStatus(models.TextChoices):
     IN_QUEUE = "Q"
     MEMBER_CANCELLED = "MC"
     PROCESSED = "P"
-
-
-class BookStatus:
-    AVAILABLE = "A"
-    RESERVED = "R"
-    ISSUED = "I"
