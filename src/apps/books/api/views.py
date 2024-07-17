@@ -1,5 +1,6 @@
 from typing import Any
 
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import filters, generics
@@ -17,7 +18,7 @@ from apps.users.models import Member
 
 # TODO: temporary for quick tests
 class TempOverrideUserMixin:
-    def _override_member(self, request: Request, pk: int = 3) -> Any:
+    def _override_auth_member(self, request: Request, pk: int = 3) -> Any:
         member = Member.objects.get(id=pk)
         request.user = member
 
@@ -39,20 +40,24 @@ class BookDetailView(BooksViewMixin, generics.RetrieveAPIView):
 
 class BookOrderView(APIView, TempOverrideUserMixin):
     def post(self, request: Request, book_id: int) -> Response:
-        # self._override_member(request, pk=4)
-        if self._processable_order_exists(book_id, request.user.id):
+        # self._override_auth_member(request, pk=4)
+        if self._processable_order(book_id, request.user.id).exists():
             return Response(status=400, data={"message": _("Book is already ordered or your order is in queue")})
         order_id, message = self._create_order(book_id, request.user.id)
         return Response({"message": message, "order_id": order_id, "book_id": book_id})
 
-    # TODO: check whether there's a processable book order belonging to that  member
-    # in case it's not cancelled yet, put that to cancel state
-    # mark admin noticication/action item as read/done, since this order is not actual anymore.
     def delete(self, request: Request, book_id: int) -> Response:
-        pass
+        return self._cancel_order(book_id, request.user.id)
 
-    def _processable_order_exists(self, book_id: int, member_id: int) -> bool:
-        return BookOrder.objects.processable(member_id, book_id).exists()
+    def _cancel_order(self, member_id: Request, book_id: int) -> Response:
+        order = self._processable_order(book_id, member_id)
+        if not order.exists():
+            return Response(status=400, data={"message": _("No cancellable order found")})
+        order = order.get()
+        order.status = OrderStatus.MEMBER_CANCELLED
+        order.save()
+
+        return Response(status=200, data={"message": _("Order cancelled")})
 
     def _create_order(self, book_id: int, member_id: int) -> tuple[BookOrder, str]:
         book: Book = get_object_or_404(Book, pk=book_id)
@@ -66,3 +71,6 @@ class BookOrderView(APIView, TempOverrideUserMixin):
         order: BookOrder = BookOrder.objects.create(book_id=book_id, member_id=member_id, status=order_status)
 
         return order.id, message
+
+    def _processable_order(self, book_id: int, member_id: int) -> "QuerySet[BookOrder]":
+        return BookOrder.objects.processable(member_id, book_id)

@@ -34,6 +34,10 @@ class Order(TimestampedModel):
             self.book.refuse_reservation()
         super().save(*args, **kwargs)
 
+    def cancel(self):
+        self.status = OrderStatus.MEMBER_CANCELLED
+        self.save()
+
     @property
     def in_queue(self) -> bool:
         return self.status == OrderStatus.IN_QUEUE

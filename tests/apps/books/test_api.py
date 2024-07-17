@@ -64,3 +64,31 @@ def test_book_order_put_in_queue(as_member, book, another_book_order):
     # first, since sorted by created_at
     assert book.order_set.first().id == response.data["order_id"]
     assert book.order_set.last() == another_book_order
+
+
+def test_cancel_book_order(as_member, book, book_order):
+    url = reverse("book-order", kwargs={"book_id": book.id})
+
+    assert book_order.status == OrderStatus.UNPROCESSED
+
+    response: Response = as_member.delete(url)
+
+    book_order.refresh_from_db()
+
+    assert response.status_code == HTTP_200_OK
+    assert response.data["message"] == "Order cancelled"
+    assert book_order.status == OrderStatus.MEMBER_CANCELLED
+
+
+def test_no_cancellable_order_found(as_member, book, another_book_order):
+    url = reverse("book-order", kwargs={"book_id": book.id})
+
+    assert another_book_order.status == OrderStatus.UNPROCESSED
+
+    response: Response = as_member.delete(url)
+
+    another_book_order.refresh_from_db()
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.data["message"] == "No cancellable order found"
+    assert another_book_order.status == OrderStatus.UNPROCESSED

@@ -18,6 +18,8 @@ class ReservationStatus(models.TextChoices):
     CANCELLED = "X"
 
 
+# assume that member can cancel the order
+# and librarian can refuse and process the order
 class OrderStatus(models.TextChoices):
     UNPROCESSED = "U"
     REFUSED = "R"

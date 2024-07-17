@@ -112,3 +112,21 @@ def test_book_no_queued_orders():
     assert book.order_set.count() == 2
     assert len(queued_orders) == 0
     assert not book.has_orders_in_queue
+
+
+def test_unqueue_next_order_in_queue(create_book_order, member, book):
+    create_book_order(status=OrderStatus.UNPROCESSED)
+    create_book_order(status=OrderStatus.IN_QUEUE)
+    create_book_order(status=OrderStatus.IN_QUEUE)
+
+    assert book.queued_orders.count() == 2
+
+    book.unqueue_next_order()
+    book.unqueue_next_order()
+
+    assert book.queued_orders.count() == 0
+    assert all(o.status == OrderStatus.UNPROCESSED for o in book.order_set.all())
+
+    # nothing to do
+    book.unqueue_next_order()
+    assert book.queued_orders.count() == 0

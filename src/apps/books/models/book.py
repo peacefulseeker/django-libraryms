@@ -38,7 +38,7 @@ class Reservation(TimestampedModel):
             self.term = Reservation.get_default_term()
         elif self.status in self.DONE_STATES and self.book:
             # TODO: save book reference for history
-            self.book.process_next_order()
+            self.book.unqueue_next_order()
             self.book.delete_reservation()
         super().save(*args, **kwargs)
 
@@ -105,7 +105,7 @@ class Book(TimestampedModel):
         self.reservation = None
         self.save()
 
-    def process_next_order(self):
+    def unqueue_next_order(self):
         if not self.has_orders_in_queue:
             return
 

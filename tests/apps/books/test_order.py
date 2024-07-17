@@ -50,6 +50,10 @@ def test_orders_processable(create_book_order, book, member, another_member):
     assert Order.objects.processable(another_member.id, book.id).count() == 0
 
 
-# TODO:
-def process_next_order_in_queue():
-    pass
+def test_cancel_order(create_book_order):
+    order = create_book_order(status=OrderStatus.IN_QUEUE)
+
+    assert order.status == OrderStatus.IN_QUEUE
+    order.cancel()
+
+    assert order.status == OrderStatus.MEMBER_CANCELLED
