@@ -15,6 +15,8 @@ class PublisherSerializer(serializers.ModelSerializer):
         fields = ["name"]
 
 
+# TODO: split book list and book detail serializers
+# fetch only necessary details for list view
 class BookSerializer(serializers.ModelSerializer):
     author = AuthorSerializer()
     publisher = PublisherSerializer()
@@ -23,6 +25,7 @@ class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = [
+            "id",
             "title",
             "author",
             "publisher",

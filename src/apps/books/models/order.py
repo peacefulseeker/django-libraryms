@@ -7,7 +7,7 @@ from core.utils.models import TimestampedModel
 
 
 class OrderQuerySet(models.QuerySet):
-    def processable(self, member_id, book_id) -> "QuerySet[Order]":
+    def processable(self, book_id, member_id) -> "QuerySet[Order]":
         return self.filter(book=book_id, member=member_id, status__in=[OrderStatus.UNPROCESSED, OrderStatus.IN_QUEUE])
 
 

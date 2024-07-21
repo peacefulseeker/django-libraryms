@@ -1,7 +1,12 @@
 import pytest
 from django.urls import reverse
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+)
 
 from apps.books.const import OrderStatus
 
@@ -75,8 +80,7 @@ def test_cancel_book_order(as_member, book, book_order):
 
     book_order.refresh_from_db()
 
-    assert response.status_code == HTTP_200_OK
-    assert response.data["message"] == "Order cancelled"
+    assert response.status_code == HTTP_204_NO_CONTENT
     assert book_order.status == OrderStatus.MEMBER_CANCELLED
 
 

@@ -6,16 +6,15 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 CI = env("CI")
 
-ALLOWED_HOSTS = ["*"]
-
 # Application definition
 include(
-    "conf/common.py",
     "conf/api.py",
     "conf/auth.py",
+    "conf/common.py",
     "conf/database.py",
+    "conf/http.py",
+    "conf/i18n.py",
     "conf/installed_apps.py",
     "conf/middleware.py",
     "conf/templates.py",
-    "conf/i18n.py",
 )

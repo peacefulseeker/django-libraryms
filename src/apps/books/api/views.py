@@ -4,9 +4,10 @@ from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import filters, generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 
 from apps.books.api.serializers import BookSerializer
@@ -39,6 +40,8 @@ class BookDetailView(BooksViewMixin, generics.RetrieveAPIView):
 
 
 class BookOrderView(APIView, TempOverrideUserMixin):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request: Request, book_id: int) -> Response:
         # self._override_auth_member(request, pk=4)
         if self._processable_order(book_id, request.user.id).exists():
@@ -49,7 +52,7 @@ class BookOrderView(APIView, TempOverrideUserMixin):
     def delete(self, request: Request, book_id: int) -> Response:
         return self._cancel_order(book_id, request.user.id)
 
-    def _cancel_order(self, member_id: Request, book_id: int) -> Response:
+    def _cancel_order(self, book_id: int, member_id) -> Response:
         order = self._processable_order(book_id, member_id)
         if not order.exists():
             return Response(status=400, data={"message": _("No cancellable order found")})
@@ -57,7 +60,7 @@ class BookOrderView(APIView, TempOverrideUserMixin):
         order.status = OrderStatus.MEMBER_CANCELLED
         order.save()
 
-        return Response(status=200, data={"message": _("Order cancelled")})
+        return Response(status=HTTP_204_NO_CONTENT)
 
     def _create_order(self, book_id: int, member_id: int) -> tuple[BookOrder, str]:
         book: Book = get_object_or_404(Book, pk=book_id)
@@ -73,4 +76,4 @@ class BookOrderView(APIView, TempOverrideUserMixin):
         return order.id, message
 
     def _processable_order(self, book_id: int, member_id: int) -> "QuerySet[BookOrder]":
-        return BookOrder.objects.processable(member_id, book_id)
+        return BookOrder.objects.processable(book_id, member_id)

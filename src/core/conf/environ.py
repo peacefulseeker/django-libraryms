@@ -6,6 +6,7 @@ env = environ.Env(
     SECRET_KEY=(str, "not-so-secret"),
     DEBUG=(bool, False),
     CI=(bool, False),
+    REFRESH_TOKEN_COOKIE_SECURE=(bool, True),
 )
 
 envpath = BASE_DIR / ".env"

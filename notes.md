@@ -49,6 +49,11 @@ l.has_usable_password() # False
 
 ```
 
+#### Unique fields don't need db_index
+https://docs.djangoproject.com/en/5.0/ref/models/fields/#unique
+Note that when unique is True, you don’t need to specify db_index,
+because unique implies the creation of an index.
+
 
 ```shell
 # Prints the SQL statements that would be executed for the flush command.

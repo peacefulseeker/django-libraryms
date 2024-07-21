@@ -6,14 +6,12 @@ from apps.users.models import Member
 
 @pytest.fixture
 def member():
-    return mixer.blend(Member)
+    member = mixer.blend(Member, username="member", email="member@member.com")
+    member.set_password("member")
+    member.save()
+    return member
 
 
 @pytest.fixture
 def another_member():
     return mixer.blend(Member)
-
-
-# @pytest.fixture
-# def librarian():
-#     return mixer.blend(Librarian)

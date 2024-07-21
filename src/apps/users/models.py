@@ -3,6 +3,7 @@ from typing import TypeVar
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 MemberType = TypeVar("MemberType", bound="Member")
 LibrarianType = TypeVar("LibrarianType", bound="Librarian")
@@ -22,11 +23,13 @@ class User(AbstractUser):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     is_member = models.BooleanField(default=False)
     is_librarian = models.BooleanField(default=False)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=("uuid",)),
-        ]
+    email = models.EmailField(
+        _("Email address"),
+        unique=True,
+        error_messages={
+            "unique": _("A user with such email already exists."),
+        },
+    )
 
     def __str__(self) -> str:
         return f"{self.get_full_name()}"

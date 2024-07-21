@@ -26,3 +26,10 @@ Aslo, need to double chekc in which occassions to use refresh token calls
 
 
 ### 8) Setup proper localization (ru, en, lv)
+
+### 9) What if combine backend/frontend ultimately.
+Having 1 template served by django backend will allow sending authenticated tokens immediately
+without extra calls from frontend. This will allow smoother experience on initial page loads.
+Combining with non-reload ajax calls will make it a good combo eventually.
+
+### 10) Book cover image upload(s3 e.g.)
