@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib import admin
 from django.http import HttpRequest
 
-from apps.books.models import Author, Book, Order, Publisher, Reservation
+from apps.books.models import Author, Book, Publisher, Reservation
 from core.utils.admin import ModelAdmin, TabularInline
 
 
@@ -48,26 +48,6 @@ class PublisherAdmin(ModelAdmin):
     inlines = (BookInline,)
 
     search_fields = ("name",)
-
-
-@admin.register(Order)
-class OrderAdmin(ModelAdmin):
-    list_display = (
-        "id",
-        "status",
-        "member",
-        "book",
-        "created_at",
-    )
-
-    list_display_links = (
-        "id",
-        "status",
-    )
-
-    def has_add_permission(self, request: HttpRequest) -> bool:
-        """Order are expected to be created by API, initiated by members"""
-        return False
 
 
 class BookStackedInline(TabularInline):

@@ -6,12 +6,6 @@ https://github.com/chepe4pi/frameworks_compare/blob/main/myapp/management/comman
 
 ### 2) Cover all models with relevant tests
 
-### 3) Save historical reference to order and reservation book/member
-via extra field like member_fullname and book_title, which should be unique in the system
-at the moment of order/reservation creation.
-
-+ add a comment field about order/resrevation refusal reason for example or any other useful notes
-
 ### 3) Add type hints. Especially useful for self.{model} references within associated model.
 
 ### 4) Delete book orders older then 1 year. Otherwise might collect quite a bunch
@@ -33,3 +27,13 @@ without extra calls from frontend. This will allow smoother experience on initia
 Combining with non-reload ajax calls will make it a good combo eventually.
 
 ### 10) Book cover image upload(s3 e.g.)
+
+
+### 11) seems like a better idea would be to link Reservation with Order rather then with book.
+Order deleted -> Reservation Deleted -> Book Available
+Order unprocessed - Rerervation Reserver -> Book reservered
+Order processed - Rerervation Reserved -> Book reserved(until issued physically in library)
+Order cancelled - Rerervation Cancelled -> Book available
+
+
+### 12) Get proper status display in order history view

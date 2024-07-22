@@ -11,6 +11,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "rest_framework_simplejwt",
+    "simple_history",
 
     "apps.users",
     "apps.books",

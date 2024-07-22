@@ -39,7 +39,7 @@ class Reservation(TimestampedModel):
         elif self.status in self.DONE_STATES and self.book:
             # TODO: save book reference for history
             self.book.unqueue_next_order()
-            self.book.delete_reservation()
+            self.book.unlink_reservation()
         super().save(*args, **kwargs)
 
     class Meta:
@@ -102,6 +102,10 @@ class Book(TimestampedModel):
             self.reservation.save()
 
     def delete_reservation(self):
+        if self.reservation is not None:
+            self.reservation.delete()
+
+    def unlink_reservation(self):
         self.reservation = None
         self.save()
 

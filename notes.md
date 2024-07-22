@@ -1,4 +1,4 @@
-### Poetry
+## Poetry
 ```python
 # is used to install Python CLI applications globally while still isolating them in virtual environments
 pipx install poetry
@@ -26,7 +26,7 @@ poetry install --no-dev # skip installing dev deps
 ```
 
 
-### Dependencies
+## Dependencies
 Caret requirements allow SemVer compatible updates to a specified version.
 An update is allowed if the new version number does not modify the
 left-most non-zero digit in the major, minor, patch grouping
@@ -38,7 +38,7 @@ python = "~3.11" # >=3.11.0 <3.12
 ```
 
 
-### Django
+## Django
 ```python
 # without password given, create_user will still save the user
 # with ability to add password later
@@ -49,11 +49,21 @@ l.has_usable_password() # False
 
 ```
 
-#### Unique fields don't need db_index
+### Can register same models leveraging proxy models
+```python
+class OrderProxy(Order):
+    class Meta:
+        proxy = True
+        verbose_name = "proxied order"
+
+admin.site.register(Order, ModelAdmin)
+admin.site.register(OrderProxy, ModelAdmin)
+```
+
+### Unique fields don't need db_index
 https://docs.djangoproject.com/en/5.0/ref/models/fields/#unique
 Note that when unique is True, you don’t need to specify db_index,
 because unique implies the creation of an index.
-
 
 ```shell
 # Prints the SQL statements that would be executed for the flush command.
@@ -93,6 +103,17 @@ When creating associated models outside, need to remember to save both of the mo
 ```python
 Reservation(member=self.member, book=self.book).save()
 self.book.save()  # without that one, reservation relation won't be created on book instance
+```
+
+# Disable backward relation
+Tthis will ensure that the User model won’t have a backwards relation to Order
+```python
+class Order
+    modified_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
 ```
 
 

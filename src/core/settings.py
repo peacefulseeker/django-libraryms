@@ -6,6 +6,9 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 CI = env("CI")
 
+# there's no that much field for reversion to be crucial at this point
+SIMPLE_HISTORY_REVERT_DISABLED = True
+
 # Application definition
 include(
     "conf/api.py",

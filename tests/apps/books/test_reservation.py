@@ -38,7 +38,7 @@ def test_reservation_issued():
 
 
 @pytest.mark.parametrize(("status"), [ReservationStatus.COMPLETED, ReservationStatus.CANCELLED])
-def test_reservation_removed_from_book_on_status_change(status):
+def test_reservation_unlinked_from_book_on_status_change(status):
     reservation = mixer.blend(Reservation)
     book = mixer.blend(Book)
     book.reservation = reservation
@@ -49,6 +49,17 @@ def test_reservation_removed_from_book_on_status_change(status):
 
     assert book.reservation is None
     assert not hasattr(reservation, "book")
+
+
+def test_reservation_deleted_through_book(reserved_book):
+    assert not reserved_book.is_available
+
+    assert Reservation.objects.filter(book__id=reserved_book.id).count() == 1
+
+    reserved_book.delete_reservation()
+
+    assert not reserved_book.is_available
+    assert Reservation.objects.filter(book__id=reserved_book.id).count() == 0
 
 
 def test_reservation_ordering():

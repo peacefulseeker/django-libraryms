@@ -46,7 +46,7 @@ def test_orders_processable(create_book_order, book, member, another_member):
     create_book_order(member=another_member, status=OrderStatus.MEMBER_CANCELLED)
     create_book_order(member=another_member, status=OrderStatus.REFUSED)
 
-    assert Order.objects.processable(member.id, book.id).count() == 2
+    assert Order.objects.processable(member.id, book.id).count() == 3
     assert Order.objects.processable(another_member.id, book.id).count() == 0
 
 

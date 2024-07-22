@@ -1,4 +1,5 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 
 class AppAdminMixin:
@@ -10,6 +11,10 @@ class AppAdminMixin:
 
     def get_exclude(self, request, obj=None):
         return (super().get_exclude(request, obj) or ()) + self.global_exclude
+
+
+class HistoricalModelAdmin(AppAdminMixin, SimpleHistoryAdmin):
+    pass
 
 
 class ModelAdmin(AppAdminMixin, admin.ModelAdmin):
