@@ -45,9 +45,9 @@ class BookOrderView(APIView, TempOverrideUserMixin):
     def post(self, request: Request, book_id: int) -> Response:
         # self._override_auth_member(request, pk=4)
         if self._processable_order(book_id, request.user.id).exists():
-            return Response(status=400, data={"message": _("Book is already ordered or your order is in queue")})
+            return Response(status=400, data={"detail": _("Book is already ordered or your order is in queue")})
         order_id, message = self._create_order(book_id, request.user.id)
-        return Response({"message": message, "order_id": order_id, "book_id": book_id})
+        return Response({"detail": message, "order_id": order_id, "book_id": book_id})
 
     def delete(self, request: Request, book_id: int) -> Response:
         return self._cancel_order(book_id, request.user.id)
@@ -55,7 +55,7 @@ class BookOrderView(APIView, TempOverrideUserMixin):
     def _cancel_order(self, book_id: int, member_id) -> Response:
         order = self._processable_order(book_id, member_id)
         if not order.exists():
-            return Response(status=400, data={"message": _("No cancellable order found")})
+            return Response(status=400, data={"detail": _("No cancellable order found")})
         order = order.get()
         order.status = OrderStatus.MEMBER_CANCELLED
         order.save()

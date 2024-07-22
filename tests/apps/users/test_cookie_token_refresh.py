@@ -49,7 +49,6 @@ class TestCookieRefresh:
         response: Response = as_member.post(self.url)
 
         assert response.status_code == HTTP_401_UNAUTHORIZED
-        assert "No refresh token presents" in str(response.data)
 
     def test_deny_access_token_with_wrong_token_value(self, as_member: APIClient):
         _, access_token = as_member._credentials["HTTP_AUTHORIZATION"].split(" ")

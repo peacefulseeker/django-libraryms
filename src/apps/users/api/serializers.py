@@ -29,7 +29,7 @@ class CookieTokenRefreshSerializer(TokenRefreshSerializer):
             data = super().validate(attrs)
             return self.access_token_with_user(data)
         else:
-            raise InvalidToken(f"No refresh token presents in {settings.SIMPLE_JWT['REFRESH_TOKEN_COOKIE_NAME']} cookie")
+            raise InvalidToken()
 
     def access_token_with_user(self, data):
         access = AccessToken(data["access"])
