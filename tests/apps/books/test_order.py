@@ -2,7 +2,7 @@ import pytest
 from mixer.backend.django import mixer
 
 from apps.books.const import OrderStatus
-from apps.books.models import Book, Order
+from apps.books.models import Book, Order, Reservation
 
 pytestmark = pytest.mark.django_db
 
@@ -57,3 +57,13 @@ def test_cancel_order(create_book_order):
     order.cancel()
 
     assert order.status == OrderStatus.MEMBER_CANCELLED
+
+
+def test_reservation_deleted_through_order(create_book_order):
+    order: Order = create_book_order(status=OrderStatus.UNPROCESSED)
+
+    assert Reservation.objects.reserved_by_member(order.member_id).count() == 1
+
+    order.delete_reservation()
+
+    assert Reservation.objects.reserved_by_member(order.member_id).count() == 0

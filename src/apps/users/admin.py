@@ -18,6 +18,8 @@ class PersonAdmin(BaseUserAdmin):
 
 @admin.register(User)
 class UseraAdmin(BaseUserAdmin):
+    search_fields = ["username", "email"]
+
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),

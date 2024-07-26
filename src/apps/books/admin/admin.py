@@ -25,29 +25,35 @@ def cover_preview(obj):
 
 @admin.register(Book)
 class BookAdmin(ModelAdmin):
-    # instead of Save and add another, Save as new will appear, creating identical object(copying/cloning)
-    save_as = True
+    search_fields = ("title", "author__first_name", "author__last_name", cover_preview)
+    autocomplete_fields = [
+        "reservation",
+        "author",
+        "publisher",
+    ]
+
+    save_as = True  # allows duplication of the object
     list_display = ("title", "reservation", "author", "published_at", "created_at")
     list_display_links = (
         "title",
         "author",
     )
     readonly_fields = (cover_preview,)
-    search_fields = ("title", "author__first_name", "author__last_name", cover_preview)
 
 
 @admin.register(Author)
 class AuthorAdmin(ModelAdmin):
+    search_fields = ("first_name", "last_name")
     list_display = (
         "__str__",
         "created_at",
     )
-    search_fields = ("first_name", "last_name")
     inlines = (BookInline,)
 
 
 @admin.register(Publisher)
 class PublisherAdmin(ModelAdmin):
+    search_fields = ("name",)
     list_display = (
         "__str__",
         "city",
@@ -55,8 +61,6 @@ class PublisherAdmin(ModelAdmin):
     )
 
     inlines = (BookInline,)
-
-    search_fields = ("name",)
 
 
 class BookStackedInline(TabularInline):
@@ -77,7 +81,15 @@ class BookStackedInline(TabularInline):
 
 @admin.register(Reservation)
 class ReservationAdmin(ModelAdmin):
-    readonly_fields = ("created_at", "modified_at")
+    readonly_fields = (
+        # "member",
+        "created_at",
+        "modified_at",
+    )
+    autocomplete_fields = [
+        "member",
+    ]
+    search_fields = ("member",)
     list_display = (
         "id",
         "status",

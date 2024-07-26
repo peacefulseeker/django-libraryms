@@ -81,8 +81,7 @@ class BookOrderView(APIView, TempOverrideUserMixin):
         if not order.exists():
             return Response(status=400, data={"detail": _("No cancellable order found")})
         order = order.get()
-        order.status = OrderStatus.MEMBER_CANCELLED
-        order.save()
+        order.cancel()
 
         return Response(status=HTTP_204_NO_CONTENT)
 

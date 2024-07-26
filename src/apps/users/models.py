@@ -1,13 +1,8 @@
 import uuid
-from typing import TypeVar
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
-MemberType = TypeVar("MemberType", bound="Member")
-LibrarianType = TypeVar("LibrarianType", bound="Librarian")
-UserType = TypeVar("UserType", bound="User")
 
 
 class UserRoleManager(UserManager):

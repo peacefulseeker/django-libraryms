@@ -5,13 +5,20 @@ from django.db.models.query import QuerySet
 from django.http import HttpRequest
 
 from apps.books.models import Order
+from apps.books.models.book import Reservation
 from core.utils.admin import HistoricalModelAdmin
 
 
 @admin.register(Order)
 class OrderAdmin(HistoricalModelAdmin):
-    readonly_fields = ("last_modified_by",)
+    readonly_fields = ("last_modified_by", "reservation", "member", "book")
     history_list_display = ("status",)
+    # Select2 search user-friendly
+    autocomplete_fields = [
+        "member",
+        "reservation",
+        "book",
+    ]
 
     fieldsets = (
         (
@@ -21,6 +28,7 @@ class OrderAdmin(HistoricalModelAdmin):
                     "member",
                     "book",
                     "status",
+                    "reservation",
                     "change_reason",
                     "last_modified_by",
                 )
@@ -53,12 +61,11 @@ class OrderAdmin(HistoricalModelAdmin):
         return super().save_model(request, order, form, change)
 
     def delete_model(self, request: HttpRequest, order: Order) -> None:
-        order.book.delete_reservation()
+        order.delete_reservation()
         return super().delete_model(request, order)
 
     def delete_queryset(self, request: HttpRequest, queryset: QuerySet[Order]) -> None:
-        # TODO: having reservation OneToOne field set on Order instead would simplify things potentially
-        for order in queryset:
-            order.book.delete_reservation()
+        reservation_ids = [order.reservation.id for order in queryset if order.reservation]
+        Reservation.objects.filter(id__in=reservation_ids).delete()
 
         return super().delete_queryset(request, queryset)

@@ -13,24 +13,18 @@ also double check case-insensitive searches work with cyrillic letters(прощ�
 ### Notify librarian about new order(notification row / email)
 ### Notify member about processed order(ready to be picked up / issued for now) ( email )
 
-###  seems like a better idea would be to link Reservation with Order rather then with book.
-Order deleted -> Reservation Deleted -> Book Available
-Order unprocessed - Rerervation Reserver -> Book reservered
-Order processed - Rerervation Reserved -> Book reserved(until issued physically in library)
-Order cancelled - Rerervation Cancelled -> Book available
-### Add reservation renew / extend functionality
-### set up rate limiter for all auth-demanding requests
 
 ## SECONDARY
 
+### TESTS: Cover all models and API endpoints primarily
+### Add reservation renew / extend functionality
+### set up rate limiter for all auth-demanding requests
 ### allow member change password and request password reset
-
 ### data seeding / faking: create more robust solution using fixtures/mixer/more customization
 https://nkpremices.com/graphene-testing-factories-and-data-seeding-in-django-pytest-mixer/
 another example with lots of default fake data
 https://github.com/chepe4pi/frameworks_compare/blob/main/myapp/management/commands/generate_data.py
 
-### Cover all models with relevant tests
 
 ### Delete book orders older then 1 year. Otherwise might collect quite a bunch
 
@@ -43,5 +37,4 @@ https://github.com/chepe4pi/frameworks_compare/blob/main/myapp/management/comman
 ### Deploy to AWS
 
 ### Add book library relations. Same book examplar can be located in multiple libraries
-
 ### Add book shelf relation(along with library)

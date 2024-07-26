@@ -1,16 +1,14 @@
 from datetime import date, timedelta
-from typing import TypeVar
 
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from simple_history.models import HistoricalRecords
 
 from apps.books.const import Language, OrderStatus, ReservationStatus
-from apps.users.models import MemberType
+from apps.users.models import Member
 from core.utils.models import TimestampedModel
-
-BookType = TypeVar("BookType", bound="Book")
 
 
 class ReservationQuerySet(models.QuerySet):
@@ -28,7 +26,17 @@ class ReservationQuerySet(models.QuerySet):
 # perhaps a good idea would be to move the CRUD operations to a separate service layer
 # thigh might help also in resolving circular dependency issues, especially actual when model typing is used
 class Reservation(TimestampedModel):
+    book: "Book"
+    member: "Member"
+    order: "Order"
+
+    # NOTE: atm. API Only restriction. Admin can still add unlimited reservations to members
     MAX_RESERVATIONS_PER_MEMBER = 5
+    DONE_STATES = [
+        ReservationStatus.COMPLETED,
+        ReservationStatus.CANCELLED,
+        ReservationStatus.REFUSED,
+    ]
 
     objects: ReservationQuerySet = models.Manager.from_queryset(ReservationQuerySet)()
 
@@ -40,17 +48,8 @@ class Reservation(TimestampedModel):
     )
     term = models.DateField(_("Due date"), default=None, blank=True, null=True, help_text=_("Date when reservation expires, 14 days by default"))
 
-    DONE_STATES = [
-        ReservationStatus.COMPLETED,
-        ReservationStatus.CANCELLED,
-        ReservationStatus.REFUSED,
-    ]
-
-    book: BookType
-    member: MemberType
-
     def save(self, *args, **kwargs):
-        if self.status == ReservationStatus.ISSUED and not self.term:
+        if self.status == ReservationStatus.ISSUED and self.term is None:
             self.term = Reservation.get_default_term()
         elif self.status in self.DONE_STATES and self.book:
             # TODO: save book reference for history
@@ -123,23 +122,22 @@ class Book(TimestampedModel):
     def __str__(self) -> str:
         return f"{self.title}"
 
-    def create_reservation(self, member: MemberType):
-        Reservation(member=member, book=self).save()
-        self.save()
+    def save(self, *args, **kwargs):
+        self.create_order_for_reservation()
+        return super().save(*args, **kwargs)
 
-    def cancel_reservation(self):
-        if self.reservation is not None:
-            self.reservation.status = ReservationStatus.CANCELLED
-            self.reservation.save()
-
-    def refuse_reservation(self):
-        if self.reservation is not None:
-            self.reservation.status = ReservationStatus.REFUSED
-            self.reservation.save()
-
-    def delete_reservation(self):
-        if self.reservation is not None:
-            self.reservation.delete()
+    def create_order_for_reservation(self):
+        """
+        Since books can only be created through admin,
+        we create the order as processed for consistency
+        """
+        if self.reservation and not hasattr(self.reservation, "order"):
+            Order.objects.create(
+                book=self,
+                reservation=self.reservation,
+                member=self.reservation.member,
+                status=OrderStatus.PROCESSED,
+            )
 
     def unlink_reservation(self):
         self.reservation = None
@@ -153,19 +151,19 @@ class Book(TimestampedModel):
         next_order.status = OrderStatus.UNPROCESSED
         next_order.save()
 
-    def is_issued_to_member(self, member: MemberType) -> bool:
+    def is_issued_to_member(self, member: Member) -> bool:
         if not self.is_issued:
             return False
 
         return self.reservation.member == member
 
-    def is_reserved_by_member(self, member: MemberType) -> bool:
+    def is_reserved_by_member(self, member: Member) -> bool:
         if not self.is_reserved:
             return False
 
         return self.reservation.member == member
 
-    def is_queued_by_member(self, member: MemberType) -> bool:
+    def is_queued_by_member(self, member: Member) -> bool:
         if not self.is_reserved and not self.is_issued:
             return False
 
@@ -194,3 +192,106 @@ class Book(TimestampedModel):
     @property
     def has_orders_in_queue(self) -> bool:
         return self.queued_orders.count() >= 1
+
+
+class OrderQuerySet(models.QuerySet):
+    def processable(self, book_id, member_id) -> "QuerySet[Order]":
+        return self.filter(
+            book=book_id,
+            member=member_id,
+            status__in=[
+                OrderStatus.UNPROCESSED,
+                OrderStatus.IN_QUEUE,
+                OrderStatus.PROCESSED,
+            ],
+        )
+
+
+class Order(TimestampedModel):
+    objects: OrderQuerySet = models.Manager.from_queryset(OrderQuerySet)()
+
+    member = models.ForeignKey("users.Member", on_delete=models.SET_NULL, null=True)
+    book: Book = models.ForeignKey("Book", on_delete=models.SET_NULL, null=True)
+    reservation: Reservation = models.OneToOneField(
+        Reservation,
+        # TODO: not exactly sure whether order should be delted along with reservation
+        # seems like better to delete reservation through the order instead. Let's see
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    status = models.CharField(
+        choices=OrderStatus,
+        max_length=2,
+        default=OrderStatus.UNPROCESSED,
+    )
+    last_modified_by = models.ForeignKey(
+        "users.User",
+        null=True,
+        blank=True,
+        related_name="+",  # no backwards User relation
+        on_delete=models.SET_NULL,
+    )
+
+    change_reason = models.CharField(_("Optional comment or change reason"), blank=True, null=True, max_length=100)
+    history = HistoricalRecords(
+        excluded_fields=["change_reason", "modified_at", "created_at"],
+        table_name="books_order_history",
+    )
+
+    @property
+    def get_status_display(self):
+        return self.get_status_display()
+
+    @property
+    def _history_user(self):
+        return self.last_modified_by
+
+    @_history_user.setter
+    def _history_user(self, value):
+        self.last_modified_by = value
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        if self.book.is_available:
+            self.create_reservation(member=self.member)
+        elif self.status == OrderStatus.MEMBER_CANCELLED:
+            self.cancel_reservation()
+        elif self.status == OrderStatus.REFUSED:
+            self.refuse_reservation()
+        super().save(*args, **kwargs)
+
+    def cancel(self):
+        self.status = OrderStatus.MEMBER_CANCELLED
+        self.save()
+
+    def create_reservation(self, member: Member):
+        Reservation(member=member, book=self.book, order=self).save()
+        self.book.save()
+
+    def cancel_reservation(self):
+        if self.reservation is not None:
+            self.reservation.status = ReservationStatus.CANCELLED
+            self.reservation.save()
+
+    def refuse_reservation(self):
+        if self.reservation is not None:
+            self.reservation.status = ReservationStatus.REFUSED
+            self.reservation.save()
+
+    def delete_reservation(self):
+        if self.reservation is not None:
+            self.reservation.delete()
+
+    @property
+    def in_queue(self) -> bool:
+        return self.status == OrderStatus.IN_QUEUE
+
+    @property
+    def is_processed(self) -> bool:
+        return self.status in [OrderStatus.PROCESSED, OrderStatus.REFUSED, OrderStatus.MEMBER_CANCELLED]
+
+    def __str__(self):
+        return f"{self.member} - {self.book} - {self.status}"

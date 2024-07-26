@@ -72,17 +72,28 @@ def test_book_isbn_max_length():
 
 def test_book_reservation_relation():
     reservation = mixer.blend(Reservation)
-    book = mixer.blend(Book, reservation=reservation)
+    book = mixer.blend(Book)
+    book.reservation = reservation
+    book.save()
     assert book.reservation == reservation
 
 
-def test_book_reservation_nullable():
-    book = mixer.blend(Book, reservation=None)
-    assert book.reservation is None
-
-
-def test_is_available_by_default():
+def test_processed_order_created_when_reservation_assigned():
+    reservation = mixer.blend(Reservation)
     book = mixer.blend(Book)
+
+    assert book.order_set.count() == 0
+
+    book.reservation = reservation
+    book.save()
+
+    assert book.order_set.count() == 1
+    assert book.order_set.first().status == OrderStatus.PROCESSED
+
+
+def test_book_available_by_default():
+    book = mixer.blend(Book)
+    assert book.reservation is None
     assert book.is_available
 
 
