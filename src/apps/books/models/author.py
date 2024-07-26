@@ -6,8 +6,8 @@ from core.utils.models import TimestampedModel
 class Author(TimestampedModel):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    year_of_birth = models.PositiveSmallIntegerField(null=True)
-    year_of_death = models.PositiveSmallIntegerField(null=True)
+    year_of_birth = models.PositiveSmallIntegerField(null=True, blank=True)
+    year_of_death = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ["last_name", "first_name"]

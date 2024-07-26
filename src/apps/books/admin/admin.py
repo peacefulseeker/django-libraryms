@@ -2,6 +2,7 @@ from typing import Any
 
 from django.contrib import admin
 from django.http import HttpRequest
+from django.utils.html import format_html
 
 from apps.books.models import Author, Book, Publisher, Reservation
 from core.utils.admin import ModelAdmin, TabularInline
@@ -15,16 +16,24 @@ class BookInline(TabularInline):
     model = Book
 
 
+@admin.display(
+    description="Cover preview",
+)
+def cover_preview(obj):
+    return format_html('<img src="{}" width="150"/>', obj.cover.url)
+
+
 @admin.register(Book)
 class BookAdmin(ModelAdmin):
+    # instead of Save and add another, Save as new will appear, creating identical object(copying/cloning)
+    save_as = True
     list_display = ("title", "reservation", "author", "published_at", "created_at")
     list_display_links = (
         "title",
         "author",
     )
-    # instead of Save and add another, Save as new will appear, creating identical object(copying/cloning)
-    save_as = True
-    search_fields = ("title", "author__first_name", "author__last_name")
+    readonly_fields = (cover_preview,)
+    search_fields = ("title", "author__first_name", "author__last_name", cover_preview)
 
 
 @admin.register(Author)

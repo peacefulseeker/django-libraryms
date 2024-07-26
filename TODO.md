@@ -5,22 +5,21 @@ Having 1 template served by django backend will allow sending authenticated toke
 without extra calls from frontend. This will allow smoother experience on initial page loads.
 Combining with non-reload ajax calls will make it a good combo eventually.
 
+### Use Postgres DB instead of SQLite
+also double check case-insensitive searches work with cyrillic letters(прощай vs Прощай should give same results)
+### Dockerize app
+### set up CI pipeline in GitHub actions
+### Deploy to render.com / fly.com other heroku free alternative
+### Notify librarian about new order(notification row / email)
+### Notify member about processed order(ready to be picked up / issued for now) ( email )
+
 ###  seems like a better idea would be to link Reservation with Order rather then with book.
 Order deleted -> Reservation Deleted -> Book Available
 Order unprocessed - Rerervation Reserver -> Book reservered
 Order processed - Rerervation Reserved -> Book reserved(until issued physically in library)
 Order cancelled - Rerervation Cancelled -> Book available
-
 ### Add reservation renew / extend functionality
-
-### Notify librarian about new order(notification row / email)
-
-### Notify member about processed order(ready to be picked up / issued for now) ( email )
-
-
-### set up CI pipeline in GitHub actions
-### Dockerize app
-### Deploy to render.com / fly.com other heroku free alternative
+### set up rate limiter for all auth-demanding requests
 
 ## SECONDARY
 
@@ -42,3 +41,7 @@ https://github.com/chepe4pi/frameworks_compare/blob/main/myapp/management/comman
 ### Get proper status display in order history view
 
 ### Deploy to AWS
+
+### Add book library relations. Same book examplar can be located in multiple libraries
+
+### Add book shelf relation(along with library)

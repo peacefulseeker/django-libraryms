@@ -45,7 +45,7 @@ def test_order_a_book_new_reservation(as_member, book):
     response: Response = as_member.post(url)
 
     assert response.status_code == HTTP_200_OK
-    assert response.data["detail"] == "Book ordered"
+    assert response.data["detail"] == "Book reserved"
 
 
 def test_member_already_has_book_order(as_member, book, book_order):
@@ -64,7 +64,7 @@ def test_book_order_put_in_queue(as_member, book, another_book_order):
     response: Response = as_member.post(url)
 
     assert response.status_code == HTTP_200_OK
-    assert response.data["detail"] == "Book order put in queue"
+    assert response.data["detail"] == "Book reservation request put in queue"
     assert book.order_set.count() == 2
     # first, since sorted by created_at
     assert book.order_set.first().id == response.data["order_id"]

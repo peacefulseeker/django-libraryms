@@ -20,4 +20,7 @@ include(
     "conf/installed_apps.py",
     "conf/middleware.py",
     "conf/templates.py",
+    "conf/static.py",
+    "conf/media.py",
+    "conf/storages.py",
 )
