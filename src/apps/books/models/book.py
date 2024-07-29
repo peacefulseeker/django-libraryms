@@ -101,7 +101,7 @@ class Book(TimestampedModel):
     publisher = models.ForeignKey("Publisher", on_delete=models.CASCADE)
     published_at = models.PositiveSmallIntegerField(_("Year of publishing"))
     pages = models.PositiveSmallIntegerField(_("Number of pages"))
-    pages_description = models.CharField(_("Extra description for pages"), max_length=100, null=True)
+    pages_description = models.CharField(_("Extra description for pages"), max_length=100, blank=True)
     isbn = models.CharField(max_length=13, verbose_name=_("ISBN"), unique=True)
     reservation: Reservation = models.OneToOneField(
         Reservation,
@@ -233,7 +233,7 @@ class Order(TimestampedModel):
         on_delete=models.SET_NULL,
     )
 
-    change_reason = models.CharField(_("Optional comment or change reason"), blank=True, null=True, max_length=100)
+    change_reason = models.CharField(_("Optional comment or change reason"), blank=True, max_length=100)
     history = HistoricalRecords(
         excluded_fields=["change_reason", "modified_at", "created_at"],
         table_name="books_order_history",

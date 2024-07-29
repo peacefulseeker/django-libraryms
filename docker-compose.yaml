@@ -1,0 +1,37 @@
+services:
+  web:
+    build:
+      context: ./
+      target: ${ENVIRONMENT:-development}
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    ports:
+      - 7004:7070
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/web_libraryms
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    restart: unless-stopped
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: pg_isready -U $$POSTGRES_USER # by default looks for PGUSER env variable
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

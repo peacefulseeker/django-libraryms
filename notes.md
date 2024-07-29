@@ -49,6 +49,14 @@ l.has_usable_password() # False
 
 ```
 
+
+```python
+# get installled app models
+from django.apps import apps
+models = apps.get_models()
+```
+
+
 ### Can register same models leveraging proxy models
 ```python
 class OrderProxy(Order):
@@ -71,6 +79,12 @@ src/manage.py sqlflush
 # Removes all data from the database and re-executes any post-synchronization handlers
 src/manage.py flush
 ```
+### Data dumpa & load
+``` shell
+src/manage.py dumpdata books users > db.json
+docker-compose cp db.json web:/app
+src/manage.py loaddata db.json
+```
 
 ### Lint
 
@@ -86,7 +100,7 @@ this_code_won_t_be_formatted =    "foo"
 ```
 
 
-### Python
+## Python
 ```python
 # and operator works lazily by default, meaning second won't be evaluated if first returns False
 Rule1 and Rule2
@@ -128,3 +142,4 @@ def test_book_from_request(request):
 
     assert book.id == 1
 ```
+

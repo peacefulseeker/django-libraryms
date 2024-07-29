@@ -1,21 +1,17 @@
 ## PRIO
 
+### set up CI pipeline in GitHub actions
+### Deploy to render.com / fly.com other heroku free alternative
+
 ### Try combining backend/frontend ultimately.
 Having 1 template served by django backend will allow sending authenticated tokens immediately
 without extra calls from frontend. This will allow smoother experience on initial page loads.
 Combining with non-reload ajax calls will make it a good combo eventually.
-
-### Use Postgres DB instead of SQLite
-also double check case-insensitive searches work with cyrillic letters(прощай vs Прощай should give same results)
-### Dockerize app
-### set up CI pipeline in GitHub actions
-### Deploy to render.com / fly.com other heroku free alternative
 ### Notify librarian about new order(notification row / email)
 ### Notify member about processed order(ready to be picked up / issued for now) ( email )
 
-
 ## SECONDARY
-
+### can Book.clean() be somehow leveraged for reservation status checking?
 ### TESTS: Cover all models and API endpoints primarily
 ### Add reservation renew / extend functionality
 ### set up rate limiter for all auth-demanding requests

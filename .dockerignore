@@ -1,0 +1,12 @@
+venv/
+.vscode/
+.env
+.git
+tests/
+
+Dockerfile*
+*.md
+coverage*
+Makefile
+REQUIREMENTS.md
+TODO.md
