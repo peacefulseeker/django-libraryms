@@ -31,7 +31,7 @@ runs:
       shell: bash
 
     - name: save python version to the env
-      run: echo "python-version=${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_ENV
+      run: echo "PYTHON_VERSION=${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Install dependencies

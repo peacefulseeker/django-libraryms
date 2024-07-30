@@ -23,3 +23,5 @@ jobs:
 
       - name: lint
         run: make lint
+        env:
+          DATABASE_URL: postgres://postgres:secret@localhost:5432/postgres
