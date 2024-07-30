@@ -28,10 +28,13 @@ runs:
 
     - name: make sure poetry lockfile is up to date
       run: poetry check --lock && echo Lockfile is ok, $(poetry --version)
+      shell: bash
 
     - name: save python version to the env
       run: echo "python-version=${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_ENV
+      shell: bash
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: poetry install --no-interaction --no-root
+      shell: bash
