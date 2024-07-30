@@ -1,0 +1,25 @@
+name: CI/CD
+
+on:
+    push:
+      branches:
+        - main
+    pull_request:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/django-libraryms
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_CONTEXT: ${{ toJson(github) }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build
+        uses: ./.github/actions/build
+
+      - name: lint
+        run: make lint

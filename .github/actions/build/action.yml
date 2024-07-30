@@ -1,0 +1,37 @@
+name: build
+description: Build action for the project
+
+runs:
+  using: composite
+
+  steps:
+    - name: Install poetry
+      if: steps.cached-poetry.outputs.cache-hit != 'true'
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-in-project: true
+        version: 1.8.3
+
+    - name: install python
+      id: setup-python
+      uses: actions/setup-python@v5
+      with:
+        cache: 'poetry'
+        python-version-file: 'pyproject.toml'
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: make sure poetry lockfile is up to date
+      run: poetry check --lock && echo Lockfile is ok, $(poetry --version)
+
+    - name: save python version to the env
+      run: echo "python-version=${{ steps.setup-python.outputs.python-version }}" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
