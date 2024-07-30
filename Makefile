@@ -1,4 +1,5 @@
 manage = poetry run python src/manage.py
+RUN_MAKEMIGRATIONS := 1
 
 server:
 	$(manage) runserver 7070
@@ -22,7 +23,9 @@ fmt:
 	poetry run toml-sort pyproject.toml
 
 lint:
+ifeq ($(RUN_MAKEMIGRATIONS), 1)
 	$(manage) makemigrations --check --no-input --dry-run
+endif
 	poetry run ruff format --check src tests
 	poetry run ruff check src tests
 	poetry run toml-sort pyproject.toml --check
