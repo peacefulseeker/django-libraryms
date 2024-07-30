@@ -24,3 +24,21 @@ jobs:
 
       - name: lint
         run: make lint -e RUN_MAKEMIGRATIONS=0
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: build
+        uses: ./.github/actions/build
+
+      - name: test
+        run: make test
