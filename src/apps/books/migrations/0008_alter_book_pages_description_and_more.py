@@ -4,28 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('books', '0007_historicalorder_reservation_order_reservation'),
+        ("books", "0007_historicalorder_reservation_order_reservation"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='book',
-            name='pages_description',
-            field=models.CharField(blank=True, default='', max_length=100, verbose_name='Extra description for pages'),
+            model_name="book",
+            name="pages_description",
+            field=models.CharField(blank=True, default="", max_length=100, verbose_name="Extra description for pages"),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='order',
-            name='change_reason',
-            field=models.CharField(blank=True, default='', max_length=100, verbose_name='Optional comment or change reason'),
+            model_name="order",
+            name="change_reason",
+            field=models.CharField(blank=True, default="", max_length=100, verbose_name="Optional comment or change reason"),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='publisher',
-            name='city',
-            field=models.CharField(blank=True, default='', max_length=100),
+            model_name="publisher",
+            name="city",
+            field=models.CharField(blank=True, default="", max_length=100),
             preserve_default=False,
         ),
     ]
