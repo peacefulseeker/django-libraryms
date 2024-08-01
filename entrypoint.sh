@@ -1,5 +1,8 @@
 #! /bin/sh
 
+# Exit on error
+set -o errexit
+
 echo "Applying migrations"
 python src/manage.py migrate
 
