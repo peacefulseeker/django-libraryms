@@ -2,7 +2,7 @@ services:
   web:
     build:
       context: ./
-      target: ${ENVIRONMENT:-development}
+      target: development
     restart: unless-stopped
     volumes:
       - .:/app
@@ -10,7 +10,7 @@ services:
       - 7004:7070
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/web_libraryms
-      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - ENVIRONMENT=development
     depends_on:
       db:
         condition: service_healthy
@@ -25,10 +25,10 @@ services:
     ports:
       - 5432:5432
     environment:
-      - POSTGRES_USER=postgres
+      - PGUSER=postgres # also used for pg_isready check below
       - POSTGRES_PASSWORD=postgres
     healthcheck:
-      test: pg_isready -U $$POSTGRES_USER # by default looks for PGUSER env variable
+      test: pg_isready
       interval: 1s
       timeout: 5s
       retries: 10
