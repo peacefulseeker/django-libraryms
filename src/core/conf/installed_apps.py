@@ -12,6 +12,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "simple_history",
+    "import_export",
 
     "apps.users",
     "apps.books",

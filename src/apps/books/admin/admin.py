@@ -3,6 +3,7 @@ from typing import Any
 from django.contrib import admin
 from django.http import HttpRequest
 from django.utils.html import format_html
+from import_export.admin import ImportExportModelAdmin
 
 from apps.books.models import Author, Book, Publisher, Reservation
 from core.utils.admin import ModelAdmin, TabularInline
@@ -24,7 +25,7 @@ def cover_preview(obj):
 
 
 @admin.register(Book)
-class BookAdmin(ModelAdmin):
+class BookAdmin(ModelAdmin, ImportExportModelAdmin):
     search_fields = ("title", "author__first_name", "author__last_name", cover_preview)
     autocomplete_fields = [
         "reservation",
