@@ -8,4 +8,3 @@ if not env("DEBUG"):
     CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(" ")
     CSRF_COOKIE_HTTPONLY = True
     CSRF_COOKIE_SECURE = True
-    print("NOT DEBUG!")
