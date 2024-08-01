@@ -7,10 +7,7 @@ from apps.books.const import ReservationStatus
 from apps.books.models import Book, Reservation
 
 frozen_date = datetime(2024, 7, 1, 0, 0, tzinfo=timezone.utc)
-pytestmark = [
-    pytest.mark.django_db,
-    pytest.mark.freeze_time(frozen_date.isoformat()),
-]
+pytestmark = pytest.mark.django_db
 
 
 def test_reservation_str_method():
@@ -30,6 +27,7 @@ def test_reservation_defaults_on_create():
     assert not reservation.is_overdue
 
 
+@pytest.mark.freeze_time(frozen_date.isoformat())
 def test_reservation_issued():
     reservation = mixer.blend(Reservation, status=ReservationStatus.ISSUED)
 
@@ -55,6 +53,7 @@ def test_reservation_ordering():
     reservation1 = mixer.blend(Reservation)
     reservation2 = mixer.blend(Reservation)
     reservation3 = mixer.blend(Reservation)
+
     reservations = Reservation.objects.all()
 
     assert list(reservations) == [reservation3, reservation2, reservation1]

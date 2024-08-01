@@ -51,7 +51,7 @@ class Reservation(TimestampedModel):
     def save(self, *args, **kwargs):
         if self.status == ReservationStatus.ISSUED and self.term is None:
             self.term = Reservation.get_default_term()
-        elif self.status in self.DONE_STATES and self.book:
+        elif self.status in self.DONE_STATES and hasattr(self, "book"):
             # TODO: save book reference for history
             self.book.unqueue_next_order()
             self.book.unlink_reservation()

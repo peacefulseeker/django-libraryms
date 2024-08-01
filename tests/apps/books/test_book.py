@@ -32,11 +32,17 @@ def test_book_author_relation():
 
 
 def test_books_order_by_modified_at_first():
-    book1 = mixer.blend(Book)
-    book2 = mixer.blend(Book)
-    book3 = mixer.blend(Book)
+    book1 = mixer.blend(Book, title="first")
+    book2 = mixer.blend(Book, title="second")
+    book3 = mixer.blend(Book, title="third")
 
-    book2.title = "Updated"
+    book1.title += " (Updated)"
+    book1.save()
+
+    book3.title += " (Updated)"
+    book3.save()
+
+    book2.title += " (Updated)"
     book2.save()
 
     books = Book.objects.all()

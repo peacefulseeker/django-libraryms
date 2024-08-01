@@ -1,22 +1,12 @@
 import pytest
 from mixer.backend.django import mixer
 
-from apps.books.models import Book, Order, Reservation
+from apps.books.models import Book, Order
 
 
 @pytest.fixture
 def book() -> Book:
     return mixer.blend(Book)
-
-
-@pytest.fixture
-def reserved_book(book) -> Book:
-    reservation = mixer.blend(Reservation)
-
-    book.reservation = reservation
-    book.save()
-
-    return book
 
 
 @pytest.fixture
