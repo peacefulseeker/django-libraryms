@@ -1,13 +1,9 @@
-# TODO: specify hosts from environment variables in prod
-ALLOWED_HOSTS = ["*"]
+from core.conf.environ import env
 
-# cross-origin communication with requests coming from frontend
-CORS_ALLOWED_ORIGINS = [
-    # "http://localhost:6060",
-]
-
-# admin only potentially
-# TODO: not exactly sure whether CSRF needed with http only JWT cookie
-CSRF_TRUSTED_ORIGINS = [
-    # "http://localhost:6060",
-]
+if not env("DEBUG"):
+    ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
+    CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS").split(" ")
+    CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(" ")
+    print("CSRF_TRUSTED_ORIGINS", CSRF_TRUSTED_ORIGINS)
+    print("CORS_ALLOWED_ORIGINS", CORS_ALLOWED_ORIGINS)
+    print("ALLOWED_HOSTS", ALLOWED_HOSTS)
