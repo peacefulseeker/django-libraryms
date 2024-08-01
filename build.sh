@@ -2,11 +2,16 @@
 # Exit on error
 set -o errexit
 
+pip install --upgrade pip
+pip install poetry==1.8.3
+
+poetry install
+
 # Convert static asset files
-python src/manage.py collectstatic --no-input
+poetry run python src/manage.py collectstatic --no-input
 
 # Apply any outstanding database migrations
-python src/manage.py migrate
+poetry run python src/manage.py migrate
 
 cd src/
 
