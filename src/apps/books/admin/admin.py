@@ -43,7 +43,7 @@ class BookAdmin(ModelAdmin, ImportExportModelAdmin):
 
 
 @admin.register(Author)
-class AuthorAdmin(ModelAdmin):
+class AuthorAdmin(ModelAdmin, ImportExportModelAdmin):
     search_fields = ("first_name", "last_name")
     list_display = (
         "__str__",
@@ -53,7 +53,7 @@ class AuthorAdmin(ModelAdmin):
 
 
 @admin.register(Publisher)
-class PublisherAdmin(ModelAdmin):
+class PublisherAdmin(ModelAdmin, ImportExportModelAdmin):
     search_fields = ("name",)
     list_display = (
         "__str__",
