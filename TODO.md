@@ -1,8 +1,5 @@
 ## PRIO
 
-### set up CI pipeline in GitHub actions
-### Deploy to render.com / fly.com other heroku free alternative
-
 ### Try combining backend/frontend ultimately.
 Having 1 template served by django backend will allow sending authenticated tokens immediately
 without extra calls from frontend. This will allow smoother experience on initial page loads.
