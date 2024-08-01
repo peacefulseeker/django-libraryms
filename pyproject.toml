@@ -39,7 +39,7 @@ toml-sort = "^0.23.1"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
 addopts = [
-    "--no-migrations",
+    "--maxfail=1",
     "--reuse-db",
     "-p no:warnings",
     "-s",
