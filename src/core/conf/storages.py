@@ -8,3 +8,5 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+if not env("DEBUG"):
+    STORAGES["default"]["staticfiles"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
