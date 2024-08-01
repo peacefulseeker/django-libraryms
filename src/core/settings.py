@@ -14,7 +14,7 @@ include(
     "conf/auth.py",
     "conf/common.py",
     "conf/database.py",
-    "conf/http.py",
+    "conf/security.py",
     "conf/i18n.py",
     "conf/installed_apps.py",
     "conf/middleware.py",
