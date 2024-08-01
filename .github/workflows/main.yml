@@ -52,6 +52,7 @@ jobs:
         run: make test
 
   deploy:
+    needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to render
