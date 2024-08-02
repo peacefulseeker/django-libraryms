@@ -149,3 +149,6 @@ def test_book_from_request(request):
 
 # fetch latest commit for submodule from remote repo
 git submodule update --remote
+
+# push changes from local submodule folder itself
+git push origin HEAD:main
