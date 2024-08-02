@@ -1,6 +1,3 @@
-#!/usr/bin/env bash
-
-
 cd frontend
 pnpm install --frozen-lockfile
 pnpm run build

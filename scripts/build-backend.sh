@@ -1,7 +1,3 @@
-#!/usr/bin/env bash
-# Exit on error
-set -o errexit
-
 pip install --upgrade pip
 pip install poetry==1.8.3
 
