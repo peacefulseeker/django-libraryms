@@ -21,6 +21,3 @@ try:
 except Exception as e:
     print(str(e))
 EOF
-
-
-# python -m gunicorn -b localhost:6004 --env DEBUG=false core.wsgi:application
