@@ -143,3 +143,9 @@ def test_book_from_request(request):
     assert book.id == 1
 ```
 
+
+
+### Git / Git submodule
+
+# fetch latest commit for submodule from remote repo
+git submodule update --remote
