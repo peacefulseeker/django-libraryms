@@ -6,13 +6,12 @@ runs:
 
   steps:
     - name: Install poetry
-      if: steps.cached-poetry.outputs.cache-hit != 'true'
       uses: snok/install-poetry@v1
       with:
         virtualenvs-in-project: true
         version: 1.8.3
 
-    - name: install python
+    - name: Install python
       id: setup-python
       uses: actions/setup-python@v5
       with:
