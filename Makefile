@@ -1,11 +1,15 @@
 manage = poetry run python src/manage.py
 RUN_MAKEMIGRATIONS := 1
+PORT := 7070
 
 server:
-	$(manage) runserver 7070
+	$(manage) runserver $(PORT)
 
 s:
 	make server
+
+prod:
+	cd src && DEBUG=false python -m gunicorn core.wsgi:application -b localhost:$(PORT)
 
 shell:
 	$(manage) shell
