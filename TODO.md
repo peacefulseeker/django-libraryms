@@ -4,6 +4,10 @@
 Having 1 template served by django backend will allow sending authenticated tokens immediately
 without extra calls from frontend. This will allow smoother experience on initial page loads.
 Combining with non-reload ajax calls will make it a good combo eventually.
+### use loading on submit, disable button as well
+### add book covers(need to automate image upload as wel)
+### add a cron job pinging https://django-libraryms.onrender.com/ every 30/60 mins to wake up instance regularly
+
 ### Notify librarian about new order(notification row / email)
 ### Notify member about processed order(ready to be picked up / issued for now) ( email )
 
