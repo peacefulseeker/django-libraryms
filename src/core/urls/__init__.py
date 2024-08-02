@@ -23,5 +23,5 @@ if settings.DEBUG:
 # important to put at very end to respect patterns above
 urlpatterns += [
     path("", app_view, name="app_home"),
-    re_path(r"^(?!\/static\/).+", app_view, name="app_routes"),
+    re_path(r"^(?!\/static\/).*\/$", app_view, name="app_other"),
 ]
