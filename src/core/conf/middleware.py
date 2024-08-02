@@ -13,7 +13,6 @@ MIDDLEWARE = [
 ]
 
 if not env("DEBUG"):
-    pass
     # https://whitenoise.readthedocs.io/en/stable/django.html#enable-whitenoise
     # should be placed directly after the Django SecurityMiddleware
-    # MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
