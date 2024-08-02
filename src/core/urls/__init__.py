@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path
 from django.urls.conf import include
 from django.views.generic.base import TemplateView
 
@@ -23,5 +23,6 @@ if settings.DEBUG:
 # important to put at very end to respect patterns above
 urlpatterns += [
     path("", app_view, name="app_home"),
-    re_path(r"^(?!\/static\/).*\/$", app_view, name="app_other"),
+    path("login/", app_view, name="app_login"),
+    # re_path(r"^(?!\/static\/).*\/$", app_view, name="app_other"),
 ]
