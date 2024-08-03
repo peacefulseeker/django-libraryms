@@ -5,7 +5,7 @@ from django.urls import path, re_path
 from django.urls.conf import include
 from django.views.generic.base import TemplateView
 
-from core.views import app_view
+from core.views import VueAppView
 
 urlpatterns = [
     path("api/v1/", include("core.urls.api.v1"), name="api"),
@@ -17,6 +17,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += [
-    path("", app_view, name="app_home"),
-    re_path("^(login|books|account)", app_view, name="app_routes"),
+    path("", VueAppView.as_view(), name="app_home"),
+    re_path("^(login|books|account)", VueAppView.as_view(), name="app_routes"),
 ]

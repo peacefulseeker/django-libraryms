@@ -2,13 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/static/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title>
-    <script type="module" crossorigin src="/static/assets/index-DSNu087z.js"></script>
+    <title>Jūrmala Central Library | Catalogue</title>
+    <script type="module" crossorigin src="/static/assets/index-DEx9_LEb.js"></script>
     <link rel="stylesheet" crossorigin href="/static/assets/index-DXj-ZkVJ.css">
   </head>
   <body>
+    <div hidden>{{ props|json_script:"app-props" }}</div>
+    <script>
+        window.__rootProps = {}
+        try {
+            window.__rootProps = JSON.parse(document.getElementById('app-props').textContent);
+        } catch (error) {
+        }
+    </script>
     <div id="app"></div>
   </body>
 </html>
