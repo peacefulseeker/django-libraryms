@@ -1,7 +1,6 @@
 from typing import Any
 
 from django.shortcuts import render
-from django.utils.translation import gettext_lazy as _
 from django.views import View
 
 from apps.users.api.serializers import CookieTokenRefreshSerializer
