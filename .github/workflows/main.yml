@@ -13,7 +13,6 @@ env:
   CI: true
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GITHUB_CONTEXT: ${{ toJson(github) }}
-  DATABASE_URL: postgres://postgres:secret@localhost:5432/postgres
 
 jobs:
   lint:
@@ -35,8 +34,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_PASSWORD: secret
-          PGUSER: postgres # default for healthcheck
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_web_libraryms
+        #   POSTGRES_PASSWORD: postgres
+        #   PGUSER: postgres # default for healthcheck
         ports:
           - 5432:5432
         options: >-

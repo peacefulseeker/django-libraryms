@@ -51,7 +51,6 @@ addopts = [
 ]
 env = [
     "CI = 1",
-    "DATABASE_URL = postgres://postgres:postgres@localhost:5432/test_web_libraryms",
     "DEFAULT_FILE_STORAGE = django.core.files.storage.memory.InMemoryStorage",
 ]
 python_files = "test*.py"
