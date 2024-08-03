@@ -17,16 +17,13 @@ https://nkpremices.com/graphene-testing-factories-and-data-seeding-in-django-pyt
 another example with lots of default fake data
 https://github.com/chepe4pi/frameworks_compare/blob/main/myapp/management/commands/generate_data.py
 
-
 ### Delete book orders older then 1 year. Otherwise might collect quite a bunch
 
 ### Setup proper localization (ru, en, lv)
 
-### Book cover image upload(s3 e.g.)
-
 ### Get proper status display in order history view
 
-### Deploy to AWS
 
 ### Add book library relations. Same book examplar can be located in multiple libraries
 ### Add book shelf relation(along with library)
+### Deploy to AWS
