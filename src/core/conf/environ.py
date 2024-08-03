@@ -16,9 +16,11 @@ env = environ.Env(
 if env("CI"):
     envpath = BASE_DIR / ".env.ci"
     print(f"using {envpath}")
+    print(f"DEBUG {env('DEBUG')}")
 else:
     envpath = BASE_DIR / ".env"
     print(f"using {envpath}")
+    print(f"DEBUG {env('DEBUG')}")
 
 if envpath.exists():
     env.read_env(envpath)
