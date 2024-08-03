@@ -9,6 +9,7 @@ s:
 	make server
 
 prod:
+	make static
 	cd src && DEBUG=false python -m gunicorn core.wsgi:application -b localhost:$(PORT)
 
 shell:
