@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/django-libraryms
+  CI: true
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GITHUB_CONTEXT: ${{ toJson(github) }}
   DATABASE_URL: postgres://postgres:secret@localhost:5432/postgres

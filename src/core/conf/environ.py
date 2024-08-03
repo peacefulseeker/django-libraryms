@@ -3,6 +3,7 @@ import environ
 from core.conf.common import BASE_DIR
 
 env = environ.Env(
+    CI=(bool, False),
     SECRET_KEY=(str, "not-so-secret"),
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(str, ""),
@@ -12,7 +13,12 @@ env = environ.Env(
     USE_S3=(bool, False),
 )
 
-envpath = BASE_DIR / ".env"
+if env("CI"):
+    print("using .env.ci settings")
+    envpath = BASE_DIR / ".env.ci"
+else:
+    print("using .env settings")
+    envpath = BASE_DIR / ".env"
 
 if envpath.exists():
     env.read_env(envpath)
