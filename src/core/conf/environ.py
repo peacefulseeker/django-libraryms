@@ -9,6 +9,7 @@ env = environ.Env(
     CSRF_TRUSTED_ORIGINS=(str, ""),
     CORS_ALLOWED_ORIGINS=(str, ""),
     REFRESH_TOKEN_COOKIE_SECURE=(bool, True),
+    USE_S3=(bool, False),
 )
 
 envpath = BASE_DIR / ".env"
