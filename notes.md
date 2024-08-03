@@ -145,10 +145,34 @@ def test_book_from_request(request):
 
 
 
-### Git / Git submodule
+## Git / Git submodule
 
 # fetch latest commit for submodule from remote repo
 git submodule update --remote
 
 # push changes from local submodule folder itself
 git push origin HEAD:main
+
+
+
+## AWS
+### S3
+```python
+import boto3
+from django.conf import settings
+
+session = boto3.session.Session()
+
+client = session.client(
+    "s3",
+    region_name=settings.AWS_Si3_REGION_NAME,
+    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+
+)
+
+client.get_object(
+    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+    Key="books/covers/12-year-slave.jpg"
+)
+```

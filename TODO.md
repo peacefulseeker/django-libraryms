@@ -1,10 +1,10 @@
 ## PRIO
 
-### add book covers(need to automate image upload as wel)
 ### add a cron job pinging https://django-libraryms.onrender.com/ every 30/60 mins to wake up instance regularly
-
 ### Notify librarian about new order(notification row / email)
 ### Notify member about processed order(ready to be picked up / issued for now) ( email )
+
+Amazon SES for email sending
 
 ## SECONDARY
 ### can Book.clean() be somehow leveraged for reservation status checking?
