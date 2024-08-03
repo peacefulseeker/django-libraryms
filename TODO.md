@@ -1,6 +1,5 @@
 ## PRIO
 
-### use loading on submit, disable button as well
 ### add book covers(need to automate image upload as wel)
 ### add a cron job pinging https://django-libraryms.onrender.com/ every 30/60 mins to wake up instance regularly
 
