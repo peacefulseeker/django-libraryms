@@ -34,9 +34,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_web_libraryms
-        #   POSTGRES_PASSWORD: postgres
-        #   PGUSER: postgres # default for healthcheck
+          POSTGRES_DB: test_web_libraryms
+          POSTGRES_PASSWORD: postgres
+          PGUSER: postgres # default for healthcheck
         ports:
           - 5432:5432
         options: >-
