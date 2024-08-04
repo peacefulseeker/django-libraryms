@@ -1,6 +1,7 @@
 ## PRIO
 
-### add a cron job pinging https://django-libraryms.onrender.com/ every 30/60 mins to wake up instance regularly
+### add a cron job pinging https://django-libraryms.onrender.com/
+seems every 15mins render server worker is shutting down
 ### Notify librarian about new order(notification row / email)
 ### Notify member about processed order(ready to be picked up / issued for now) ( email )
 
