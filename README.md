@@ -1,7 +1,7 @@
 ## Library management system on Django and Vue.js
 
 ### MVP Goal & Requirements
-Check out the [MVP Goal & Requirements](../../wiki/MVP%20Goal%20&%20Requirements.md)
+Check out the [MVP Goal & Requirements](../../wiki/MVP-Goal-&-Requirements)
 
 ## Project setup
 
@@ -51,5 +51,5 @@ make prod
 ```
 
 ### Further plans
-Check out the [TODO](../../wiki/TODO.md)
+Check out the [TODO](../../wiki/TODO)
 
