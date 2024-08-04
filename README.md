@@ -5,11 +5,11 @@ Check out the [MVP Goal & Requirements](../../wiki/MVP-Goal-&-Requirements)
 
 ## Project setup
 
-### Tool versions
+#### Tool versions
 Check [tool-versions](./.tool-versions)
 
+#### Clone locally with frontend submodule(separate repo)
 ```shell
-# clone locally with frontend submodule(separate repo)
 git clone --recurse-submodules git@github.com:peacefulseeker/django-libraryms.git ./local-project-dir
 
 cd ./local-project-dir
@@ -32,7 +32,7 @@ ADMIN_PASSWORD=admin
 ./scripts/build-backend.sh
 ```
 
-Run server in development mode
+#### Run server in development mode
 ```shell
 make server
 # same as
@@ -41,7 +41,7 @@ make s
 poetry run python src/manage.py runserver 7070
 ```
 
-Simulate production server
+#### Simulate production server
 ```shell
 # builds both backend and frontend
 ./scripts/build.sh
