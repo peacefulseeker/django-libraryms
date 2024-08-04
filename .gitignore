@@ -11,3 +11,5 @@ db/dump.json
 staticfiles
 static
 media
+
+notes.md
