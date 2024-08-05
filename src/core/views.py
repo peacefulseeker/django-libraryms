@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 from django.views import View
 
 from apps.users.api.serializers import CookieTokenRefreshSerializer
@@ -25,3 +26,16 @@ class VueAppView(View):
         self.context["props"].update(**self.get_user_data(request))
 
         return render(request, self.template_name, context=self.context)
+
+
+def handler404(request, *args, **kwargs):
+    context = {
+        "props": {
+            "error": {
+                "status": 404,
+                "message": _(f"Page '{request.path}' not found"),
+            }
+        }
+    }
+
+    return render(request, "vue-index.html", context=context, status=404)

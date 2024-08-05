@@ -20,3 +20,5 @@ urlpatterns += [
     path("", VueAppView.as_view(), name="app_home"),
     re_path("^(login|books|account)", VueAppView.as_view(), name="app_routes"),
 ]
+
+handler404 = "core.views.handler404"
