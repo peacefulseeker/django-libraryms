@@ -1,4 +1,5 @@
 import django
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from apps.books.models import Author, Book, Languages, Publisher
@@ -10,11 +11,14 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true", required=False, help="Dry run mode")
 
     def handle(self, *args, **options) -> None:
-        if options["dry_run"]:
-            print("Dry run mode")
+        if not settings.DEBUG:
+            print("Not allowed in production envs")
             return
 
-        # TODO: only in dev envs
+        if options["dry_run"]:
+            print("Doing nothing in dry run mode")
+            return
+
         # users
         self.create_super_user()
         self.create_librarian()

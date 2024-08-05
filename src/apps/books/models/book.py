@@ -53,8 +53,7 @@ class Reservation(TimestampedModel):
             self.term = Reservation.get_default_term()
         elif self.status in self.DONE_STATES and hasattr(self, "book"):
             # TODO: save book reference for history
-            self.book.unqueue_next_order()
-            self.book.unlink_reservation()
+            self.book.process_next_order()
         super().save(*args, **kwargs)
 
     class Meta:
@@ -71,6 +70,10 @@ class Reservation(TimestampedModel):
     @property
     def is_reserved(self) -> bool:
         return self.status == ReservationStatus.RESERVED
+
+    @property
+    def is_completed(self) -> bool:
+        return self.status == ReservationStatus.COMPLETED
 
     @property
     def overdue_days(self):
@@ -139,15 +142,16 @@ class Book(TimestampedModel):
                 status=OrderStatus.PROCESSED,
             )
 
-    def unlink_reservation(self):
+    def process_next_order(self):
         self.reservation = None
         self.save()
+        self.unqueue_next_order()
 
     def unqueue_next_order(self):
         if not self.has_orders_in_queue:
             return
 
-        next_order = self.queued_orders.first()
+        next_order: Order = self.queued_orders.first()
         next_order.status = OrderStatus.UNPROCESSED
         next_order.save()
 
@@ -214,8 +218,6 @@ class Order(TimestampedModel):
     book: Book = models.ForeignKey("Book", on_delete=models.SET_NULL, null=True)
     reservation: Reservation = models.OneToOneField(
         Reservation,
-        # TODO: not exactly sure whether order should be delted along with reservation
-        # seems like better to delete reservation through the order instead. Let's see
         on_delete=models.CASCADE,
         null=True,
         blank=True,

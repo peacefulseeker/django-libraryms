@@ -1,5 +1,3 @@
-from typing import Any
-
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -15,14 +13,6 @@ from apps.books.const import OrderStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
 from apps.books.models.book import Reservation
-from apps.users.models import Member
-
-
-# TODO: temporary for quick tests
-class TempOverrideUserMixin:
-    def _override_auth_member(self, request: Request, pk: int = 3) -> Any:
-        member = Member.objects.get(id=pk)
-        request.user = member
 
 
 class BookListView(generics.ListAPIView):
@@ -60,11 +50,10 @@ class BookDetailView(generics.RetrieveAPIView):
     serializer_class = BookSerializer
 
 
-class BookOrderView(APIView, TempOverrideUserMixin):
+class BookOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request, book_id: int) -> Response:
-        # self._override_auth_member(request, pk=4)
         if self._get_current_reservations(request.user.id).count() >= Reservation.MAX_RESERVATIONS_PER_MEMBER:
             return Response(status=400, data={"detail": _("Maximum number of reservations reached")})
 

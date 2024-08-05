@@ -34,6 +34,9 @@ class BookListSerializer(serializers.ModelSerializer):
             "pages",
             "cover_image_url",
             "is_available",
+            # reservations specific
+            "reservation_term",
+            "is_issued",
         ]
 
 

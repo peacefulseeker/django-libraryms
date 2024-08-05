@@ -13,7 +13,7 @@ class Language(models.TextChoices):
 class ReservationStatus(models.TextChoices):
     RESERVED = "R"
     ISSUED = "I"
-    COMPLETED = "C"  # TODO: or returned?
+    COMPLETED = "C"
     REFUSED = "RF"
     CANCELLED = "X"
 
