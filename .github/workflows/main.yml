@@ -29,7 +29,7 @@ jobs:
         uses: ./.github/actions/build
 
       - name: lint
-        run: make lint -e RUN_MAKEMIGRATIONS=0
+        run: make lint
 
   test:
     needs: lint
