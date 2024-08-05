@@ -21,21 +21,21 @@ git clone --recurse-submodules git@github.com:peacefulseeker/django-libraryms.gi
 cd ./local-project-dir
 cp src/core/.env.ci src/core/.env
 ```
+Set `DEBUG=true` and other env variables such as DATABASE_URL in `src/core/.env`
+to match your local environment setup.
 
-Add extra environment variables to copied `src/core/.env`.
-ADMIN_* ones needed for creating the superuser while executing
-backend build script locally.
 
+#### Build backend
+Installs poetry, collects static assets, runs migrations, creates superuser(admin env vars required)
 ```shell
-DEBUG=true
-ADMIN_USERNAME=admin # change to whatever you like
-ADMIN_EMAIL=admin@admin.com
-ADMIN_PASSWORD=admin
-```
-
-```shell
-# install poetry, collects static, runs migrations, creates superuser(admin env vars required)
+# change as you prefer
+export ADMIN_USERNAME=admin
+       ADMIN_EMAIL=admin@admin.com
+       ADMIN_PASSWORD=admin2
 ./scripts/build-backend.sh
+
+# build frontend, in case you want to see UI when visiting homepage
+./scripts/build-frontend.sh
 ```
 
 #### Run server in development mode
