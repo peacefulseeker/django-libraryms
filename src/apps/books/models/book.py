@@ -232,7 +232,7 @@ class Order(TimestampedModel):
     status = models.CharField(
         choices=OrderStatus,
         max_length=2,
-        default=OrderStatus.PROCESSED,
+        default=OrderStatus.UNPROCESSED,
     )
     last_modified_by = models.ForeignKey(
         "users.User",
