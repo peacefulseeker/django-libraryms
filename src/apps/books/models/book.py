@@ -57,7 +57,7 @@ class Reservation(TimestampedModel):
         super().save(*args, **kwargs)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-modified_at"]
 
     @classmethod
     def get_default_term(cls) -> timezone.datetime:
@@ -199,6 +199,14 @@ class Book(TimestampedModel):
 
 
 class OrderQuerySet(models.QuerySet):
+    def processed_reserved(self, book_id, member_id) -> "QuerySet[Order]":
+        return self.filter(
+            book=book_id,
+            member=member_id,
+            status=OrderStatus.PROCESSED,
+            reservation__status=ReservationStatus.RESERVED,
+        )
+
     def processable(self, book_id, member_id) -> "QuerySet[Order]":
         return self.filter(
             book=book_id,
@@ -206,7 +214,6 @@ class OrderQuerySet(models.QuerySet):
             status__in=[
                 OrderStatus.UNPROCESSED,
                 OrderStatus.IN_QUEUE,
-                OrderStatus.PROCESSED,
             ],
         )
 

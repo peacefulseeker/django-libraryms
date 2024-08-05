@@ -66,7 +66,7 @@ class BookOrderView(APIView):
         return self._cancel_order(book_id, request.user.id)
 
     def _cancel_order(self, book_id: int, member_id) -> Response:
-        order = self._processable_order(book_id, member_id)
+        order = self._cancellable_order(book_id, member_id)
         if not order.exists():
             return Response(status=400, data={"detail": _("No cancellable order found")})
         order = order.get()
@@ -89,6 +89,12 @@ class BookOrderView(APIView):
 
     def _processable_order(self, book_id: int, member_id: int) -> "QuerySet[BookOrder]":
         return BookOrder.objects.processable(book_id, member_id)
+
+    def _processed_reserved(self, book_id: int, member_id: int) -> "QuerySet[BookOrder]":
+        return BookOrder.objects.processed_reserved(book_id, member_id)
+
+    def _cancellable_order(self, book_id: int, member_id: int) -> "QuerySet[BookOrder]":
+        return self._processable_order(book_id, member_id) | self._processed_reserved(book_id, member_id)
 
     def _get_current_reservations(self, member_id: int) -> "QuerySet[Reservation]":
         return Reservation.objects.reserved_by_member(member_id)

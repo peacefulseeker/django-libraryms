@@ -49,11 +49,19 @@ def test_reservation_unlinked_from_book_on_status_change(status):
     assert not hasattr(reservation, "book")
 
 
-def test_reservation_ordering():
+def test_reservation_ordered_by_last_modified():
     reservation1 = mixer.blend(Reservation)
     reservation2 = mixer.blend(Reservation)
     reservation3 = mixer.blend(Reservation)
 
+    reservation2.status = ReservationStatus.RESERVED
+    reservation2.save()
+
+    reservation1.save()
+
+    reservation3.status = ReservationStatus.COMPLETED
+    reservation3.save()
+
     reservations = Reservation.objects.all()
 
-    assert list(reservations) == [reservation3, reservation2, reservation1]
+    assert list(reservations) == [reservation3, reservation1, reservation2]
