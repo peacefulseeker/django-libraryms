@@ -3,6 +3,12 @@
 ### MVP Goal & Requirements
 Check out the [MVP Goal & Requirements](../../wiki/MVP-Goal-&-Requirements)
 
+## Demo
+#### Member orders a book
+![Member orders a book](demo/demo-member-ui.gif)
+#### Librarian processes the order
+![Librarian processes the order](demo/demo-librarian-admin.gif)
+
 ## Project setup
 
 #### Tool versions

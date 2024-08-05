@@ -9,6 +9,7 @@ on:
       - '.tool-versions'
       - '.gitignore'
       - '.dockerignore'
+      - 'demo/**'
   pull_request:
 
 
