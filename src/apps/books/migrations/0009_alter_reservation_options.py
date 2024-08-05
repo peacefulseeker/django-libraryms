@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('books', '0008_alter_book_pages_description_and_more'),
+        ("books", "0008_alter_book_pages_description_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='reservation',
-            options={'ordering': ['-modified_at']},
+            name="reservation",
+            options={"ordering": ["-modified_at"]},
         ),
     ]
