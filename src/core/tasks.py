@@ -16,4 +16,5 @@ def ping_production_website():
 
     return {
         "status": response.status_code,
+        "response_time_in_seconds": response.elapsed.total_seconds(),
     }
