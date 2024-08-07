@@ -1,12 +1,11 @@
-venv/
+.venv
 .vscode/
 .env
 .git
-tests/
+.tool-versions
 
+tests/
 Dockerfile*
 *.md
 coverage*
 Makefile
-REQUIREMENTS.md
-TODO.md

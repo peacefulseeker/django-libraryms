@@ -1,5 +1,6 @@
 .venv
 __pycache__
+.pytest_cache
 *.sqlite3
 
 .coverage
@@ -13,3 +14,5 @@ static
 media
 
 notes.md
+
+celerybeat-schedule

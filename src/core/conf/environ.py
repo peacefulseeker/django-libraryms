@@ -11,6 +11,8 @@ env = environ.Env(
     CORS_ALLOWED_ORIGINS=(str, ""),
     REFRESH_TOKEN_COOKIE_SECURE=(bool, True),
     USE_S3=(bool, False),
+    TIME_ZONE=(str, "Europe/Riga"),
+    PRODUCTION_URL=(str, "https://django-libraryms.onrender.com"),
 )
 
 if env("CI"):
