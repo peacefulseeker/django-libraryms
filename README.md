@@ -31,7 +31,7 @@ Installs poetry, collects static assets, runs migrations, creates superuser(admi
 # change as you prefer
 export ADMIN_USERNAME=admin
        ADMIN_EMAIL=admin@admin.com
-       ADMIN_PASSWORD=admin2
+       ADMIN_PASSWORD=admin
 ./scripts/build-backend.sh
 
 # build frontend, in case you want to see UI when visiting homepage

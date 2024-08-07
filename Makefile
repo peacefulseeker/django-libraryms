@@ -34,3 +34,17 @@ lint:
 	poetry run ruff format --check src tests
 	poetry run ruff check src tests
 	poetry run toml-sort pyproject.toml --check
+
+
+# docker
+restart_celery_all:
+	docker compose restart celery_flower celery_beat celery_beat
+
+up:
+	docker compose up -d
+
+upbuild:
+	docker compose up -d --build
+
+upbuildnocache:
+	docker compose up -d --build --force-recreate

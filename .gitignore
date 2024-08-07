@@ -1,10 +1,11 @@
 .venv
 __pycache__
+.pytest_cache
 *.sqlite3
 
 .coverage
 .DS_Store
-.env
+.env*
 
 db/dump.json
 
@@ -13,3 +14,5 @@ static
 media
 
 notes.md
+
+celerybeat-schedule

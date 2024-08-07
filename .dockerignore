@@ -1,12 +1,13 @@
-venv/
+.venv
 .vscode/
 .env
-.git
-tests/
+.git/
+.github/
+.tool-versions
 
-Dockerfile*
+demo/
+tests/
+frontend/
+media/
 *.md
 coverage*
-Makefile
-REQUIREMENTS.md
-TODO.md
