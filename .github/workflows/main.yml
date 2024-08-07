@@ -59,7 +59,7 @@ jobs:
         run: make test
 
   deploy:
-    if: github.ref == 'refs/heads/main' && github.repository_owner == 'peacefulseeker'
+    # if: github.ref == 'refs/heads/main' && github.repository_owner == 'peacefulseeker'
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps:

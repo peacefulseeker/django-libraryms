@@ -1,6 +1,3 @@
-pip install --upgrade pip
-pip install poetry==1.8.3
-
 poetry install
 
 # Convert static asset files
