@@ -10,8 +10,6 @@ services:
       - 7004:7070
     env_file: .env.docker.dev
     depends_on:
-      redis:
-        condition: service_started
       db:
         condition: service_healthy
 
