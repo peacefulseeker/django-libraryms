@@ -1,7 +1,0 @@
-name: "login-to-gh-actions"
-description: ""
-runs:
-  using: "composite"
-  steps:
-    - run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
-      shell: bash
