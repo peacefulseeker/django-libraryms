@@ -44,7 +44,11 @@ ruff = "^0.5.1"
 toml-sort = "^0.23.1"
 
 [tool.coverage.report]
-omit = ["*/migrations/*"]
+omit = [
+    "*/migrations/*",
+    "src/core/conf/*",
+    "src/core/wsgi.py",
+]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
