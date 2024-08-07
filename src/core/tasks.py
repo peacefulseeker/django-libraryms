@@ -12,7 +12,10 @@ def sample_task():
 def ping_production_website():
     import requests
 
-    response = requests.get(env("PRODUCTION_URL"), headers={"User-Agent": "DjangoLibraryMS/CeleryBeat"})
+    try:
+        response = requests.get(env("PRODUCTION_URL"), headers={"User-Agent": "DjangoLibraryMS/CeleryBeat"})
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
 
     return {
         "status": response.status_code,
