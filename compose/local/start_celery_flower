@@ -2,15 +2,4 @@
 set -o errexit
 set -o nounset
 
-worker_ready() {
-    celery --app core --workdir src inspect ping
-}
-
-until worker_ready; do
-  >&2 echo 'Celery worker not available yet'
-  sleep 1
-done
->&2 echo 'Celery worker is available'
-
-
 celery --app core --workdir src --broker=${CELERY_BROKER_URL} flower

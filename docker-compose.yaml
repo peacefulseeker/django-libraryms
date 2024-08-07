@@ -8,8 +8,7 @@ services:
       - .:/app
     ports:
       - 7004:7070
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5433/web_libraryms
+    env_file: .env.docker.dev
     depends_on:
       redis:
         condition: service_started
@@ -22,10 +21,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    environment:
-      - PGPORT=5433
-      - PGUSER=postgres # also used for pg_isready check below
-      - POSTGRES_PASSWORD=postgres
+    env_file: .env.docker.dev
     healthcheck:
       test: pg_isready
       interval: 1s
@@ -42,8 +38,7 @@ services:
     command: /start_celery_worker
     volumes:
       - .:/app
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5433/web_libraryms
+    env_file: .env.docker.dev
     depends_on:
       redis:
         condition: service_started
@@ -57,8 +52,7 @@ services:
     command: /start_celery_beat
     volumes:
       - .:/app
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5433/web_libraryms
+    env_file: .env.docker.dev
     depends_on:
       redis:
         condition: service_started
@@ -72,16 +66,16 @@ services:
     command: /start_celery_flower
     volumes:
       - .:/app
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379
-      - DATABASE_URL=postgres://postgres:postgres@db:5433/web_libraryms
+    env_file: .env.docker.dev
     ports:
       - 5557:5555
     depends_on:
-      redis:
-        condition: service_started
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
+      celery_worker:
+        condition: service_started
 
 
 volumes:
