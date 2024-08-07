@@ -13,6 +13,8 @@ app = Celery(
     broker_url=env("CELERY_BROKER_URL", str, default="redis://redis:6379"),
     result_backend=env("CELERY_RESULT_BACKEND", str, default="redis://redis:6379"),
     task_always_eager=env("CELERY_ALWAYS_EAGER", cast=bool, default=settings.DEBUG),
+    enable_utc=False,
+    timezone=env("TIME_ZONE"),
     beat_schedule={
         "sample_task": {
             "task": "core.tasks.sample_task",
