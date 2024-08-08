@@ -4,6 +4,7 @@
 .git/
 .github/
 .tool-versions
+*.sqlite3
 
 demo/
 tests/
@@ -11,3 +12,5 @@ frontend/
 media/
 *.md
 coverage*
+
+fly.toml

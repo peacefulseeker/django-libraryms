@@ -17,13 +17,9 @@ app = Celery(
     result_extended=True,
     timezone=env("TIME_ZONE"),
     beat_schedule={
-        # just for IDE navigtion convenience
-        "core.tasks.sample_task": {
-            "task": "core/sample_task",  # name of the registered task in celery, not the task path
-            "schedule": crontab(minute="*/1"),
-        },
+        # just for IDE navigation convenience
         "core.tasks.ping_production_website": {
-            "task": "core/ping_production_website",
+            "task": "core/ping_production_website",  # name of the registered task in celery, not the task path
             "schedule": crontab(minute="*/10"),
         },
     },

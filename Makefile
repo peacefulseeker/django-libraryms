@@ -9,7 +9,7 @@ s:
 
 prod:
 	make static
-	cd src && DEBUG=false python -m gunicorn core.wsgi:application --workers 2 -b localhost:$(PORT)
+	poetry run gunicorn core.wsgi:application --chdir src --workers 2 -b localhost:$(PORT)
 
 shell:
 	$(manage) shell
