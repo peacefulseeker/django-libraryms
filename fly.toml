@@ -1,0 +1,38 @@
+# fly.toml app configuration file generated for django-libraryms on 2024-08-08T15:59:36+03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'django-libraryms'
+primary_region = 'waw'
+# console_command = './src/manage.py shell'
+
+[build]
+
+[deploy]
+#   release_command = './scripts/build.sh'
+
+[processes]
+  app = "python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application"
+  worker = "python -m celery --app core --workdir src worker --loglevel=info"
+  beat = "python -m celery --app core --workdir src beat --loglevel=info --pidfile=/tmp/celerybeat.pid"
+
+[env]
+  PORT = '8000'
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+# [[statics]]
+#   guest_path = '/app/static'
+#   url_prefix = '/static/'
