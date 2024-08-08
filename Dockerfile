@@ -23,6 +23,8 @@ RUN poetry install --only main --no-root --no-interaction
 
 COPY . /app
 
+RUN poetry run python src/manage.py collectstatic --no-input
+
 # RUN chmod +x ./scripts/build.sh
 # RUN chmod +x ./entrypoint.sh
 

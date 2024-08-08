@@ -1,3 +1,5 @@
+#! /bin/sh
+
 # Convert static asset files
 poetry run python src/manage.py collectstatic --no-input
 
