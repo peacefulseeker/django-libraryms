@@ -6,6 +6,7 @@ __pycache__
 .coverage
 .DS_Store
 .env*
+!.env.docker.sample
 
 db/dump.json
 

@@ -1,0 +1,3 @@
+#! /bin/sh
+
+celery --app core --workdir src worker --loglevel=info
