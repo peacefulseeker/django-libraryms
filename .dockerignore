@@ -8,9 +8,10 @@
 
 demo/
 tests/
-frontend/
 media/
 *.md
 coverage*
 
 fly.toml
+
+Dockerfile.dev
