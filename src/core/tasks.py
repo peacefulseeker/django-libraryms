@@ -3,12 +3,12 @@ from celery import shared_task
 from core.conf.environ import env
 
 
-@shared_task
+@shared_task(name="core/sample_task")
 def sample_task():
     return "Hello from shared task"
 
 
-@shared_task
+@shared_task(name="core/ping_production_website")
 def ping_production_website():
     import requests
 
@@ -18,6 +18,7 @@ def ping_production_website():
         return {"error": str(e)}
 
     return {
+        "url": env("PRODUCTION_URL"),
         "status": response.status_code,
         "response_time": response.elapsed.total_seconds(),
     }

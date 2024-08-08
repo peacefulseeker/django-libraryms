@@ -58,6 +58,7 @@ services:
         condition: service_healthy
 
   celery_flower:
+    profiles: [disabled] # TODO: potentially removable completely
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -74,7 +75,6 @@ services:
         condition: service_started
       celery_worker:
         condition: service_started
-
 
 volumes:
   postgres-data:

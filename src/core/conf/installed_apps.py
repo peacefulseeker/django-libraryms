@@ -9,6 +9,7 @@ INSTALLED_APPS = [
 
     "corsheaders",
     "django_filters",
+    "django_celery_results",
     "rest_framework",
     "rest_framework_simplejwt",
     "simple_history",
