@@ -13,4 +13,5 @@ media/
 coverage*
 
 fly.toml
+
 Dockerfile.dev
