@@ -22,7 +22,7 @@ app = Celery(
         },
         "ping_production_website": {
             "task": "core.tasks.ping_production_website",
-            "schedule": crontab(minute="*/5"),
+            "schedule": crontab(minute="*/10"),
         },
     },
 )
