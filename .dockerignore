@@ -13,5 +13,7 @@ media/
 coverage*
 
 fly.toml
-
 Dockerfile.dev
+.env.docker.sample
+docker-compose.yaml
+Makefile

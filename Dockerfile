@@ -5,7 +5,7 @@ FROM python:${PYTHON_VERSION}
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN adduser --system --no-create-home appuser
+# RUN adduser --system --no-create-home appuser
 
 RUN apt-get update && apt-get install -y \
     libpq-dev \
@@ -28,9 +28,9 @@ COPY . /app
 
 EXPOSE 8000
 
-RUN chown -R appuser .
+# RUN chown -R appuser .
 
-USER appuser
+# USER appuser
 
 # will be rewritten by each of processes
 CMD ./entrypoint.sh

@@ -10,7 +10,7 @@ primary_region = 'waw'
 [build]
 
 [deploy]
-#   release_command = './scripts/build.sh'
+  release_command = 'sh ./scripts/build-backend.sh'
 
 [processes]
   app = "python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application"
