@@ -20,6 +20,7 @@ RUN pip install poetry
 COPY pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.create false
 RUN poetry install --only main --no-root --no-interaction
+
 COPY . /app
 
 # RUN chmod +x ./scripts/build.sh
