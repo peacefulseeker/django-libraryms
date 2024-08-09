@@ -51,6 +51,7 @@ WORKDIR /app
 RUN pip install poetry
 COPY pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.create false
+# NOTE: that will still installs dev deps because of the poetry following original lock file deps
 RUN poetry install --only main --no-root --no-interaction
 
 COPY . /app
