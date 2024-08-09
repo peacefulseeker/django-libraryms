@@ -1,16 +1,26 @@
 .venv
 .vscode/
-.env
+**/*.env
+.env.docker.dev
 .git/
 .github/
 .tool-versions
 *.sqlite3
+.DS_Store
+.coverage
+.gitignore
+.gitmodules
+.ruff_cache/
+.pytest_cache/
+*.md
 
 demo/
 tests/
 media/
-*.md
 coverage*
+compose/
+htmlcov/
+scripts/
 
 fly.toml
 Dockerfile.dev
