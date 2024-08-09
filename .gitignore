@@ -8,7 +8,7 @@ __pycache__
 .env*
 !.env.docker.sample
 
-db/dump.json
+db/dump*
 
 staticfiles
 static

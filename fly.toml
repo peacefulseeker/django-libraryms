@@ -20,6 +20,11 @@ primary_region = 'waw'
 [env]
   PORT = '8000'
 
+[mounts]
+  source = "app_data"
+  destination = "/data"
+  processes = ["app"]
+
 [http_service]
   internal_port = 8000
   force_https = true
@@ -29,10 +34,21 @@ primary_region = 'waw'
   processes = ['app']
 
 [[vm]]
-  memory = '512mb'
+  memory = '512'
   cpu_kind = 'shared'
   cpus = 1
 
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/healthz"
+
 # [[statics]]
-#   guest_path = '/app/static'
+#   guest_path = '/src/core/staticfiles'
 #   url_prefix = '/static/'
+#   index_document = "src/core/vue-index.html"
+
+

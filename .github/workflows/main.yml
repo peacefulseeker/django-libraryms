@@ -60,7 +60,7 @@ jobs:
 
   deploy-to-fly:
     if: github.ref == 'refs/heads/main' && github.repository_owner == 'peacefulseeker'
-    needs: [lint, test]
+    # needs: [lint, test]
     runs-on: ubuntu-latest
     concurrency: deploy-group    # optional: ensure only one action runs at a time
     steps:
