@@ -23,6 +23,7 @@ RUN poetry install --only main --no-root --no-interaction
 
 COPY . /app
 
+ENV DATABASE_URL=sqlite:///db.sqlite3
 ENV SECRET_KEY "non-secret-key-for-building-purposes"
 RUN python src/manage.py collectstatic --no-input
 
