@@ -57,24 +57,5 @@ services:
       db:
         condition: service_healthy
 
-  celery_flower:
-    profiles: [disabled] # TODO: potentially removable completely
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    command: /start_celery_flower
-    volumes:
-      - .:/app
-    env_file: .env.docker.dev
-    ports:
-      - 5557:5555
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      celery_worker:
-        condition: service_started
-
 volumes:
   postgres-data:

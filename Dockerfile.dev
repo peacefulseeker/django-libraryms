@@ -18,14 +18,11 @@ WORKDIR /app
 
 RUN poetry install
 
-COPY ./compose/local/start_web /start_web
+COPY ./scripts/local/start_web /start_web
 RUN chmod +x /start_web
 
-COPY ./compose/local/start_celery_worker /start_celery_worker
+COPY ./scripts/local/start_celery_worker /start_celery_worker
 RUN chmod +x /start_celery_worker
 
-COPY ./compose/local/start_celery_beat /start_celery_beat
+COPY ./scripts/local/start_celery_beat /start_celery_beat
 RUN chmod +x /start_celery_beat
-
-COPY ./compose/local/start_celery_flower /start_celery_flower
-RUN chmod +x /start_celery_flower

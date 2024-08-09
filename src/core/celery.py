@@ -1,7 +1,6 @@
 import os
 
 from celery import Celery
-from celery.schedules import crontab
 from django.conf import settings
 
 from core.conf.environ import env
@@ -16,13 +15,6 @@ app = Celery(
     enable_utc=False,
     result_extended=True,
     timezone=env("TIME_ZONE"),
-    beat_schedule={
-        # just for IDE navigation convenience
-        "core.tasks.ping_production_website": {
-            "task": "core/ping_production_website",  # name of the registered task in celery, not the task path
-            "schedule": crontab(minute="*/10"),
-        },
-    },
 )
 
 
