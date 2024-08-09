@@ -18,9 +18,7 @@ demo/
 tests/
 media/
 coverage*
-compose/
 htmlcov/
-scripts/
 
 fly.toml
 Dockerfile.dev

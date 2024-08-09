@@ -537,6 +537,20 @@ files = [
 toml = ["tomli"]
 
 [[package]]
+name = "cron-descriptor"
+version = "1.4.3"
+description = "A Python library that converts cron expressions into human readable strings."
+optional = false
+python-versions = "*"
+files = [
+    {file = "cron_descriptor-1.4.3-py3-none-any.whl", hash = "sha256:a67ba21804983b1427ed7f3e1ec27ee77bf24c652b0430239c268c5ddfbf9dc0"},
+    {file = "cron_descriptor-1.4.3.tar.gz", hash = "sha256:7b1a00d7d25d6ae6896c0da4457e790b98cba778398a3d48e341e5e0d33f0488"},
+]
+
+[package.extras]
+dev = ["polib"]
+
+[[package]]
 name = "curtsies"
 version = "0.4.2"
 description = "Curses-like terminal wrapper, with colored strings!"
@@ -629,6 +643,24 @@ tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 [package.extras]
 argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
+
+[[package]]
+name = "django-celery-beat"
+version = "2.6.0"
+description = "Database-backed Periodic Tasks."
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-celery-beat-2.6.0.tar.gz", hash = "sha256:f75b2d129731f1214be8383e18fae6bfeacdb55dffb2116ce849222c0106f9ad"},
+]
+
+[package.dependencies]
+celery = ">=5.2.3,<6.0"
+cron-descriptor = ">=1.2.32"
+Django = ">=2.2,<5.1"
+django-timezone-field = ">=5.0"
+python-crontab = ">=2.3.4"
+tzdata = "*"
 
 [[package]]
 name = "django-celery-results"
@@ -765,6 +797,20 @@ s3 = ["boto3 (>=1.4.4)"]
 sftp = ["paramiko (>=1.15)"]
 
 [[package]]
+name = "django-timezone-field"
+version = "7.0"
+description = "A Django app providing DB, form, and REST framework fields for zoneinfo and pytz timezone objects."
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "django_timezone_field-7.0-py3-none-any.whl", hash = "sha256:3232e7ecde66ba4464abb6f9e6b8cc739b914efb9b29dc2cf2eee451f7cc2acb"},
+    {file = "django_timezone_field-7.0.tar.gz", hash = "sha256:aa6f4965838484317b7f08d22c0d91a53d64e7bbbd34264468ae83d4023898a7"},
+]
+
+[package.dependencies]
+Django = ">=3.2,<6.0"
+
+[[package]]
 name = "djangorestframework"
 version = "3.15.2"
 description = "Web APIs for Django, made easy."
@@ -815,24 +861,6 @@ files = [
 
 [package.dependencies]
 python-dateutil = ">=2.4"
-
-[[package]]
-name = "flower"
-version = "2.0.1"
-description = "Celery Flower"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "flower-2.0.1-py2.py3-none-any.whl", hash = "sha256:9db2c621eeefbc844c8dd88be64aef61e84e2deb29b271e02ab2b5b9f01068e2"},
-    {file = "flower-2.0.1.tar.gz", hash = "sha256:5ab717b979530770c16afb48b50d2a98d23c3e9fe39851dcf6bc4d01845a02a0"},
-]
-
-[package.dependencies]
-celery = ">=5.0.5"
-humanize = "*"
-prometheus-client = ">=0.8.0"
-pytz = "*"
-tornado = ">=5.0.0,<7.0.0"
 
 [[package]]
 name = "freezegun"
@@ -939,20 +967,6 @@ gevent = ["gevent (>=1.4.0)"]
 setproctitle = ["setproctitle"]
 testing = ["coverage", "eventlet", "gevent", "pytest", "pytest-cov"]
 tornado = ["tornado (>=0.2)"]
-
-[[package]]
-name = "humanize"
-version = "4.10.0"
-description = "Python humanize utilities"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "humanize-4.10.0-py3-none-any.whl", hash = "sha256:39e7ccb96923e732b5c2e27aeaa3b10a8dfeeba3eb965ba7b74a3eb0e30040a6"},
-    {file = "humanize-4.10.0.tar.gz", hash = "sha256:06b6eb0293e4b85e8d385397c5868926820db32b9b654b932f57fa41c23c9978"},
-]
-
-[package.extras]
-tests = ["freezegun", "pytest", "pytest-cov"]
 
 [[package]]
 name = "idna"
@@ -1172,20 +1186,6 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
-
-[[package]]
-name = "prometheus-client"
-version = "0.20.0"
-description = "Python client for the Prometheus monitoring system."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "prometheus_client-0.20.0-py3-none-any.whl", hash = "sha256:cde524a85bce83ca359cc837f28b8c0db5cac7aa653a588fd7e84ba061c329e7"},
-    {file = "prometheus_client-0.20.0.tar.gz", hash = "sha256:287629d00b147a32dcb2be0b9df905da599b2d82f80377083ec8463309a4bb89"},
-]
-
-[package.extras]
-twisted = ["twisted"]
 
 [[package]]
 name = "prompt-toolkit"
@@ -1433,6 +1433,24 @@ pytest = ">=6.2.5"
 dev = ["pre-commit", "pytest-asyncio", "tox"]
 
 [[package]]
+name = "python-crontab"
+version = "3.2.0"
+description = "Python Crontab API"
+optional = false
+python-versions = "*"
+files = [
+    {file = "python_crontab-3.2.0-py3-none-any.whl", hash = "sha256:82cb9b6a312d41ff66fd3caf3eed7115c28c195bfb50711bc2b4b9592feb9fe5"},
+    {file = "python_crontab-3.2.0.tar.gz", hash = "sha256:40067d1dd39ade3460b2ad8557c7651514cd3851deffff61c5c60e1227c5c36b"},
+]
+
+[package.dependencies]
+python-dateutil = "*"
+
+[package.extras]
+cron-description = ["cron-descriptor"]
+cron-schedule = ["croniter"]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -1445,17 +1463,6 @@ files = [
 
 [package.dependencies]
 six = ">=1.5"
-
-[[package]]
-name = "pytz"
-version = "2024.1"
-description = "World timezone definitions, modern and historical"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pytz-2024.1-py2.py3-none-any.whl", hash = "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"},
-    {file = "pytz-2024.1.tar.gz", hash = "sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812"},
-]
 
 [[package]]
 name = "pyxdg"
@@ -1624,26 +1631,6 @@ files = [
 ]
 
 [[package]]
-name = "tornado"
-version = "6.4.1"
-description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "tornado-6.4.1-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:163b0aafc8e23d8cdc3c9dfb24c5368af84a81e3364745ccb4427669bf84aec8"},
-    {file = "tornado-6.4.1-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:6d5ce3437e18a2b66fbadb183c1d3364fb03f2be71299e7d10dbeeb69f4b2a14"},
-    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2e20b9113cd7293f164dc46fffb13535266e713cdb87bd2d15ddb336e96cfc4"},
-    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8ae50a504a740365267b2a8d1a90c9fbc86b780a39170feca9bcc1787ff80842"},
-    {file = "tornado-6.4.1-cp38-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:613bf4ddf5c7a95509218b149b555621497a6cc0d46ac341b30bd9ec19eac7f3"},
-    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:25486eb223babe3eed4b8aecbac33b37e3dd6d776bc730ca14e1bf93888b979f"},
-    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_i686.whl", hash = "sha256:454db8a7ecfcf2ff6042dde58404164d969b6f5d58b926da15e6b23817950fc4"},
-    {file = "tornado-6.4.1-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:a02a08cc7a9314b006f653ce40483b9b3c12cda222d6a46d4ac63bb6c9057698"},
-    {file = "tornado-6.4.1-cp38-abi3-win32.whl", hash = "sha256:d9a566c40b89757c9aa8e6f032bcdb8ca8795d7c1a9762910c722b1635c9de4d"},
-    {file = "tornado-6.4.1-cp38-abi3-win_amd64.whl", hash = "sha256:b24b8982ed444378d7f21d563f4180a2de31ced9d8d84443907a0a64da2072e7"},
-    {file = "tornado-6.4.1.tar.gz", hash = "sha256:92d3ab53183d8c50f8204a51e6f91d18a15d5ef261e84d452800d4ff6fc504e9"},
-]
-
-[[package]]
 name = "tzdata"
 version = "2024.1"
 description = "Provider of IANA time zone data"
@@ -1713,4 +1700,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "da24c1874c68e3e46dfbf86c1b5f11b9b2e416851f4a559d6c9ca739792d31fb"
+content-hash = "6c437d2251f9e8e2b818b9d355238d80924415b992d3b800917efb33907800d8"
