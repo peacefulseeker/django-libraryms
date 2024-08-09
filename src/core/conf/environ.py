@@ -13,6 +13,7 @@ env = environ.Env(
     USE_S3=(bool, False),
     TIME_ZONE=(str, "Europe/Riga"),
     PRODUCTION_URL=(str, "https://django-libraryms.onrender.com"),
+    DATABASE_URL=(str, "sqlite:///db.sqlite3"),
 )
 
 if env("CI"):

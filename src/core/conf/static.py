@@ -5,4 +5,5 @@ STATIC_URL = env("STATIC_URL", default="static/")
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     "frontend/dist",
+    "src/core/assets",
 ]

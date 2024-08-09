@@ -41,6 +41,11 @@ class BookAdmin(ModelAdmin, ImportExportModelAdmin):
     )
     readonly_fields = (cover_preview,)
 
+    class Media:
+        css = {
+            "all": ("css/admin.css",),
+        }
+
 
 @admin.register(Author)
 class AuthorAdmin(ModelAdmin, ImportExportModelAdmin):
