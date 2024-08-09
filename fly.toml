@@ -20,10 +20,10 @@ primary_region = 'waw'
 [env]
   PORT = '8000'
 
-[mounts]
-  source = "app_data"
-  destination = "/data"
-  processes = ["app"]
+# [mounts]
+#   source = "app_data"
+#   destination = "/data"
+#   processes = ["app"]
 
 [http_service]
   internal_port = 8000
