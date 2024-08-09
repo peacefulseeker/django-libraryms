@@ -1,5 +1,7 @@
 ## Library management system on Django and Vue.js
 
+[![CI/CD](https://github.com/peacefulseeker/django-libraryms/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/peacefulseeker/django-libraryms/actions/workflows/main.yml)
+
 ### MVP Goal & Requirements
 Check out the [MVP Goal & Requirements](../../wiki/MVP-Goal-&-Requirements)
 
