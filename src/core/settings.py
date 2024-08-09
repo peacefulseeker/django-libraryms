@@ -22,4 +22,5 @@ include(
     "conf/static.py",
     "conf/media.py",
     "conf/storages.py",
+    "conf/sentry.py",
 )

@@ -47,3 +47,19 @@ def test_ping_production_website_custom_url(mock_get):
     # Assert
     assert result["url"] == custom_url
     mock_get.assert_called_once_with(custom_url, headers={"User-Agent": "DjangoLibraryMS/CeleryBeat"})
+
+
+@patch("core.tasks.requests.get")
+@patch("core.tasks.capture_exception")
+def test_ping_production_website_error_captured_by_sentry(mock_capture_exception, mock_get):
+    # Setup
+    mock_get.side_effect = requests.exceptions.RequestException("Ooops, something went wrong")
+
+    # Execute
+    ping_production_website.delay().get()
+
+    # Verify the captured exception
+    mock_capture_exception.assert_called_once()
+    args, kwargs = mock_capture_exception.call_args
+    assert isinstance(args[0], requests.exceptions.RequestException)
+    assert str(args[0]) == "Ooops, something went wrong"
