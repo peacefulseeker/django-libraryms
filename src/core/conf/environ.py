@@ -12,7 +12,7 @@ env = environ.Env(
     REFRESH_TOKEN_COOKIE_SECURE=(bool, True),
     USE_S3=(bool, False),
     TIME_ZONE=(str, "Europe/Riga"),
-    PRODUCTION_URL=(str, "https://django-libraryms.onrender.com"),
+    PRODUCTION_URL=(str, "https://django-libraryms.fly.dev"),
     DATABASE_URL=(str, "sqlite:///db.sqlite3"),
 )
 
