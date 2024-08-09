@@ -67,5 +67,5 @@ EXPOSE 8000
 # USER appuser
 
 # will be rewritten by each of processes
-# CMD ./entrypoint.sh
+
 CMD python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application
