@@ -8,6 +8,7 @@ from simple_history.models import HistoricalRecords
 
 from apps.books.const import Language, OrderStatus, ReservationStatus
 from apps.users.models import Member
+from core.tasks import send_order_created_email, send_reservation_confirmed_email
 from core.utils.models import TimestampedModel
 
 
@@ -154,6 +155,7 @@ class Book(TimestampedModel):
         next_order: Order = self.queued_orders.first()
         next_order.status = OrderStatus.UNPROCESSED
         next_order.save()
+        send_order_created_email.delay(next_order.id)
 
     def is_issued_to_member(self, member: Member) -> bool:
         if not self.is_issued:
@@ -247,6 +249,7 @@ class Order(TimestampedModel):
         excluded_fields=["change_reason", "modified_at", "created_at"],
         table_name="books_order_history",
     )
+    member_notified = models.BooleanField(default=False)
 
     @property
     def get_status_display(self):
@@ -270,6 +273,8 @@ class Order(TimestampedModel):
             self.cancel_reservation()
         elif self.status == OrderStatus.REFUSED:
             self.refuse_reservation()
+        elif self.status == OrderStatus.PROCESSED:
+            self.notify_member_of_reservation()
         super().save(*args, **kwargs)
 
     def cancel(self):
@@ -293,6 +298,10 @@ class Order(TimestampedModel):
     def delete_reservation(self):
         if self.reservation is not None:
             self.reservation.delete()
+
+    def notify_member_of_reservation(self):
+        if not self.member_notified:
+            send_reservation_confirmed_email.delay(self.pk)
 
     @property
     def in_queue(self) -> bool:

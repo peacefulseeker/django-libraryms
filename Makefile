@@ -37,8 +37,8 @@ lint:
 
 
 # docker
-restart_celery_all:
-	docker compose restart celery_beat celery_beat
+celery_restart:
+	docker compose restart celery_beat celery_worker
 
 up:
 	docker compose up -d

@@ -11,7 +11,7 @@ STORAGES = {
 if not env("DEBUG"):
     STORAGES["default"]["staticfiles"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-if env("USE_S3"):
+if env("USE_AWS_S3"):
     STORAGES["default"]["BACKEND"] = "storages.backends.s3boto3.S3Boto3Storage"
 
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default=None)
