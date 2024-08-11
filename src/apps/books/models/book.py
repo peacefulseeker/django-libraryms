@@ -53,7 +53,6 @@ class Reservation(TimestampedModel):
         if self.status == ReservationStatus.ISSUED and self.term is None:
             self.term = Reservation.get_default_term()
         elif self.status in self.DONE_STATES and hasattr(self, "book"):
-            # TODO: save book reference for history
             self.book.process_next_order()
         super().save(*args, **kwargs)
 
@@ -175,6 +174,12 @@ class Book(TimestampedModel):
 
         return self.order_set.filter(member=member, status=OrderStatus.IN_QUEUE).exists()
 
+    def is_booked_by_member(self, member: Member) -> bool:
+        if not self.is_booked:
+            return False
+
+        return self.reservation.member == member
+
     @property
     def is_available(self) -> bool:
         return self.reservation is None
@@ -186,6 +191,10 @@ class Book(TimestampedModel):
     @property
     def is_issued(self) -> bool:
         return self.reservation.is_issued if self.reservation else False
+
+    @property
+    def is_booked(self) -> bool:
+        return self.is_reserved or self.is_issued
 
     @property
     def reservation_term(self) -> date | None:

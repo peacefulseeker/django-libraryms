@@ -1,20 +1,11 @@
-from typing import Any
-
 from django.contrib import admin
 from django.http import HttpRequest
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 
 from apps.books.models import Author, Book, Publisher, Reservation
-from core.utils.admin import ModelAdmin, TabularInline
-
-
-class AuthorInline(TabularInline):
-    model = Author
-
-
-class BookInline(TabularInline):
-    model = Book
+from apps.books.models.book import Order
+from core.utils.admin import ModelAdmin, ReadonlyTabularInline
 
 
 @admin.display(
@@ -22,6 +13,21 @@ class BookInline(TabularInline):
 )
 def cover_preview(obj):
     return format_html('<img src="{}" width="150"/>', obj.cover.url)
+
+
+class BookReservationInline(ReadonlyTabularInline):
+    model = Book
+    fields = ("title", "author", "published_at", "cover")
+
+
+class BookInline(BookReservationInline):
+    max_num = 10
+    extra = 2
+
+
+class OrderInline(ReadonlyTabularInline):
+    fields = ("status", "book", "created_at", "modified_at")
+    model = Order
 
 
 @admin.register(Book)
@@ -64,22 +70,6 @@ class PublisherAdmin(ModelAdmin, ImportExportModelAdmin):
     inlines = (BookInline,)
 
 
-class BookStackedInline(TabularInline):
-    extra = 0
-    fields = ("title", "author", "published_at")
-    model = Book
-    show_change_link = True
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request: HttpRequest, obj: Any | None = ...) -> bool:
-        return False
-
-    def has_add_permission(self, request: HttpRequest, obj: Any | None = ...) -> bool:
-        return False
-
-
 @admin.register(Reservation)
 class ReservationAdmin(ModelAdmin):
     readonly_fields = (
@@ -105,7 +95,7 @@ class ReservationAdmin(ModelAdmin):
         "status",
     )
 
-    inlines = (BookStackedInline,)
+    inlines = (OrderInline,)
 
     def get_form(self, request, obj: Reservation = None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
