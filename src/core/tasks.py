@@ -9,7 +9,12 @@ from core.conf.environ import env
 from core.utils.mailer import Mailer
 
 
-@shared_task(name="core/ping_production_website")
+@shared_task(
+    name="core/ping_production_website",
+    ignore_result=True,
+    autoretry_for=(requests.exceptions.RequestException,),
+    retry_backoff=True,
+)
 def ping_production_website(url=env("PRODUCTION_URL")):
     try:
         response = requests.get(url, headers={"User-Agent": "DjangoLibraryMS/CeleryBeat"})
@@ -33,10 +38,11 @@ def send_order_created_email(order_id: int):
         Hi admin! <br />
         Please process new book order <a href='{order_url}' target='_blank'>here</a>
     """
+    body_compact = "".join([line.strip() for line in body.split("\n")])
     mailer = Mailer(
         subject="Book order created",
-        # to=env("LIBRARY_ADMIN_EMAIL"),
-        body=body.strip(),
+        # to=env("LIBRARIAN_ADMIN_EMAIL"),
+        body=body_compact,
     )
     email_sent = mailer.send()
 
@@ -55,7 +61,7 @@ def send_reservation_confirmed_email(order_id: int):
         return {"error": f"Order with id {order_id} does not exist"}
 
     body = f"""
-        Hi {order.member.username}! <br />
+        Hi {order.member.username}!<br />
         "{order.book.title}" book is ready to be picked up. <br />
         Check all your reservations <a href='{reservations_url}'>here</a>
     """
