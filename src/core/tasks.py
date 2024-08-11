@@ -65,7 +65,7 @@ def send_reservation_confirmed_email(order_id: int):
         Hi {order.member.username}!<br />
         "{order.book.title}" book is ready to be picked up. <br />
         Your Reservation ID: {order.reservation.pk} <br />
-        Check all your reservations <a href='{reservations_url}'>here</a>
+        Check all your reservations <a href='{reservations_url}' target='_blank'>here</a>
     """
 
     mailer = Mailer(
