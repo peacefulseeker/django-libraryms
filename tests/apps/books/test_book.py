@@ -1,3 +1,5 @@
+from unittest.mock import call
+
 import pytest
 from django.db.utils import IntegrityError
 from mixer.backend.django import mixer
@@ -6,6 +8,11 @@ from apps.books.const import Language, OrderStatus
 from apps.books.models import Author, Book, Order, Publisher, Reservation
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def mock_send_order_created_email(mocker):
+    return mocker.patch("apps.books.models.book.send_order_created_email")
 
 
 def test_book_str_method():
@@ -131,14 +138,17 @@ def test_book_no_queued_orders():
     assert not book.has_orders_in_queue
 
 
-def test_unqueue_next_order_in_queue(create_book_order, member, book):
+def test_unqueue_next_order_in_queue(create_book_order, member, book, mock_send_order_created_email):
     create_book_order(status=OrderStatus.UNPROCESSED)
     create_book_order(status=OrderStatus.IN_QUEUE)
     create_book_order(status=OrderStatus.IN_QUEUE)
 
     assert book.queued_orders.count() == 2
 
+    next_order_id_1 = book.queued_orders.first().id
     book.unqueue_next_order()
+
+    next_order_id_2 = book.queued_orders.first().id
     book.unqueue_next_order()
 
     assert book.queued_orders.count() == 0
@@ -147,3 +157,8 @@ def test_unqueue_next_order_in_queue(create_book_order, member, book):
     # nothing to do
     book.unqueue_next_order()
     assert book.queued_orders.count() == 0
+
+    mock_send_order_created_email.delay.has_calls(
+        call(next_order_id_1),
+        call(next_order_id_2),
+    )

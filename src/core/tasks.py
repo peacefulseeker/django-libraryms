@@ -14,6 +14,7 @@ from core.utils.mailer import Mailer
     ignore_result=True,
     autoretry_for=(requests.exceptions.RequestException,),
     retry_backoff=True,
+    max_retries=3,
 )
 def ping_production_website(url=env("PRODUCTION_URL")):
     try:

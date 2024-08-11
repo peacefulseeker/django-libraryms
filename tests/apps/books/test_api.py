@@ -15,6 +15,11 @@ pytestmark = [
 ]
 
 
+@pytest.fixture
+def mock_send_order_created_email(mocker):
+    return mocker.patch("apps.books.api.views.send_order_created_email")
+
+
 def test_no_auth_needed_to_view_books_list(client):
     url = reverse("books-list")
 
@@ -39,16 +44,17 @@ def test_auth_needed_to_order_a_book(client, book):
     assert response.status_code == HTTP_401_UNAUTHORIZED
 
 
-def test_order_a_book_new_reservation(as_member, book):
+def test_order_a_book_new_reservation(as_member, book, mock_send_order_created_email):
     url = reverse("book-order", kwargs={"book_id": book.id})
 
     response: Response = as_member.post(url)
 
     assert response.status_code == HTTP_200_OK
     assert response.data["detail"] == "Book reserved"
+    mock_send_order_created_email.delay.assert_called_once_with(response.data["order_id"])
 
 
-def test_member_already_has_book_order(as_member, book, book_order):
+def test_member_already_has_book_order(as_member, book, book_order, mock_send_order_created_email):
     url = reverse("book-order", kwargs={"book_id": book.id})
 
     response: Response = as_member.post(url)
@@ -56,9 +62,10 @@ def test_member_already_has_book_order(as_member, book, book_order):
     assert response.status_code == HTTP_400_BAD_REQUEST
     assert response.data["detail"] == "Book is already ordered or your order is in queue"
     assert book_order.status == OrderStatus.UNPROCESSED
+    mock_send_order_created_email.delay.assert_not_called()
 
 
-def test_book_order_put_in_queue(as_member, book, another_book_order):
+def test_book_order_put_in_queue(as_member, book, another_book_order, mock_send_order_created_email):
     url = reverse("book-order", kwargs={"book_id": book.id})
 
     response: Response = as_member.post(url)
@@ -69,6 +76,7 @@ def test_book_order_put_in_queue(as_member, book, another_book_order):
     # first, since sorted by created_at
     assert book.order_set.first().id == response.data["order_id"]
     assert book.order_set.last() == another_book_order
+    mock_send_order_created_email.delay.assert_not_called()
 
 
 def test_cancel_book_order(as_member, book, book_order):

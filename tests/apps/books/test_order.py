@@ -7,6 +7,11 @@ from apps.books.models import Book, Order, Reservation
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture
+def mock_send_reservation_confirmed_email(mocker):
+    return mocker.patch("apps.books.models.book.send_reservation_confirmed_email")
+
+
 def test_order_str_method():
     order = mixer.blend(Order)
     expected_str = f"{order.member} - {order.book} - {order.status}"
@@ -67,3 +72,15 @@ def test_reservation_deleted_through_order(create_book_order):
     order.delete_reservation()
 
     assert Reservation.objects.reserved_by_member(order.member_id).count() == 0
+
+
+def test_reservation_confirmation(create_book_order, mock_send_reservation_confirmed_email):
+    order = create_book_order(status=OrderStatus.UNPROCESSED)
+
+    mock_send_reservation_confirmed_email.delay.assert_not_called()
+
+    order.status = OrderStatus.PROCESSED
+    order.save()
+
+    mock_send_reservation_confirmed_email.delay.assert_called_once_with(order.pk)
+    order.refresh_from_db()
