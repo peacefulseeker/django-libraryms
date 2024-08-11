@@ -26,6 +26,7 @@ def test_send_reservation_confirmed_email_success(mock_mailer, book_order):
     assert mailer_kwargs["subject"] == "Book is ready to be picked up"
     assert f"Hi {book_order.member.username}!" in mailer_kwargs["body"]
     assert f"{book_order.book.title}" in mailer_kwargs["body"]
+    assert f"Your Reservation ID: {book_order.reservation.id}" in mailer_kwargs["body"]
     assert "https://example.com/account/reservations/" in mailer_kwargs["body"]
 
 

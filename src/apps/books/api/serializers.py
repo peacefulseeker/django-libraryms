@@ -3,6 +3,12 @@ from rest_framework import serializers
 from apps.books.models import Author, Book, Publisher, Reservation
 
 
+class SerializerMixin:
+    @property
+    def user(self):
+        return self.context["request"].user if self.context["request"].user.is_authenticated else None
+
+
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
@@ -21,9 +27,10 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = ["status", "term"]
 
 
-class BookListSerializer(serializers.ModelSerializer):
+class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
     author = AuthorSerializer()
     cover_image_url = serializers.ImageField(source="cover", use_url=True)
+    reservation_id = serializers.SerializerMethodField("get_reservation_id")
 
     class Meta:
         model = Book
@@ -36,11 +43,18 @@ class BookListSerializer(serializers.ModelSerializer):
             "is_available",
             # reservations specific
             "reservation_term",
+            "reservation_id",
             "is_issued",
         ]
 
+    def get_reservation_id(self, obj: Book) -> int | None:
+        if not self.user or not obj.is_booked_by_member(self.user):
+            return None
 
-class BookSerializer(serializers.ModelSerializer):
+        return obj.reservation.pk
+
+
+class BookSerializer(SerializerMixin, serializers.ModelSerializer):
     author = AuthorSerializer()
     publisher = PublisherSerializer()
     language = serializers.CharField(source="get_language_display")
@@ -62,20 +76,16 @@ class BookSerializer(serializers.ModelSerializer):
             "isbn",
             "pages",
             "pages_description",
+            "reservation_term",
+            "cover_image_url",
+            "max_reservations_reached",
             "is_available",
             "is_issued",
             "is_reserved",
-            "reservation_term",
-            "cover_image_url",
             "is_issued_to_member",
             "is_queued_by_member",
             "is_reserved_by_member",
-            "max_reservations_reached",
         ]
-
-    @property
-    def user(self):
-        return self.context["request"].user if self.context["request"].user.is_authenticated else None
 
     def get_max_reservations_reached(self, obj: Book) -> int | None:
         if not self.user:
