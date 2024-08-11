@@ -1,11 +1,14 @@
-from unittest.mock import patch
-
+import pytest
 import requests
 
 from core.tasks import ping_production_website
 
 
-@patch("core.tasks.requests.get")
+@pytest.fixture
+def mock_get(mocker):
+    return mocker.patch("core.tasks.requests.get")
+
+
 def test_ping_production_website_success(mock_get):
     # Setup
     mock_response = mock_get.return_value
@@ -21,7 +24,6 @@ def test_ping_production_website_success(mock_get):
     assert result["url"] == "https://example.com"  # defined in pyproject pytest env
 
 
-@patch("core.tasks.requests.get")
 def test_ping_production_website_failure(mock_get):
     # Setup
     mock_get.side_effect = requests.exceptions.RequestException("Connection error")
@@ -34,7 +36,6 @@ def test_ping_production_website_failure(mock_get):
     assert "Connection error" in result["error"]
 
 
-@patch("core.tasks.requests.get")
 def test_ping_production_website_custom_url(mock_get):
     # Setup
     custom_url = "https://custom-url.com"
@@ -49,10 +50,9 @@ def test_ping_production_website_custom_url(mock_get):
     mock_get.assert_called_once_with(custom_url, headers={"User-Agent": "DjangoLibraryMS/CeleryBeat"})
 
 
-@patch("core.tasks.requests.get")
-@patch("core.tasks.capture_exception")
-def test_ping_production_website_error_captured_by_sentry(mock_capture_exception, mock_get):
+def test_ping_production_website_error_captured_by_sentry(mocker, mock_get):
     # Setup
+    mock_capture_exception = mocker.patch("core.tasks.capture_exception")
     mock_get.side_effect = requests.exceptions.RequestException("Ooops, something went wrong")
 
     # Execute

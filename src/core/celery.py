@@ -7,23 +7,24 @@ from core.conf.environ import env
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 
-app = Celery(
+celery = Celery(
     "django_libraryms",
     broker_url=env("CELERY_BROKER_URL", str, default="redis://redis:6379"),
     result_backend=env("CELERY_RESULT_BACKEND", str, default="django-db"),
     task_always_eager=env("CELERY_ALWAYS_EAGER", cast=bool, default=settings.DEBUG),
     enable_utc=False,
     result_extended=True,
+    task_store_errors_even_if_ignored=True,
     timezone=env("TIME_ZONE"),
 )
 
 
-@app.task(bind=True, ignore_result=True)
+@celery.task(bind=True, ignore_result=True)
 def debug_task(self):
     print(f"Request: {self.request!r}")
 
 
-app.autodiscover_tasks(
+celery.autodiscover_tasks(
     packages=[
         "core",
     ]

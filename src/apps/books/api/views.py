@@ -13,6 +13,7 @@ from apps.books.const import OrderStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
 from apps.books.models.book import Reservation
+from core.tasks import send_order_created_email
 
 
 class BookListView(generics.ListAPIView):
@@ -59,8 +60,12 @@ class BookOrderView(APIView):
 
         if self._processable_order(book_id, request.user.id).exists():
             return Response(status=400, data={"detail": _("Book is already ordered or your order is in queue")})
-        order_id, message = self._create_order(book_id, request.user.id)
-        return Response({"detail": message, "order_id": order_id, "book_id": book_id})
+
+        order, message = self._create_order(book_id, request.user.id)
+        if order.status == OrderStatus.UNPROCESSED:
+            send_order_created_email.delay(order.id)
+
+        return Response({"detail": message, "order_id": order.id, "book_id": book_id})
 
     def delete(self, request: Request, book_id: int) -> Response:
         return self._cancel_order(book_id, request.user.id)
@@ -83,9 +88,9 @@ class BookOrderView(APIView):
             order_status = OrderStatus.IN_QUEUE
             message = _("Book reservation request put in queue")
 
-        order: BookOrder = BookOrder.objects.create(book_id=book_id, member_id=member_id, status=order_status)
+        order = BookOrder.objects.create(book_id=book_id, member_id=member_id, status=order_status)
 
-        return order.id, message
+        return order, message
 
     def _processable_order(self, book_id: int, member_id: int) -> "QuerySet[BookOrder]":
         return BookOrder.objects.processable(book_id, member_id)

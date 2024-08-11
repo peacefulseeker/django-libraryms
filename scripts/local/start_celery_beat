@@ -3,7 +3,7 @@ set -o errexit
 set -o nounset
 
 
-rm -f /tmp/celerybeat.pid
 celery --app core --workdir src \
-        beat --loglevel=info --pidfile=/tmp/celerybeat.pid \
-        --scheduler django_celery_beat.schedulers:DatabaseScheduler
+        beat --loglevel=info \
+        --pidfile= \
+        --scheduler django_celery_beat.schedulers:DatabaseScheduler \
