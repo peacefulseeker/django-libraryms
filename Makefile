@@ -48,3 +48,6 @@ upbuild:
 
 upbuildnocache:
 	docker compose up -d --build --force-recreate
+
+opencoverage:
+	open ./htmlcov/index.html
