@@ -21,9 +21,6 @@ test:
 	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing
 	poetry run pytest --dead-fixtures
 
-seed_db:
-	$(manage) seed_db
-
 fmt:
 	poetry run ruff format src tests
 	poetry run ruff check --select I --fix  # sort imports
