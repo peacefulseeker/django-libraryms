@@ -65,3 +65,16 @@ def test_reservation_ordered_by_last_modified():
     reservations = Reservation.objects.all()
 
     assert list(reservations) == [reservation3, reservation1, reservation2]
+
+
+def test_reservation_ordered_by_last_modified_with_nulls_last():
+    reservation1 = mixer.blend(Reservation)
+    reservation2 = mixer.blend(Reservation)
+    reservation3 = mixer.blend(Reservation)
+
+    reservation3.save()
+    reservation2.save()
+
+    reservations = Reservation.objects.all()
+
+    assert list(reservations) == [reservation2, reservation3, reservation1]

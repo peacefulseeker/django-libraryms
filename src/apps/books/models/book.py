@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
@@ -57,7 +57,7 @@ class Reservation(TimestampedModel):
         super().save(*args, **kwargs)
 
     class Meta:
-        ordering = ["-modified_at"]
+        ordering = [F("modified_at").desc(nulls_last=True)]
 
     @classmethod
     def get_default_term(cls) -> timezone.datetime:
@@ -144,7 +144,7 @@ class Book(TimestampedModel):
 
     def process_next_order(self):
         self.reservation = None
-        self.save()
+        self.save(update_fields=["reservation"])
         self.unqueue_next_order()
 
     def unqueue_next_order(self):
@@ -277,7 +277,7 @@ class Order(TimestampedModel):
 
     def save(self, *args, **kwargs):
         if self.book.is_available:
-            self.create_reservation(member=self.member)
+            self.create_reservation()
         elif self.status == OrderStatus.MEMBER_CANCELLED:
             self.cancel_reservation()
         elif self.status == OrderStatus.REFUSED:
@@ -290,9 +290,9 @@ class Order(TimestampedModel):
         self.status = OrderStatus.MEMBER_CANCELLED
         self.save()
 
-    def create_reservation(self, member: Member):
-        Reservation(member=member, book=self.book, order=self).save()
-        self.book.save()
+    def create_reservation(self):
+        Reservation(member=self.member, book=self.book, order=self).save()
+        self.book.save(update_fields=["reservation"])
 
     def cancel_reservation(self):
         if self.reservation is not None:
