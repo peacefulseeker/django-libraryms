@@ -1,12 +1,13 @@
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.throttling import AnonRateThrottle
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenViewBase
 
 from apps.users.api.serializers import CookieTokenObtainSerializer, CookieTokenRefreshSerializer
 
 
-class CookieTokenMixin:
+class CookieTokenMixin(TokenViewBase):
     def finalize_response(self, request, response: Response, *args, **kwargs):
         self._store_refresh_token_in_http_cookie(response)
         return super().finalize_response(request, response, *args, **kwargs)
@@ -27,6 +28,7 @@ class CookieTokenMixin:
 
 class CookieTokenObtainPairView(CookieTokenMixin, TokenObtainPairView):
     serializer_class = CookieTokenObtainSerializer
+    throttle_classes = [AnonRateThrottle]
 
     def delete(self, request):
         response = Response(data={}, status=HTTP_204_NO_CONTENT)
@@ -36,3 +38,4 @@ class CookieTokenObtainPairView(CookieTokenMixin, TokenObtainPairView):
 
 class CookieTokenRefreshView(CookieTokenMixin, TokenRefreshView):
     serializer_class = CookieTokenRefreshSerializer
+    throttle_classes = [AnonRateThrottle]

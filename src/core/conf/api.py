@@ -12,6 +12,10 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
+    "EXCEPTION_HANDLER": "core.api.exceptions.drf_exception_handler",
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "15/minute",
+    },
 }
 
 SIMPLE_JWT = {
