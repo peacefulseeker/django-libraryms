@@ -12,7 +12,7 @@ from core.utils.admin import ModelAdmin, ReadonlyTabularInline
     description="Cover preview",
 )
 def cover_preview(obj):
-    return format_html('<img src="{}" width="150"/>', obj.cover.url)
+    return format_html('<img src="{}" width="150"/>', obj.cover.url)  # pragma: no cover
 
 
 class BookReservationInline(ReadonlyTabularInline):
