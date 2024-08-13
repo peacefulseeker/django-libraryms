@@ -33,6 +33,9 @@ jobs:
 
   test:
     # needs: lint
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -58,15 +61,15 @@ jobs:
       - name: test
         run: make test
 
-  coverage_badge:
-    needs: [test]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+  # coverage_badge:
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #     pull-requests: write
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+      # - uses: actions/checkout@v4
 
       # - name: build
       #   uses: ./.github/actions/build
