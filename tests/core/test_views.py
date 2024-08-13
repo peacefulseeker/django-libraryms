@@ -2,6 +2,7 @@ import os
 from unittest.mock import patch
 
 import pytest
+from rest_framework.status import HTTP_200_OK
 
 
 @pytest.fixture(autouse=True)
@@ -58,3 +59,10 @@ def test_404_handler(client):
             "message": "Page '/not_existing_path' not found",
         }
     }
+
+
+def test_healtcheck(client):
+    response = client.get("/healthz")
+
+    assert response.status_code == HTTP_200_OK
+    assert response.content == b"ok"
