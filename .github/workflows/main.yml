@@ -82,7 +82,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.head_ref }}
+          branch: ${{ github.ref }}
 
   deploy-to-fly:
     if: github.ref == 'refs/heads/main' && github.repository_owner == 'peacefulseeker'
