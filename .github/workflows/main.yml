@@ -32,7 +32,7 @@ jobs:
         run: make lint
 
   test:
-    # needs: lint
+    needs: lint
     permissions:
       contents: write
       pull-requests: write
@@ -65,12 +65,12 @@ jobs:
         run: make test
 
       - name: Generate coverage badge
-      # if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: tj-actions/coverage-badge-py@v2
 
       - name: Verify changed coverage.svg
         uses: tj-actions/verify-changed-files@v14
-        # if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         id: verify-changed-files
         with:
           files: coverage.svg
