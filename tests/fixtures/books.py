@@ -22,6 +22,6 @@ def create_book_order(member, book) -> callable:
     return _create_book_order
 
 
-# @pytest.fixture
-# def another_book_order(another_member, book) -> Order:
-#     return mixer.blend(Order, book=book, member=another_member)
+@pytest.fixture
+def another_book_order(another_member, book) -> Order:
+    return mixer.blend(Order, book=book, member=another_member)
