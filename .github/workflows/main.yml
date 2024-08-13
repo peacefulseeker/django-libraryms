@@ -91,7 +91,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.head_ref }}
       - name: Purge README.md
-        # if: steps.verify-changed-files.outputs.files_changed == 'true'
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
         uses: wow-actions/purge-readme@v1
 
   deploy-to-fly:
