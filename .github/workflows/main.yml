@@ -32,7 +32,10 @@ jobs:
         run: make lint
 
   test:
-    needs: lint
+    # needs: lint
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -51,6 +54,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # persist-credentials: false
+          # ref: ${{ github.head_ref }}
+          fetch-depth: 0
 
       - name: build
         uses: ./.github/actions/build
@@ -58,8 +65,45 @@ jobs:
       - name: test
         run: make test
 
+  # coverage_badge:
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #     pull-requests: write
+
+  #   steps:
+      # - uses: actions/checkout@v4
+
+      # - name: build
+      #   uses: ./.github/actions/build
+
       - name: Generate coverage badge
+      # if: github.ref == 'refs/heads/main'
         uses: tj-actions/coverage-badge-py@v2
+
+      - name: Verify changed coverage.svg
+        uses: tj-actions/verify-changed-files@v14
+        # if: github.ref == 'refs/heads/main'
+        id: verify-changed-files
+        with:
+          files: coverage.svg
+
+      - name: Commit coverage.svg
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add coverage.svg
+          git commit -m "Updated coverage.svg"
+
+      - name: Push coverage.svg
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # branch: ${{ github.ref }}
+          branch: ${{ github.head_ref }}
 
   deploy-to-fly:
     if: github.ref == 'refs/heads/main' && github.repository_owner == 'peacefulseeker'
