@@ -34,8 +34,8 @@ class BookListView(generics.ListAPIView):
         return self.request.query_params
 
     def get_queryset(self):
-        get_available = self.request.query_params.get("available")
-        get_reserved_by_me = self.request.query_params.get("reserved_by_me")
+        get_available = self.query_params.get("available")
+        get_reserved_by_me = self.query_params.get("reserved_by_me")
         if get_available is not None:
             queryset = Book.objects.available()
         elif self.is_authenticated and get_reserved_by_me is not None:
