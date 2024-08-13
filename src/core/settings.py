@@ -24,4 +24,5 @@ include(
     "conf/storages.py",
     "conf/sentry.py",
     "conf/mailing.py",
+    "conf/logging.py",
 )
