@@ -23,3 +23,9 @@ def authenticated_client(client):
 @pytest.fixture
 def as_member(authenticated_client, member) -> APIClient:
     return authenticated_client(member)
+
+
+@pytest.fixture
+def as_admin(client, admin_user) -> APIClient:
+    client.force_login(user=admin_user)
+    return client

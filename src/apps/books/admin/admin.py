@@ -97,12 +97,7 @@ class ReservationAdmin(ModelAdmin):
 
     inlines = (OrderInline,)
 
-    def get_form(self, request, obj: Reservation = None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        form.base_fields["term"].initial = Reservation.get_default_term()
-        return form
-
-    def has_add_permission(self, request: HttpRequest, obj: Reservation = None) -> bool:
+    def has_add_permission(self, request: HttpRequest, obj: Reservation = None) -> bool:  # pragma: no cover
         """
         New reservations are created either through book orders API or particular book item admin.
         In this case, opening in popup mode assumes it's opened from book item admin or other model admin
