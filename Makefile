@@ -18,7 +18,7 @@ static:
 	$(manage) collectstatic --no-input
 
 test:
-	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing
+	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing --cov-fail-under=90
 	poetry run pytest --dead-fixtures
 
 fmt:
