@@ -58,8 +58,15 @@ jobs:
       - name: test
         run: make test
 
+  coverage_badge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
       - name: Generate coverage badge
-        # if: github.ref == 'refs/heads/main'
+      # if: github.ref == 'refs/heads/main'
         uses: tj-actions/coverage-badge-py@v2
 
       - name: Verify changed coverage.svg
