@@ -58,6 +58,9 @@ jobs:
       - name: test
         run: make test
 
+      - name: Generate coverage badge
+        uses: tj-actions/coverage-badge-py@v2
+
   deploy-to-fly:
     if: github.ref == 'refs/heads/main' && github.repository_owner == 'peacefulseeker'
     needs: [lint, test]
