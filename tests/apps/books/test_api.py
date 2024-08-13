@@ -72,10 +72,10 @@ def test_book_order_put_in_queue(as_member, book, another_book_order, mock_send_
 
     assert response.status_code == HTTP_200_OK
     assert response.data["detail"] == "Book reservation request put in queue"
-    assert book.order_set.count() == 2
+    assert book.orders.count() == 2
     # first, since sorted by created_at
-    assert book.order_set.first().id == response.data["order_id"]
-    assert book.order_set.last() == another_book_order
+    assert book.orders.first().id == response.data["order_id"]
+    assert book.orders.last() == another_book_order
     mock_send_order_created_email.delay.assert_not_called()
 
 

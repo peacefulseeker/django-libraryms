@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from apps.books.const import Language, OrderStatus, ReservationStatus
-from apps.users.models import Member
+from apps.users.models import Member, User
 from core.tasks import send_order_created_email, send_reservation_confirmed_email
 from core.utils.models import TimestampedModel
 
@@ -41,7 +41,7 @@ class Reservation(TimestampedModel):
 
     objects: ReservationQuerySet = models.Manager.from_queryset(ReservationQuerySet)()
 
-    member = models.ForeignKey("users.Member", on_delete=models.SET_NULL, null=True)
+    member = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
     status = models.CharField(
         choices=ReservationStatus,
         max_length=2,
@@ -96,12 +96,13 @@ class BookQuerySet(models.QuerySet):
 
 
 class Book(TimestampedModel):
+    orders: "QuerySet[Order]"
     objects: BookQuerySet = models.Manager.from_queryset(BookQuerySet)()
 
     title = models.CharField(max_length=200, unique=True)
-    author = models.ForeignKey("Author", on_delete=models.CASCADE)
+    author = models.ForeignKey("Author", related_name="books", on_delete=models.CASCADE)
     language = models.CharField(choices=Language, max_length=2)
-    publisher = models.ForeignKey("Publisher", on_delete=models.CASCADE)
+    publisher = models.ForeignKey("Publisher", related_name="books", on_delete=models.CASCADE)
     published_at = models.PositiveSmallIntegerField(_("Year of publishing"))
     pages = models.PositiveSmallIntegerField(_("Number of pages"))
     pages_description = models.CharField(_("Extra description for pages"), max_length=100, blank=True)
@@ -172,7 +173,7 @@ class Book(TimestampedModel):
         if not self.is_reserved and not self.is_issued:
             return False
 
-        return self.order_set.filter(member=member, status=OrderStatus.IN_QUEUE).exists()
+        return self.orders.filter(member=member, status=OrderStatus.IN_QUEUE).exists()
 
     def is_booked_by_member(self, member: Member) -> bool:
         if not self.is_booked:
@@ -202,7 +203,7 @@ class Book(TimestampedModel):
 
     @property
     def queued_orders(self) -> QuerySet:
-        return self.order_set.filter(status=OrderStatus.IN_QUEUE)
+        return self.orders.filter(status=OrderStatus.IN_QUEUE)
 
     @property
     def has_orders_in_queue(self) -> bool:
@@ -232,8 +233,8 @@ class OrderQuerySet(models.QuerySet):
 class Order(TimestampedModel):
     objects: OrderQuerySet = models.Manager.from_queryset(OrderQuerySet)()
 
-    member = models.ForeignKey("users.Member", on_delete=models.SET_NULL, null=True)
-    book: Book = models.ForeignKey("Book", on_delete=models.SET_NULL, null=True)
+    member = models.ForeignKey(Member, related_name="orders", on_delete=models.SET_NULL, null=True)
+    book = models.ForeignKey(Book, related_name="orders", on_delete=models.SET_NULL, null=True)
     reservation: Reservation = models.OneToOneField(
         Reservation,
         on_delete=models.CASCADE,
@@ -246,7 +247,7 @@ class Order(TimestampedModel):
         default=OrderStatus.UNPROCESSED,
     )
     last_modified_by = models.ForeignKey(
-        "users.User",
+        User,
         null=True,
         blank=True,
         related_name="+",  # no backwards User relation
