@@ -4,8 +4,10 @@ from django.urls import reverse
 from mixer.backend.django import mixer
 from rest_framework import status
 
+from apps.books.api.serializers import BookListSerializer
+from apps.books.const import OrderStatus, ReservationStatus
 from apps.books.models import Author, Book
-from apps.books.models.book import Reservation
+from apps.books.models.book import Order, Reservation
 
 pytestmark = pytest.mark.django_db
 
@@ -78,6 +80,12 @@ class TestBookListView:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 0
 
+    def test_reservation_id_is_null_for_visitors(self, client):
+        response = client.get(self.url)
+
+        for book in response.data:
+            assert book["reservation_id"] is None
+
     def test_get_a_reserved_book_as_auth_member(self, as_member, member):
         book = Book.objects.first()
         book.reservation = mixer.blend(Reservation, member=member)
@@ -87,3 +95,27 @@ class TestBookListView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data[0]["title"] == book.title
+
+    def test_expected_fields_returned(self, as_member):
+        expected_fields = BookListSerializer.Meta.fields
+
+        response = as_member.get(self.url)
+
+        assert set(response.data[0]) == set(expected_fields)
+
+    def test_reservation_id_presents_for_reserved_book(self, as_member, member, book):
+        order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+        assert order.reservation.status == ReservationStatus.RESERVED
+
+        response = as_member.get(self.url)
+
+        assert response.data[-1]["reservation_id"] == order.reservation.id
+
+    def test_reservation_id_presents_for_issued_book(self, as_member, member, book):
+        order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+        order.reservation.status == ReservationStatus.ISSUED
+        order.reservation.save()
+
+        response = as_member.get(self.url)
+
+        assert response.data[-1]["reservation_id"] == order.reservation.id

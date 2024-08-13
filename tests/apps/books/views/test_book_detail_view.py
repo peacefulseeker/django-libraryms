@@ -42,6 +42,20 @@ def test_expected_fields_returned(client):
     assert set(response.data) == set(expected_fields)
 
 
+def test_auth_related_fields_falsy_for_visitors(client, book):
+    url = reverse("book-detail", kwargs={"pk": book.id})
+    response = client.get(url)
+
+    assert not any(
+        [
+            response.data["is_issued_to_member"],
+            response.data["is_reserved_by_member"],
+            response.data["is_queued_by_member"],
+            response.data["max_reservations_reached"],
+        ]
+    )
+
+
 def test_with_related_objects(client):
     book = mixer.blend(Book, author__first_name="Test Author", publisher__name="Test Publisher")
     url = reverse("book-detail", kwargs={"pk": book.id})

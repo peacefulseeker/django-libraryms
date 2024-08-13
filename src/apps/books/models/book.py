@@ -262,10 +262,6 @@ class Order(TimestampedModel):
     member_notified = models.BooleanField(default=False)
 
     @property
-    def get_status_display(self):
-        return self.get_status_display()
-
-    @property
     def _history_user(self):
         return self.last_modified_by
 
@@ -312,14 +308,6 @@ class Order(TimestampedModel):
     def notify_member_of_reservation(self):
         if not self.member_notified:
             send_reservation_confirmed_email.delay(self.pk)
-
-    @property
-    def in_queue(self) -> bool:
-        return self.status == OrderStatus.IN_QUEUE
-
-    @property
-    def is_processed(self) -> bool:
-        return self.status in [OrderStatus.PROCESSED, OrderStatus.REFUSED, OrderStatus.MEMBER_CANCELLED]
 
     def __str__(self):
         return f"{self.member} - {self.book} - {self.status}"
