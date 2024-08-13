@@ -18,60 +18,48 @@ HistoricalOrder._meta.verbose_name_plural = _("Deleted orders")
 @admin.display(
     description="id",
 )
-def history_id(obj):
+def history_id(obj):  # pragma: no cover
     return obj.id
 
 
 @admin.display(
     description="status",
 )
-def history_type(obj):
+def history_type(obj):  # pragma: no cover
     return obj.get_history_type_display()
 
 
 @admin.display(
     description="date of deletion",
 )
-def history_date(obj):
+def history_date(obj):  # pragma: no cover
     return obj.history_date
 
 
 @admin.display(
     description="reason/comment",
 )
-def history_change_reason(obj):
+def history_change_reason(obj):  # pragma: no cover
     return obj.history_change_reason
 
 
 @admin.display(
     description="performed by",
 )
-def history_user(obj) -> User:
+def history_user(obj) -> User:  # pragma: no cover
     return obj.history_user
 
 
 @admin.register(HistoricalOrder)
 class DeletedOrderAdmin(ModelAdmin):
-    readonly_fields = (
-        "id",
-        "last_modified_by",
-        "member",
-        "book",
-        "status",
-        history_date,
-        history_type,
-    )
-    exclude = (
-        "history_date",
-        "history_user",
-        "history_type",
-    )
+    readonly_fields = [field.name for field in HistoricalOrder._meta.get_fields()]
     list_display = (
         history_id,
         history_type,
         history_change_reason,
         history_date,
         "book",
+        "member",
         history_user,
     )
     search_fields = (
@@ -81,10 +69,10 @@ class DeletedOrderAdmin(ModelAdmin):
 
     list_display_links = (history_id, history_type)
 
-    def has_delete_permission(self, request: HttpRequest, obj: Any | None = ...) -> bool:
+    def has_delete_permission(self, request: HttpRequest, obj: Any | None = ...) -> bool:  # pragma: no cover
         return False
 
-    def has_add_permission(self, request: HttpRequest) -> bool:
+    def has_add_permission(self, request: HttpRequest) -> bool:  # pragma: no cover
         return False
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[HistoricalRecords]:

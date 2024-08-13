@@ -1,7 +1,7 @@
 import pytest
 from mixer.backend.django import mixer
 
-from apps.books.const import OrderStatus
+from apps.books.const import OrderStatus, ReservationStatus
 from apps.books.models import Book, Order, Reservation
 
 pytestmark = pytest.mark.django_db
@@ -84,3 +84,12 @@ def test_reservation_confirmation(create_book_order, mock_send_reservation_confi
 
     mock_send_reservation_confirmed_email.delay.assert_called_once_with(order.pk)
     order.refresh_from_db()
+
+
+def test_refused_order_refuses_reservation(book_order):
+    assert book_order.reservation.status == ReservationStatus.RESERVED
+
+    book_order.status = OrderStatus.REFUSED
+    book_order.save()
+
+    assert book_order.reservation.status == ReservationStatus.REFUSED

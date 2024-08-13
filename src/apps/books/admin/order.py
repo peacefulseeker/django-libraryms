@@ -50,8 +50,11 @@ class OrderAdmin(HistoricalModelAdmin):
         "book",
     )
 
-    def has_add_permission(self, request: HttpRequest) -> bool:
-        """Order are expected to be created by API, initiated by members"""
+    def has_add_permission(self, request: HttpRequest) -> bool:  # pragma: no cover
+        """
+        Orders are expected to be created by API, initiated by members
+        OR when reservation is assigned directly to a book through admin.
+        """
         return False
 
     def save_model(self, request: HttpRequest, order: Order, form: Any, change: Any) -> None:

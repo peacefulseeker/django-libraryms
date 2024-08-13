@@ -1,3 +1,5 @@
+import os
+
 import django
 import pytest
 
@@ -15,7 +17,22 @@ pytest_plugins = [
 
 # speeding up user creation with explicitly set password
 @pytest.fixture(autouse=True)
-def use_simple_password_hasher(settings):
+def _use_simple_password_hasher(settings):
     settings.PASSWORD_HASHERS = {
         "django.contrib.auth.hashers.MD5PasswordHasher",
     }
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _create_tmp_index_template():
+    # setup
+    template_path = "src/core/templates/vue-index.html"
+    if os.path.exists(template_path):
+        yield
+        return
+
+    f = open(template_path, "w")
+    yield
+
+    # teardown
+    os.remove(f.name)

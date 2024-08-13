@@ -35,6 +35,12 @@ def test_reservation_issued():
     assert reservation.term == frozen_date + timedelta(days=14)
 
 
+def test_reservation_is_completed():
+    reservation = mixer.blend(Reservation, status=ReservationStatus.COMPLETED)
+
+    assert reservation.is_completed
+
+
 @pytest.mark.parametrize(("status"), [ReservationStatus.COMPLETED, ReservationStatus.CANCELLED])
 def test_reservation_unlinked_from_book_on_status_change(status):
     reservation = mixer.blend(Reservation)

@@ -78,10 +78,11 @@ class BookSerializer(SerializerMixin, serializers.ModelSerializer):
             "pages_description",
             "reservation_term",
             "cover_image_url",
-            "max_reservations_reached",
             "is_available",
             "is_issued",
             "is_reserved",
+            # TODO: member related, perhaps could conditionally include those fields?
+            "max_reservations_reached",
             "is_issued_to_member",
             "is_queued_by_member",
             "is_reserved_by_member",

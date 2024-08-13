@@ -95,13 +95,13 @@ def test_processed_order_created_when_reservation_assigned():
     reservation = mixer.blend(Reservation)
     book = mixer.blend(Book)
 
-    assert book.order_set.count() == 0
+    assert book.orders.count() == 0
 
     book.reservation = reservation
     book.save()
 
-    assert book.order_set.count() == 1
-    assert book.order_set.first().status == OrderStatus.PROCESSED
+    assert book.orders.count() == 1
+    assert book.orders.first().status == OrderStatus.PROCESSED
 
 
 def test_book_available_by_default():
@@ -119,7 +119,7 @@ def test_book_queued_orders():
     queued_orders = book.queued_orders
 
     assert book.has_orders_in_queue
-    assert book.order_set.count() == 3
+    assert book.orders.count() == 3
     assert len(queued_orders) == 2
     assert order1 in queued_orders
     assert order2 in queued_orders
@@ -133,7 +133,7 @@ def test_book_no_queued_orders():
 
     queued_orders = book.queued_orders
 
-    assert book.order_set.count() == 2
+    assert book.orders.count() == 2
     assert len(queued_orders) == 0
     assert not book.has_orders_in_queue
 
@@ -152,7 +152,7 @@ def test_unqueue_next_order_in_queue(create_book_order, member, book, mock_send_
     book.unqueue_next_order()
 
     assert book.queued_orders.count() == 0
-    assert all(o.status == OrderStatus.UNPROCESSED for o in book.order_set.all())
+    assert all(o.status == OrderStatus.UNPROCESSED for o in book.orders.all())
 
     # nothing to do
     book.unqueue_next_order()

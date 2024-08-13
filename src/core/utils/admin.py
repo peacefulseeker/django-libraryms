@@ -34,11 +34,11 @@ class ReadonlyTabularInline(TabularInline):
     extra = 0
     show_change_link = True
 
-    def has_change_permission(self, request, obj=None):
+    def has_change_permission(self, request, obj=None):  # pragma: no cover
         return False
 
-    def has_delete_permission(self, request, obj=None):
+    def has_delete_permission(self, request, obj=None):  # pragma: no cover
         return False
 
-    def has_add_permission(self, request: HttpRequest, obj=None) -> bool:
+    def has_add_permission(self, request: HttpRequest, obj=None) -> bool:  # pragma: no cover
         return False
