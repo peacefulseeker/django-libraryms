@@ -52,11 +52,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-    #   - name: build
-    #     uses: ./.github/actions/build
+      - name: build
+        uses: ./.github/actions/build
 
-    #   - name: test
-    #     run: make test
+      - name: test
+        run: make test
 
       - name: Generate coverage badge
         # if: github.ref == 'refs/heads/main'
