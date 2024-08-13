@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 
 import pytest
@@ -7,6 +8,16 @@ from django.test import Client
 @pytest.fixture
 def client():
     return Client()
+
+
+@pytest.fixture(autouse=True)
+def _create_tmp_index_template():
+    # setup
+    f = open("src/core/templates/vue-index.html", "w")
+    yield
+
+    # teardown
+    os.remove(f.name)
 
 
 @pytest.mark.parametrize(
