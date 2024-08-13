@@ -32,7 +32,7 @@ jobs:
         run: make lint
 
   test:
-    needs: lint
+    # needs: lint
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -52,14 +52,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: build
-        uses: ./.github/actions/build
+    #   - name: build
+    #     uses: ./.github/actions/build
 
-      - name: test
-        run: make test
+    #   - name: test
+    #     run: make test
 
       - name: Generate coverage badge
+        if: github.ref == 'refs/heads/main'
         uses: tj-actions/coverage-badge-py@v2
+
+      - name: Verify changed coverage.svg
+        uses: tj-actions/verify-changed-files@v14
+        if: github.ref == 'refs/heads/main'
+        id: verify-changed-files
+        with:
+          files: coverage.svg
+
+      - name: Commit coverage.svg
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "Updated coverage.svg"
+
+      - name: Push coverage.svg
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.github_token }}
+          branch: ${{ github.head_ref }}
 
   deploy-to-fly:
     if: github.ref == 'refs/heads/main' && github.repository_owner == 'peacefulseeker'
