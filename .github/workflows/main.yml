@@ -59,12 +59,18 @@ jobs:
         run: make test
 
   coverage_badge:
+    needs: [test]
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
 
     steps:
+      - uses: actions/checkout@v4
+
+      # - name: build
+      #   uses: ./.github/actions/build
+
       - name: Generate coverage badge
       # if: github.ref == 'refs/heads/main'
         uses: tj-actions/coverage-badge-py@v2
