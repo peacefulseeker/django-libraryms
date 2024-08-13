@@ -2,12 +2,6 @@ import os
 from unittest.mock import patch
 
 import pytest
-from django.test import Client
-
-
-@pytest.fixture
-def client():
-    return Client()
 
 
 @pytest.fixture(autouse=True)
