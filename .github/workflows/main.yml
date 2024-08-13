@@ -55,8 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # persist-credentials: false
-          # ref: ${{ github.head_ref }}
+          persist-credentials: false
           fetch-depth: 0
 
       - name: build
@@ -64,19 +63,6 @@ jobs:
 
       - name: test
         run: make test
-
-  # coverage_badge:
-  #   needs: [test]
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #     pull-requests: write
-
-  #   steps:
-      # - uses: actions/checkout@v4
-
-      # - name: build
-      #   uses: ./.github/actions/build
 
       - name: Generate coverage badge
       # if: github.ref == 'refs/heads/main'
@@ -102,7 +88,6 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # branch: ${{ github.ref }}
           branch: ${{ github.head_ref }}
 
   deploy-to-fly:
