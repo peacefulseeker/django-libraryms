@@ -30,24 +30,9 @@ class User(AbstractUser):
         return f"{self.get_full_name()}"
 
 
-class UserS(User):
-    """
-    Since auth.User is already defined, need to use proxy model
-    to define "auth" app to custom user model and display
-    all auth related models together in admin top
-    """
-
-    class Meta:
-        proxy = True
-        app_label = "auth"
-        verbose_name = _("User")
-        verbose_name_plural = _("Users")
-
-
 class Member(User):
     class Meta:
         proxy = True
-        app_label = "auth"
 
     def save(self, *args, **kwargs):
         self.is_member = True
@@ -59,7 +44,6 @@ class Member(User):
 class Librarian(User):
     class Meta:
         proxy = True
-        app_label = "auth"
 
     def save(self, *args, **kwargs):
         self.is_staff = True
