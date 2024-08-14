@@ -42,16 +42,16 @@ def test_expected_fields_returned(client):
     assert set(response.data) == set(expected_fields)
 
 
-def test_auth_related_fields_falsy_for_visitors(client, book):
+def test_auth_related_fields_absent_for_visitors(client, book):
     url = reverse("book-detail", kwargs={"pk": book.id})
     response = client.get(url)
 
     assert not any(
         [
-            response.data["is_issued_to_member"],
-            response.data["is_reserved_by_member"],
-            response.data["is_queued_by_member"],
-            response.data["max_reservations_reached"],
+            "is_issued_to_member" in response.data,
+            "is_reserved_by_member" in response.data,
+            "is_queued_by_member" in response.data,
+            "is_max_reservations_reached" in response.data,
         ]
     )
 
@@ -137,7 +137,7 @@ def test_max_reservations_reached_not_reached_yet(as_member, book, member):
     url = reverse("book-detail", kwargs={"pk": book.id})
     response = as_member.get(url)
 
-    assert not response.data["max_reservations_reached"]
+    assert not response.data["is_max_reservations_reached"]
 
 
 def test_max_reservations_reached(as_member, book, member):
@@ -146,4 +146,4 @@ def test_max_reservations_reached(as_member, book, member):
     url = reverse("book-detail", kwargs={"pk": book.id})
     response = as_member.get(url)
 
-    assert response.data["max_reservations_reached"]
+    assert response.data["is_max_reservations_reached"]
