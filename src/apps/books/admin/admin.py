@@ -40,6 +40,7 @@ class BookAdmin(ModelAdmin, ImportExportModelAdmin):
     ]
 
     save_as = True  # allows duplication of the object
+    list_select_related = ["author", "reservation", "reservation__member"]
     list_display = ("title", "reservation", "author", "published_at", "created_at")
     list_display_links = (
         "title",
@@ -90,6 +91,7 @@ class ReservationAdmin(ModelAdmin):
         "modified_at",
     )
 
+    list_select_related = ["member", "book"]
     list_display_links = (
         "id",
         "status",

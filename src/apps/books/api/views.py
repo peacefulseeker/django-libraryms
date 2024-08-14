@@ -16,14 +16,8 @@ from apps.books.models.book import Reservation
 from core.tasks import send_order_created_email
 
 
-class BookListView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = BookListSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ["title", "author__first_name", "author__last_name"]
-    # page_size = 5
-    # pagination_class = pagination.CursorPagination
-    # ordering = "-created_at"
+class ViewSetMixin:
+    request: Request
 
     @property
     def is_authenticated(self):
@@ -33,7 +27,15 @@ class BookListView(generics.ListAPIView):
     def query_params(self):
         return self.request.query_params
 
+
+class BookListView(ViewSetMixin, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = BookListSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["title", "author__first_name", "author__last_name"]
+
     def get_queryset(self):
+        # self.request.user.is_authenticated
         get_available = self.query_params.get("available")
         get_reserved_by_me = self.query_params.get("reserved_by_me")
         if get_available is not None:
@@ -42,13 +44,19 @@ class BookListView(generics.ListAPIView):
             queryset = Book.objects.reserved_by_member(self.request.user.id)
         else:
             queryset = Book.objects.all()
-        return queryset
+        return queryset.with_author().with_reservation()
 
 
-class BookDetailView(generics.RetrieveAPIView):
-    queryset = Book.objects.all()
+class BookDetailView(ViewSetMixin, generics.RetrieveAPIView):
+    queryset = Book.objects.with_author().with_publisher()
     permission_classes = [AllowAny]
     serializer_class = BookSerializer
+
+    def get_queryset(self):
+        if self.is_authenticated:
+            self.queryset = self.queryset.with_reservation_member()
+
+        return self.queryset
 
 
 class BookOrderView(APIView):

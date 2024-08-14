@@ -103,19 +103,27 @@ class TestBookListView:
 
         assert set(response.data[0]) == set(expected_fields)
 
-    def test_reservation_id_presents_for_reserved_book(self, as_member, member, book):
+    def test_reservation_id_presents_for_reserved_book(self, as_member, member):
+        book = Book.objects.last()
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         assert order.reservation.status == ReservationStatus.RESERVED
+        book.refresh_from_db()
 
         response = as_member.get(self.url)
 
-        assert response.data[-1]["reservation_id"] == order.reservation.id
+        # assuming most recently added books are placed first
+        assert response.data[0]["reservation_id"] == order.reservation.id
+        assert response.data[0]["title"] == book.title
 
-    def test_reservation_id_presents_for_issued_book(self, as_member, member, book):
+    def test_reservation_id_presents_for_issued_book(self, as_member, member):
+        book = Book.objects.last()
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
-        order.reservation.status == ReservationStatus.ISSUED
+        order.reservation.status = ReservationStatus.ISSUED
         order.reservation.save()
+        book.refresh_from_db()
 
         response = as_member.get(self.url)
 
-        assert response.data[-1]["reservation_id"] == order.reservation.id
+        # assuming most recently added books are placed first
+        assert response.data[0]["reservation_id"] == order.reservation.id
+        assert response.data[0]["title"] == book.title

@@ -19,7 +19,7 @@ class HistoricalModelAdmin(AppAdminMixin, SimpleHistoryAdmin):
 
 
 class ModelAdmin(AppAdminMixin, admin.ModelAdmin):
-    pass
+    show_full_result_count = False  # prevents counting objects twice
 
 
 class StackedInline(AppAdminMixin, admin.StackedInline):

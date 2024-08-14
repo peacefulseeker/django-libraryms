@@ -88,11 +88,26 @@ class Reservation(TimestampedModel):
 
 
 class BookQuerySet(models.QuerySet):
-    def available(self) -> "QuerySet[Book]":
+    def with_reservation(self) -> "BookQuerySet":
+        return self.select_related("reservation")
+
+    def with_reservation_member(self) -> "BookQuerySet":
+        return self.select_related("reservation__member")
+
+    def with_author(self) -> "BookQuerySet":
+        return self.select_related("author")
+
+    def with_publisher(self) -> "BookQuerySet":
+        return self.select_related("publisher")
+
+    def with_member(self) -> "BookQuerySet":
+        return self.select_related("member")
+
+    def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
-    def reserved_by_member(self, member_id) -> "QuerySet[Book]":
-        return self.filter(reservation__member=member_id)
+    def reserved_by_member(self, member_id) -> "BookQuerySet":
+        return self.filter(reservation__member=member_id).with_reservation_member()
 
 
 class Book(TimestampedModel):
@@ -121,7 +136,7 @@ class Book(TimestampedModel):
     )
 
     class Meta:
-        ordering = ["-modified_at"]
+        ordering = [F("modified_at").desc(nulls_last=True)]
 
     def __str__(self) -> str:
         return f"{self.title}"

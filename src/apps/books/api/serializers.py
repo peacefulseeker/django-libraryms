@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.books.models import Author, Book, Publisher, Reservation
 
 
-class SerializerMixin:
+class SerializerMixin(serializers.ModelSerializer):
     @property
     def user(self):
         return self.context["request"].user if self.context["request"].user.is_authenticated else None
@@ -27,13 +27,14 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = ["status", "term"]
 
 
-class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
+class BookListSerializer(SerializerMixin):
     author = AuthorSerializer()
     cover_image_url = serializers.ImageField(source="cover", use_url=True)
     reservation_id = serializers.SerializerMethodField("get_reservation_id")
 
     class Meta:
         model = Book
+        ordering = ["-created_at"]
         fields = [
             "id",
             "title",
@@ -54,7 +55,7 @@ class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
         return obj.reservation.pk
 
 
-class BookSerializer(SerializerMixin, serializers.ModelSerializer):
+class BookSerializer(SerializerMixin):
     author = AuthorSerializer()
     publisher = PublisherSerializer()
     language = serializers.CharField(source="get_language_display")
