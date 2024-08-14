@@ -13,8 +13,8 @@ primary_region = 'waw'
 
 [processes]
   app = "python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application"
-  worker = "python -m celery --app core --workdir src worker --loglevel=info"
-  beat = "python -m celery --app core --workdir src beat --loglevel=info --pidfile= --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+  # worker = "python -m celery --app core --workdir src worker --loglevel=info"
+  # beat = "python -m celery --app core --workdir src beat --loglevel=info --pidfile= --scheduler django_celery_beat.schedulers:DatabaseScheduler"
 
 [env]
   PORT = '8000'
