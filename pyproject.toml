@@ -68,6 +68,9 @@ env = [
     "DEFAULT_FILE_STORAGE = django.core.files.storage.memory.InMemoryStorage",
     "PRODUCTION_URL = https://example.com",
 ]
+markers = [
+    "skip_create_books: test_book_list_view.py",
+]
 python_files = "test*.py"
 pythonpath = ". src"
 

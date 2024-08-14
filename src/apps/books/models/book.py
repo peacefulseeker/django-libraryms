@@ -13,9 +13,9 @@ from core.utils.models import TimestampedModel
 
 
 class ReservationQuerySet(models.QuerySet):
-    def reserved_by_member(self, member_id) -> "QuerySet[Reservation]":
+    def reserved_by_member(self, member: Member) -> "QuerySet[Reservation]":
         return self.filter(
-            member=member_id,
+            member=member,
             status__in=[
                 ReservationStatus.RESERVED,
                 ReservationStatus.ISSUED,
@@ -100,9 +100,6 @@ class BookQuerySet(models.QuerySet):
     def with_publisher(self) -> "BookQuerySet":
         return self.select_related("publisher")
 
-    def with_member(self) -> "BookQuerySet":
-        return self.select_related("member")
-
     def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
@@ -185,7 +182,7 @@ class Book(TimestampedModel):
         return self.reservation.member == member
 
     def is_queued_by_member(self, member: Member) -> bool:
-        if not self.is_reserved and not self.is_issued:
+        if not self.is_booked:
             return False
 
         return self.orders.filter(member=member, status=OrderStatus.IN_QUEUE).exists()
@@ -226,7 +223,7 @@ class Book(TimestampedModel):
 
 
 class OrderQuerySet(models.QuerySet):
-    def processed_reserved(self, book_id, member_id) -> "QuerySet[Order]":
+    def processed_reserved(self, book_id, member_id) -> "OrderQuerySet":
         return self.filter(
             book=book_id,
             member=member_id,
@@ -234,7 +231,7 @@ class OrderQuerySet(models.QuerySet):
             reservation__status=ReservationStatus.RESERVED,
         )
 
-    def processable(self, book_id, member_id) -> "QuerySet[Order]":
+    def processable(self, book_id, member_id) -> "OrderQuerySet":
         return self.filter(
             book=book_id,
             member=member_id,

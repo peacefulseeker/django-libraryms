@@ -15,7 +15,10 @@ search_param = settings.REST_FRAMEWORK["SEARCH_PARAM"]
 
 
 @pytest.fixture(autouse=True)
-def _create_books(settings):
+def _create_books(request):
+    if "skip_create_books" in request.keywords:
+        return
+
     author1 = mixer.blend(Author, first_name="John", last_name="Doe")
     author2 = mixer.blend(Author, first_name="Jane", last_name="Smith")
 
@@ -103,11 +106,10 @@ class TestBookListView:
 
         assert set(response.data[0]) == set(expected_fields)
 
-    def test_reservation_id_presents_for_reserved_book(self, as_member, member):
-        book = Book.objects.last()
+    @pytest.mark.skip_create_books
+    def test_reservation_id_presents_for_a_reserved_book(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         assert order.reservation.status == ReservationStatus.RESERVED
-        book.refresh_from_db()
 
         response = as_member.get(self.url)
 
@@ -115,12 +117,11 @@ class TestBookListView:
         assert response.data[0]["reservation_id"] == order.reservation.id
         assert response.data[0]["title"] == book.title
 
-    def test_reservation_id_presents_for_issued_book(self, as_member, member):
-        book = Book.objects.last()
+    @pytest.mark.skip_create_books
+    def test_reservation_id_presents_for_an_issued_book(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         order.reservation.status = ReservationStatus.ISSUED
         order.reservation.save()
-        book.refresh_from_db()
 
         response = as_member.get(self.url)
 

@@ -20,7 +20,7 @@ class SqlPrintingMiddleware:
         return response
 
     def process_response(self, request, response):
-        if not settings.DEBUG or len(connection.queries) == 0 or request.path_info.startswith(settings.MEDIA_URL):
+        if len(connection.queries) == 0 or request.path_info.startswith(settings.MEDIA_URL):
             return response
 
         indentation = 2

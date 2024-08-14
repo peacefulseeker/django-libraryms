@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
 from apps.books.models import Author, Book, Publisher, Reservation
+from apps.users.models import User
 
 
-class SerializerMixin(serializers.ModelSerializer):
+class SerializerMixin:
     @property
-    def user(self):
+    def user(self) -> User | None:
         return self.context["request"].user if self.context["request"].user.is_authenticated else None
 
 
@@ -27,7 +28,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = ["status", "term"]
 
 
-class BookListSerializer(SerializerMixin):
+class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
     author = AuthorSerializer()
     cover_image_url = serializers.ImageField(source="cover", use_url=True)
     reservation_id = serializers.SerializerMethodField("get_reservation_id")
@@ -55,15 +56,11 @@ class BookListSerializer(SerializerMixin):
         return obj.reservation.pk
 
 
-class BookSerializer(SerializerMixin):
+class BookSerializer(SerializerMixin, serializers.ModelSerializer):
     author = AuthorSerializer()
     publisher = PublisherSerializer()
     language = serializers.CharField(source="get_language_display")
     cover_image_url = serializers.ImageField(source="cover", use_url=True)
-    is_issued_to_member = serializers.SerializerMethodField("get_is_issued_to_member")
-    is_reserved_by_member = serializers.SerializerMethodField("get_is_reserved_by_member")
-    is_queued_by_member = serializers.SerializerMethodField("get_is_queued_by_member")
-    max_reservations_reached = serializers.SerializerMethodField("get_max_reservations_reached")
 
     class Meta:
         model = Book
@@ -77,38 +74,36 @@ class BookSerializer(SerializerMixin):
             "isbn",
             "pages",
             "pages_description",
-            "reservation_term",
             "cover_image_url",
             "is_available",
             "is_issued",
             "is_reserved",
-            # TODO: member related, perhaps could conditionally include those fields?
-            "max_reservations_reached",
-            "is_issued_to_member",
-            "is_queued_by_member",
-            "is_reserved_by_member",
+            "reservation_term",
         ]
 
-    def get_max_reservations_reached(self, obj: Book) -> int | None:
-        if not self.user:
-            return None
 
-        return Reservation.objects.reserved_by_member(self.user.id).count() >= Reservation.MAX_RESERVATIONS_PER_MEMBER
+class BookMemberSerializer(BookSerializer):
+    is_issued_to_member = serializers.SerializerMethodField("get_is_issued_to_member")
+    is_reserved_by_member = serializers.SerializerMethodField("get_is_reserved_by_member")
+    is_queued_by_member = serializers.SerializerMethodField("get_is_queued_by_member")
+    is_max_reservations_reached = serializers.SerializerMethodField("get_is_max_reservations_reached")
+
+    class Meta(BookSerializer.Meta):
+        fields = BookSerializer.Meta.fields + [
+            "is_issued_to_member",
+            "is_reserved_by_member",
+            "is_queued_by_member",
+            "is_max_reservations_reached",
+        ]
+
+    def get_is_max_reservations_reached(self, obj: Book) -> bool | None:
+        return Reservation.objects.reserved_by_member(self.user).count() >= Reservation.MAX_RESERVATIONS_PER_MEMBER
 
     def get_is_issued_to_member(self, obj: Book) -> bool:
-        if not self.user:
-            return False
-
         return obj.is_issued_to_member(self.user)
 
     def get_is_reserved_by_member(self, obj: Book) -> bool:
-        if not self.user:
-            return False
-
         return obj.is_reserved_by_member(self.user)
 
     def get_is_queued_by_member(self, obj: Book) -> bool:
-        if not self.user:
-            return False
-
         return obj.is_queued_by_member(self.user)

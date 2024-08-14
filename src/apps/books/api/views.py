@@ -8,11 +8,12 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 
-from apps.books.api.serializers import BookListSerializer, BookSerializer
+from apps.books.api.serializers import BookListSerializer, BookMemberSerializer, BookSerializer
 from apps.books.const import OrderStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
-from apps.books.models.book import Reservation
+from apps.books.models.book import Order, Reservation
+from apps.users.models import Member
 from core.tasks import send_order_created_email
 
 
@@ -35,28 +36,32 @@ class BookListView(ViewSetMixin, generics.ListAPIView):
     search_fields = ["title", "author__first_name", "author__last_name"]
 
     def get_queryset(self):
-        # self.request.user.is_authenticated
+        queryset = Book.objects.with_author().with_reservation()
         get_available = self.query_params.get("available")
         get_reserved_by_me = self.query_params.get("reserved_by_me")
         if get_available is not None:
-            queryset = Book.objects.available()
+            return queryset.available()
         elif self.is_authenticated and get_reserved_by_me is not None:
-            queryset = Book.objects.reserved_by_member(self.request.user.id)
-        else:
-            queryset = Book.objects.all()
-        return queryset.with_author().with_reservation()
+            return queryset.reserved_by_member(self.request.user.id)
+
+        return queryset
 
 
 class BookDetailView(ViewSetMixin, generics.RetrieveAPIView):
-    queryset = Book.objects.with_author().with_publisher()
     permission_classes = [AllowAny]
-    serializer_class = BookSerializer
+
+    def get_serializer_class(self):
+        if self.is_authenticated:
+            return BookMemberSerializer
+        return BookSerializer
 
     def get_queryset(self):
-        if self.is_authenticated:
-            self.queryset = self.queryset.with_reservation_member()
+        queryset = Book.objects.with_author().with_publisher()
 
-        return self.queryset
+        if self.is_authenticated:
+            return queryset.with_reservation_member()
+
+        return queryset
 
 
 class BookOrderView(APIView):
@@ -69,7 +74,7 @@ class BookOrderView(APIView):
         if self._processable_order(book_id, request.user.id).exists():
             return Response(status=400, data={"detail": _("Book is already ordered or your order is in queue")})
 
-        order, message = self._create_order(book_id, request.user.id)
+        order, message = self._create_order(book_id, request.user)
         if order.status == OrderStatus.UNPROCESSED:
             send_order_created_email.delay(order.id)
 
@@ -79,16 +84,17 @@ class BookOrderView(APIView):
         return self._cancel_order(book_id, request.user.id)
 
     def _cancel_order(self, book_id: int, member_id) -> Response:
-        order = self._cancellable_order(book_id, member_id)
-        if not order.exists():
+        try:
+            order = self._cancellable_order(book_id, member_id).get()
+            order.cancel()
+        except Order.DoesNotExist:
             return Response(status=400, data={"detail": _("No cancellable order found")})
-        order = order.get()
-        order.cancel()
 
         return Response(status=HTTP_204_NO_CONTENT)
 
-    def _create_order(self, book_id: int, member_id: int) -> tuple[BookOrder, str]:
-        book: Book = get_object_or_404(Book, pk=book_id)
+    def _create_order(self, book_id: int, member: Member) -> tuple[BookOrder, str]:
+        book = get_object_or_404(Book, pk=book_id)
+        order_status = OrderStatus.UNPROCESSED
         if book.is_available:
             order_status = OrderStatus.UNPROCESSED
             message = _("Book reserved")
@@ -96,7 +102,7 @@ class BookOrderView(APIView):
             order_status = OrderStatus.IN_QUEUE
             message = _("Book reservation request put in queue")
 
-        order = BookOrder.objects.create(book_id=book_id, member_id=member_id, status=order_status)
+        order = BookOrder.objects.create(book=book, member=member, status=order_status)
 
         return order, message
 
