@@ -50,8 +50,8 @@ toml-sort = "^0.23.1"
 omit = [
     "*/migrations/*",
     "src/core/conf/*",
-    "src/core/wsgi.py",
     "src/core/middleware/sql.py",
+    "src/core/wsgi.py",
 ]
 
 [tool.pytest.ini_options]
