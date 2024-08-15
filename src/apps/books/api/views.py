@@ -85,7 +85,7 @@ class BookOrderView(APIView):
 
     def _cancel_order(self, book_id: int, member_id) -> Response:
         try:
-            order = self._cancellable_order(book_id, member_id).get()
+            order = self._cancellable_order(book_id, member_id).select_related("book", "reservation").get()
             order.cancel()
         except Order.DoesNotExist:
             return Response(status=400, data={"detail": _("No cancellable order found")})
