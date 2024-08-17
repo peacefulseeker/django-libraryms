@@ -16,7 +16,7 @@ COPY pyproject.toml poetry.lock .
 
 WORKDIR /app
 
-RUN poetry install
+RUN poetry install --with dev
 
 COPY ./scripts/local/start_web /start_web
 RUN chmod +x /start_web
