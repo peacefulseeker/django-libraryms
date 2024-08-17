@@ -8,8 +8,8 @@ runs:
     - name: Install poetry
       uses: snok/install-poetry@v1
       with:
-        virtualenvs-in-project: true
         version: 1.8.3
+        installation-arguments: --with dev
 
     - name: Install python
       id: setup-python
