@@ -8,6 +8,7 @@ s:
 	make server
 
 prod:
+	./scripts/build-frontend.sh
 	make static
 	poetry run gunicorn core.wsgi:application --chdir src --workers 2 -b localhost:$(PORT) -e DEBUG=false
 

@@ -58,7 +58,7 @@ FROM backend-build as app
     WORKDIR /app
 
     COPY src /app/src
-    COPY --from=frontend /app/dist /app/src/core/assets/frontend/dist/
+    COPY --from=frontend /app/dist /app/src/core/assets/frontend/
     COPY --from=frontend /app/dist/index.html /app/src/core/templates/vue-index.html
 
     RUN python src/manage.py collectstatic --no-input
