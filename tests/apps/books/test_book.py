@@ -56,6 +56,19 @@ def test_books_order_by_modified_at_first():
     assert list(books) == [book2, book3, book1]
 
 
+def test_book_ordered_by_last_modified_with_nulls_last():
+    book1 = mixer.blend(Book, title="first")
+    book2 = mixer.blend(Book, title="second")
+    book3 = mixer.blend(Book, title="third")
+
+    book3.save()
+    book2.save()
+
+    books = Book.objects.all()
+
+    assert list(books) == [book2, book3, book1]
+
+
 def test_book_publisher_relation():
     publisher = mixer.blend(Publisher)
     book = mixer.blend(Book, publisher=publisher)

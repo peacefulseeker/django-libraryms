@@ -50,6 +50,7 @@ toml-sort = "^0.23.1"
 omit = [
     "*/migrations/*",
     "src/core/conf/*",
+    "src/core/middleware/sql.py",
     "src/core/wsgi.py",
 ]
 
@@ -67,6 +68,9 @@ env = [
     "CI = 1",
     "DEFAULT_FILE_STORAGE = django.core.files.storage.memory.InMemoryStorage",
     "PRODUCTION_URL = https://example.com",
+]
+markers = [
+    "skip_create_books: test_book_list_view.py",
 ]
 python_files = "test*.py"
 pythonpath = ". src"

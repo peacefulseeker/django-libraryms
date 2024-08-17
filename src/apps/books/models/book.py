@@ -13,9 +13,9 @@ from core.utils.models import TimestampedModel
 
 
 class ReservationQuerySet(models.QuerySet):
-    def reserved_by_member(self, member_id) -> "QuerySet[Reservation]":
+    def reserved_by_member(self, member: Member) -> "QuerySet[Reservation]":
         return self.filter(
-            member=member_id,
+            member=member,
             status__in=[
                 ReservationStatus.RESERVED,
                 ReservationStatus.ISSUED,
@@ -88,11 +88,23 @@ class Reservation(TimestampedModel):
 
 
 class BookQuerySet(models.QuerySet):
-    def available(self) -> "QuerySet[Book]":
+    def with_reservation(self) -> "BookQuerySet":
+        return self.select_related("reservation")
+
+    def with_reservation_member(self) -> "BookQuerySet":
+        return self.select_related("reservation__member")
+
+    def with_author(self) -> "BookQuerySet":
+        return self.select_related("author")
+
+    def with_publisher(self) -> "BookQuerySet":
+        return self.select_related("publisher")
+
+    def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
-    def reserved_by_member(self, member_id) -> "QuerySet[Book]":
-        return self.filter(reservation__member=member_id)
+    def reserved_by_member(self, member_id) -> "BookQuerySet":
+        return self.with_reservation_member().filter(reservation__member=member_id)
 
 
 class Book(TimestampedModel):
@@ -121,7 +133,7 @@ class Book(TimestampedModel):
     )
 
     class Meta:
-        ordering = ["-modified_at"]
+        ordering = [F("modified_at").desc(nulls_last=True)]
 
     def __str__(self) -> str:
         return f"{self.title}"
@@ -170,7 +182,7 @@ class Book(TimestampedModel):
         return self.reservation.member == member
 
     def is_queued_by_member(self, member: Member) -> bool:
-        if not self.is_reserved and not self.is_issued:
+        if not self.is_booked:
             return False
 
         return self.orders.filter(member=member, status=OrderStatus.IN_QUEUE).exists()
@@ -211,7 +223,7 @@ class Book(TimestampedModel):
 
 
 class OrderQuerySet(models.QuerySet):
-    def processed_reserved(self, book_id, member_id) -> "QuerySet[Order]":
+    def processed_reserved(self, book_id, member_id) -> "OrderQuerySet":
         return self.filter(
             book=book_id,
             member=member_id,
@@ -219,7 +231,7 @@ class OrderQuerySet(models.QuerySet):
             reservation__status=ReservationStatus.RESERVED,
         )
 
-    def processable(self, book_id, member_id) -> "QuerySet[Order]":
+    def processable(self, book_id, member_id) -> "OrderQuerySet":
         return self.filter(
             book=book_id,
             member=member_id,

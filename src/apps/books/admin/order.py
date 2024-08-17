@@ -35,6 +35,7 @@ class OrderAdmin(HistoricalModelAdmin):
             },
         ),
     )
+    list_select_related = ["book", "member"]
     list_display = (
         "id",
         "status",
