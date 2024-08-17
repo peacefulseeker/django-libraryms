@@ -9,7 +9,7 @@ primary_region = 'waw'
 [build]
 
 [deploy]
-  release_command = 'poetry run python src/manage.py migrate'
+  release_command = 'python src/manage.py migrate'
 
 [processes]
   app = "python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application"

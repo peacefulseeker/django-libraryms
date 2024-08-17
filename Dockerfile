@@ -56,12 +56,11 @@ RUN poetry config virtualenvs.create false
 # NOTE: that will still installs dev deps because of the poetry following original lock file deps
 RUN poetry install --only main --no-root --no-interaction
 
-
 COPY . /app
 COPY --from=frontend /app/dist /app/frontend/dist/
 COPY --from=frontend /app/dist/index.html /app/src/core/templates/vue-index.html
 
-RUN poetry run python src/manage.py collectstatic --no-input
+RUN python src/manage.py collectstatic --no-input
 
 EXPOSE 8000
 
