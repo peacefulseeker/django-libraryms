@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.books.models import Author, Book, Publisher, Reservation
+from apps.books.models.book import Order
 from apps.users.models import User
 
 
@@ -45,19 +46,25 @@ class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
 
 class BooksReservedByMemberSerializer(BookListSerializer):
     reservation_id = serializers.SerializerMethodField("get_reservation_id")
-
-    def get_reservation_id(self, obj: Book) -> int | None:
-        if not self.user or not obj.is_booked_by_member(self.user):
-            return None
-
-        return obj.reservation.pk
+    is_enqueued_by_member = serializers.SerializerMethodField("get_is_enqueued_by_member")
 
     class Meta(BookListSerializer.Meta):
         fields = BookListSerializer.Meta.fields + [
             "reservation_id",
             "reservation_term",
             "is_issued",
+            "is_enqueued_by_member",
+            "amount_in_queue",
         ]
+
+    def get_reservation_id(self, obj: Book) -> int | None:
+        if not obj.is_booked_by_member(self.user):
+            return None
+
+        return obj.reservation.pk
+
+    def get_is_enqueued_by_member(self, obj: Book) -> bool:
+        return obj.is_enqueued_by_member(self.user)
 
 
 class BookSerializer(SerializerMixin, serializers.ModelSerializer):
@@ -83,31 +90,37 @@ class BookSerializer(SerializerMixin, serializers.ModelSerializer):
             "is_issued",
             "is_reserved",
             "reservation_term",
+            "amount_in_queue",
         ]
 
 
 class BookMemberSerializer(BookSerializer):
     is_issued_to_member = serializers.SerializerMethodField("get_is_issued_to_member")
     is_reserved_by_member = serializers.SerializerMethodField("get_is_reserved_by_member")
-    is_queued_by_member = serializers.SerializerMethodField("get_is_queued_by_member")
+    is_enqueued_by_member = serializers.SerializerMethodField("get_is_enqueued_by_member")
     is_max_reservations_reached = serializers.SerializerMethodField("get_is_max_reservations_reached")
+    is_max_enqueued_orders_reached = serializers.SerializerMethodField("get_is_max_enqueued_orders_reached")
 
     class Meta(BookSerializer.Meta):
         fields = BookSerializer.Meta.fields + [
             "is_issued_to_member",
             "is_reserved_by_member",
-            "is_queued_by_member",
+            "is_enqueued_by_member",
             "is_max_reservations_reached",
+            "is_max_enqueued_orders_reached",
         ]
 
-    def get_is_max_reservations_reached(self, obj: Book) -> bool | None:
+    def get_is_max_reservations_reached(self, _) -> bool | None:
         return Reservation.objects.reserved_by_member(self.user).count() >= Reservation.MAX_RESERVATIONS_PER_MEMBER
 
-    def get_is_issued_to_member(self, obj: Book) -> bool:
-        return obj.is_issued_to_member(self.user)
+    def get_is_max_enqueued_orders_reached(self, book: Book) -> bool | None:
+        return book.amount_in_queue >= Order.MAX_QUEUED_ORDERS_ALLOWED
 
-    def get_is_reserved_by_member(self, obj: Book) -> bool:
-        return obj.is_reserved_by_member(self.user)
+    def get_is_issued_to_member(self, book: Book) -> bool:
+        return book.is_issued_to_member(self.user)
 
-    def get_is_queued_by_member(self, obj: Book) -> bool:
-        return obj.is_queued_by_member(self.user)
+    def get_is_reserved_by_member(self, book: Book) -> bool:
+        return book.is_reserved_by_member(self.user)
+
+    def get_is_enqueued_by_member(self, book: Book) -> bool:
+        return book.is_enqueued_by_member(self.user)
