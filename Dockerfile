@@ -39,6 +39,8 @@ ENV PYTHONUNBUFFERED 1
 # RUN adduser --system --no-create-home appuser
 # RUN useradd -l -M appuser
 
+RUN useradd --user-group --system --no-log-init --create-home appuser
+
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
@@ -54,19 +56,20 @@ RUN poetry config virtualenvs.create false
 # NOTE: that will still installs dev deps because of the poetry following original lock file deps
 RUN poetry install --only main --no-root --no-interaction
 
+
 COPY . /app
 COPY --from=frontend /app/dist /app/frontend/dist/
 COPY --from=frontend /app/dist/index.html /app/src/core/templates/vue-index.html
 
-RUN python src/manage.py collectstatic --no-input
+COPY --chown=appuser:appuser . /app
+COPY --chown=appuser:appuser --from=frontend /app/dist /app/frontend/dist/
+COPY --chown=appuser:appuser --from=frontend /app/dist/index.html /app/src/core/templates/vue-index.html
 
+RUN poetry run python src/manage.py collectstatic --no-input
 
 EXPOSE 8000
 
 # RUN chown -R appuser .
-
-# USER appuser
-
-# will be rewritten by each of processes
-
+USER appuser
+# CMD will be rewritten by each of the processes in fly.toml
 CMD python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application
