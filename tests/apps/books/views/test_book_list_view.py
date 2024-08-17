@@ -87,7 +87,7 @@ class TestBookListView:
         response = client.get(self.url)
 
         for book in response.data:
-            assert book["reservation_id"] is None
+            assert "reservation_id" not in book
 
     def test_get_a_reserved_book_as_auth_member(self, as_member, member):
         book = Book.objects.first()
@@ -111,7 +111,7 @@ class TestBookListView:
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         assert order.reservation.status == ReservationStatus.RESERVED
 
-        response = as_member.get(self.url)
+        response = as_member.get(self.url, {"reserved_by_me": "true"})
 
         # assuming most recently added books are placed first
         assert response.data[0]["reservation_id"] == order.reservation.id
@@ -123,7 +123,7 @@ class TestBookListView:
         order.reservation.status = ReservationStatus.ISSUED
         order.reservation.save()
 
-        response = as_member.get(self.url)
+        response = as_member.get(self.url, {"reserved_by_me": "true"})
 
         # assuming most recently added books are placed first
         assert response.data[0]["reservation_id"] == order.reservation.id

@@ -31,7 +31,6 @@ class ReservationSerializer(serializers.ModelSerializer):
 class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
     author = AuthorSerializer()
     cover_image_url = serializers.ImageField(source="cover", use_url=True)
-    reservation_id = serializers.SerializerMethodField("get_reservation_id")
 
     class Meta:
         model = Book
@@ -40,20 +39,25 @@ class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
             "id",
             "title",
             "author",
-            "pages",
             "cover_image_url",
-            "is_available",
-            # reservations specific
-            "reservation_term",
-            "reservation_id",
-            "is_issued",
         ]
+
+
+class BooksReservedByMemberSerializer(BookListSerializer):
+    reservation_id = serializers.SerializerMethodField("get_reservation_id")
 
     def get_reservation_id(self, obj: Book) -> int | None:
         if not self.user or not obj.is_booked_by_member(self.user):
             return None
 
         return obj.reservation.pk
+
+    class Meta(BookListSerializer.Meta):
+        fields = BookListSerializer.Meta.fields + [
+            "reservation_id",
+            "reservation_term",
+            "is_issued",
+        ]
 
 
 class BookSerializer(SerializerMixin, serializers.ModelSerializer):

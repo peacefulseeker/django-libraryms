@@ -8,7 +8,12 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 
-from apps.books.api.serializers import BookListSerializer, BookMemberSerializer, BookSerializer
+from apps.books.api.serializers import (
+    BookListSerializer,
+    BookMemberSerializer,
+    BookSerializer,
+    BooksReservedByMemberSerializer,
+)
 from apps.books.const import OrderStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
@@ -31,19 +36,24 @@ class ViewSetMixin:
 
 class BookListView(ViewSetMixin, generics.ListAPIView):
     permission_classes = [AllowAny]
-    serializer_class = BookListSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["title", "author__first_name", "author__last_name"]
 
+    def show_reserved_by_member(self):
+        if self.is_authenticated and self.query_params.get("reserved_by_me") is not None:
+            return True
+
+    def get_serializer_class(self):
+        if self.show_reserved_by_member():
+            return BooksReservedByMemberSerializer
+        return BookListSerializer
+
     def get_queryset(self):
         queryset = Book.objects.with_author().with_reservation()
-        get_available = self.query_params.get("available")
-        get_reserved_by_me = self.query_params.get("reserved_by_me")
-        if get_available is not None:
+        if self.query_params.get("available") is not None:
             return queryset.available()
-        elif self.is_authenticated and get_reserved_by_me is not None:
+        elif self.show_reserved_by_member():
             return queryset.reserved_by_member(self.request.user.id)
-
         return queryset
 
 

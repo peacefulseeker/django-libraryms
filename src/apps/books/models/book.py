@@ -104,7 +104,7 @@ class BookQuerySet(models.QuerySet):
         return self.filter(reservation__isnull=True)
 
     def reserved_by_member(self, member_id) -> "BookQuerySet":
-        return self.filter(reservation__member=member_id).with_reservation_member()
+        return self.with_reservation_member().filter(reservation__member=member_id)
 
 
 class Book(TimestampedModel):
