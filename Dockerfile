@@ -61,15 +61,11 @@ COPY . /app
 COPY --from=frontend /app/dist /app/frontend/dist/
 COPY --from=frontend /app/dist/index.html /app/src/core/templates/vue-index.html
 
-COPY --chown=appuser:appuser . /app
-COPY --chown=appuser:appuser --from=frontend /app/dist /app/frontend/dist/
-COPY --chown=appuser:appuser --from=frontend /app/dist/index.html /app/src/core/templates/vue-index.html
-
 RUN poetry run python src/manage.py collectstatic --no-input
 
 EXPOSE 8000
 
-# RUN chown -R appuser .
+RUN chown -R appuser .
 USER appuser
 # CMD will be rewritten by each of the processes in fly.toml
 CMD python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application
