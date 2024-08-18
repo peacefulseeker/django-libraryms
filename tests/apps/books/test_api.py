@@ -10,9 +10,11 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
 )
+from rest_framework.test import APIClient
 
 from apps.books.const import OrderStatus
 from apps.books.models.book import Book, Order, Reservation
+from apps.users.models import Member
 
 pytestmark = [
     pytest.mark.django_db,
@@ -41,12 +43,12 @@ class TestBookOrderView:
         return mocker.patch("apps.books.api.views.send_order_created_email")
 
     @pytest.fixture
-    def setup_max_reservations(self, member):
+    def _setup_max_reservations(self, member):
         for _r in range(Reservation.MAX_RESERVATIONS_PER_MEMBER):
             book = mixer.blend(Book)
-            mixer.blend(Order, book=book, member=member, status=OrderStatus.UNPROCESSED)
+            mixer.blend(Order, book=book, member=member, status=OrderStatus.IN_QUEUE)
 
-    def test_max_reservations_reached(self, as_member, setup_max_reservations):
+    def test_max_reservations_reached(self, as_member, _setup_max_reservations):
         extra_book = mixer.blend(Book)
 
         url = reverse("book-order", kwargs={"book_id": extra_book.id})
@@ -56,6 +58,21 @@ class TestBookOrderView:
         assert response.data["detail"] == _("Maximum number of reservations reached")
 
         assert Reservation.objects.count() == Reservation.MAX_RESERVATIONS_PER_MEMBER
+
+    def test_max_queued_orders_reached(self, book_order, authenticated_client: APIClient, another_member):
+        book = book_order.book
+        url = reverse("book-order", kwargs={"book_id": book.id})
+
+        for _o in range(Order.MAX_QUEUED_ORDERS_ALLOWED):
+            member = mixer.blend(Member)
+            authenticated_client(member).post(url)
+
+        assert book.enqueued_orders.count() == Order.MAX_QUEUED_ORDERS_ALLOWED
+
+        response = authenticated_client(another_member).post(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["detail"] == _("Maximum number of orders in queue reached")
 
     def test_auth_needed_to_order_a_book(self, client, book):
         url = reverse("book-order", kwargs={"book_id": book.id})

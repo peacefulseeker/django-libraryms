@@ -50,7 +50,7 @@ def test_auth_related_fields_absent_for_visitors(client, book):
         [
             "is_issued_to_member" in response.data,
             "is_reserved_by_member" in response.data,
-            "is_queued_by_member" in response.data,
+            "is_enqueued_by_member" in response.data,
             "is_max_reservations_reached" in response.data,
         ]
     )
@@ -120,7 +120,7 @@ def test_is_queued_by_member(as_member, book, member):
 
     response = as_member.get(url)
 
-    assert response.data["is_queued_by_member"]
+    assert response.data["is_enqueued_by_member"]
 
 
 def test_is_not_queued_by_member(as_member, book):
@@ -128,7 +128,7 @@ def test_is_not_queued_by_member(as_member, book):
 
     response = as_member.get(url)
 
-    assert not response.data["is_queued_by_member"]
+    assert not response.data["is_enqueued_by_member"]
 
 
 def test_max_reservations_reached_not_reached_yet(as_member, book, member):

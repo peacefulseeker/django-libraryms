@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from functools import cached_property
 
 from django.db import models
 from django.db.models import F, QuerySet
@@ -103,8 +104,11 @@ class BookQuerySet(models.QuerySet):
     def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
-    def reserved_by_member(self, member_id) -> "BookQuerySet":
-        return self.with_reservation_member().filter(reservation__member=member_id)
+    def reserved_by_member(self, member: Member) -> "BookQuerySet":
+        return self.with_reservation_member().filter(reservation__member=member)
+
+    def enqueued_by_member(self, member: Member) -> "BookQuerySet":
+        return self.filter(orders__status=OrderStatus.IN_QUEUE, orders__member=member)
 
 
 class Book(TimestampedModel):
@@ -156,15 +160,12 @@ class Book(TimestampedModel):
             )
 
     def process_next_order(self):
-        self.reservation = None
-        self.save(update_fields=["reservation"])
-        self.unqueue_next_order()
-
-    def unqueue_next_order(self):
-        if not self.has_orders_in_queue:
+        if not self.has_enqueued_orders:
+            self.reservation = None
+            self.save(update_fields=["reservation"])
             return
 
-        next_order: Order = self.queued_orders.first()
+        next_order: Order = self.enqueued_orders.first()
         next_order.status = OrderStatus.UNPROCESSED
         next_order.save()
         send_order_created_email.delay(next_order.id)
@@ -181,7 +182,7 @@ class Book(TimestampedModel):
 
         return self.reservation.member == member
 
-    def is_queued_by_member(self, member: Member) -> bool:
+    def is_enqueued_by_member(self, member: Member) -> bool:
         if not self.is_booked:
             return False
 
@@ -214,27 +215,31 @@ class Book(TimestampedModel):
         return self.reservation.term if self.is_issued else None
 
     @property
-    def queued_orders(self) -> QuerySet:
+    def enqueued_orders(self) -> "OrderQuerySet":
         return self.orders.filter(status=OrderStatus.IN_QUEUE)
 
+    @cached_property
+    def amount_in_queue(self) -> "OrderQuerySet":
+        return self.enqueued_orders.count()
+
     @property
-    def has_orders_in_queue(self) -> bool:
-        return self.queued_orders.count() >= 1
+    def has_enqueued_orders(self) -> bool:
+        return self.enqueued_orders.exists()
 
 
 class OrderQuerySet(models.QuerySet):
-    def processed_reserved(self, book_id, member_id) -> "OrderQuerySet":
+    def processed_reserved(self, book, member) -> "OrderQuerySet":
         return self.filter(
-            book=book_id,
-            member=member_id,
+            book=book,
+            member=member,
             status=OrderStatus.PROCESSED,
             reservation__status=ReservationStatus.RESERVED,
         )
 
-    def processable(self, book_id, member_id) -> "OrderQuerySet":
+    def processable(self, book, member) -> "OrderQuerySet":
         return self.filter(
-            book=book_id,
-            member=member_id,
+            book=book,
+            member=member,
             status__in=[
                 OrderStatus.UNPROCESSED,
                 OrderStatus.IN_QUEUE,
@@ -243,6 +248,7 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(TimestampedModel):
+    MAX_QUEUED_ORDERS_ALLOWED = 3
     objects: OrderQuerySet = models.Manager.from_queryset(OrderQuerySet)()
 
     member = models.ForeignKey(Member, related_name="orders", on_delete=models.SET_NULL, null=True)

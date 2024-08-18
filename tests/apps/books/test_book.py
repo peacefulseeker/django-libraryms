@@ -4,7 +4,7 @@ import pytest
 from django.db.utils import IntegrityError
 from mixer.backend.django import mixer
 
-from apps.books.const import Language, OrderStatus
+from apps.books.const import Language, OrderStatus, ReservationStatus
 from apps.books.models import Author, Book, Order, Publisher, Reservation
 
 pytestmark = pytest.mark.django_db
@@ -123,15 +123,22 @@ def test_book_available_by_default():
     assert book.is_available
 
 
+def test_not_booked_by_default(book, member):
+    book = mixer.blend(Book)
+
+    assert not book.is_booked
+    assert not book.is_booked_by_member(member)
+
+
 def test_book_queued_orders():
     book: Book = mixer.blend(Book)
     order1 = mixer.blend(Order, book=book, status=OrderStatus.IN_QUEUE)
     order2 = mixer.blend(Order, book=book, status=OrderStatus.IN_QUEUE)
     order3 = mixer.blend(Order, book=book, status=OrderStatus.PROCESSED)
 
-    queued_orders = book.queued_orders
+    queued_orders = book.enqueued_orders
 
-    assert book.has_orders_in_queue
+    assert book.has_enqueued_orders
     assert book.orders.count() == 3
     assert len(queued_orders) == 2
     assert order1 in queued_orders
@@ -144,34 +151,60 @@ def test_book_no_queued_orders():
     mixer.blend(Order, book=book, status=OrderStatus.PROCESSED)
     mixer.blend(Order, book=book, status=OrderStatus.REFUSED)
 
-    queued_orders = book.queued_orders
+    queued_orders = book.enqueued_orders
 
     assert book.orders.count() == 2
     assert len(queued_orders) == 0
-    assert not book.has_orders_in_queue
+    assert not book.has_enqueued_orders
 
 
-def test_unqueue_next_order_in_queue(create_book_order, member, book, mock_send_order_created_email):
+def test_process_next_order_in_queue(create_book_order, member, book, mock_send_order_created_email):
     create_book_order(status=OrderStatus.UNPROCESSED)
     create_book_order(status=OrderStatus.IN_QUEUE)
     create_book_order(status=OrderStatus.IN_QUEUE)
 
-    assert book.queued_orders.count() == 2
+    assert book.enqueued_orders.count() == 2
 
-    next_order_id_1 = book.queued_orders.first().id
-    book.unqueue_next_order()
+    next_order_id_1 = book.enqueued_orders.first().id
+    book.process_next_order()
 
-    next_order_id_2 = book.queued_orders.first().id
-    book.unqueue_next_order()
+    next_order_id_2 = book.enqueued_orders.first().id
+    book.process_next_order()
 
-    assert book.queued_orders.count() == 0
+    assert book.enqueued_orders.count() == 0
     assert all(o.status == OrderStatus.UNPROCESSED for o in book.orders.all())
 
     # nothing to do
-    book.unqueue_next_order()
-    assert book.queued_orders.count() == 0
+    book.process_next_order()
+    assert book.enqueued_orders.count() == 0
 
     mock_send_order_created_email.delay.has_calls(
         call(next_order_id_1),
         call(next_order_id_2),
     )
+
+
+def test_book_is_reserved_aka_booked(book, member):
+    mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+
+    assert book.is_reserved
+    assert book.is_booked
+    assert book.is_booked_by_member(member)
+
+
+def test_book_is_issued_aka_booked(book, member):
+    order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+    order.reservation.status = ReservationStatus.ISSUED
+    order.reservation.save()
+
+    assert book.is_issued
+    assert book.is_booked
+    assert book.is_booked_by_member(member)
+
+
+def test_book_is_booked_by_another_member(book, another_member, member):
+    mixer.blend(Order, book=book, member=another_member, status=OrderStatus.PROCESSED)
+
+    assert book.is_booked
+    assert not book.is_booked_by_member(member)
+    assert book.is_booked_by_member(another_member)
