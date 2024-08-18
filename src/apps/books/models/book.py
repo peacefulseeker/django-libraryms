@@ -228,17 +228,17 @@ class Book(TimestampedModel):
 
 
 class OrderQuerySet(models.QuerySet):
-    def processed_reserved(self, book_id, member) -> "OrderQuerySet":
+    def processed_reserved(self, book, member) -> "OrderQuerySet":
         return self.filter(
-            book=book_id,
+            book=book,
             member=member,
             status=OrderStatus.PROCESSED,
             reservation__status=ReservationStatus.RESERVED,
         )
 
-    def processable(self, book_id, member) -> "OrderQuerySet":
+    def processable(self, book, member) -> "OrderQuerySet":
         return self.filter(
-            book=book_id,
+            book=book,
             member=member,
             status__in=[
                 OrderStatus.UNPROCESSED,

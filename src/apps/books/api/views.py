@@ -121,14 +121,14 @@ class BookOrderView(APIView):
 
         return order, message
 
-    def _processable_order(self, book_id: int, member: Member) -> "QuerySet[BookOrder]":
-        return BookOrder.objects.processable(book_id, member)
+    def _processable_order(self, book: Book, member: Member) -> "QuerySet[BookOrder]":
+        return BookOrder.objects.processable(book, member)
 
-    def _processed_reserved(self, book_id: int, member: Member) -> "QuerySet[BookOrder]":
-        return BookOrder.objects.processed_reserved(book_id, member)
+    def _processed_reserved(self, book: Book, member: Member) -> "QuerySet[BookOrder]":
+        return BookOrder.objects.processed_reserved(book, member)
 
-    def _cancellable_order(self, book_id: int, member: Member) -> "QuerySet[BookOrder]":
-        return self._processable_order(book_id, member) | self._processed_reserved(book_id, member)
+    def _cancellable_order(self, book: Book, member: Member) -> "QuerySet[BookOrder]":
+        return self._processable_order(book, member) | self._processed_reserved(book, member)
 
     def _max_reservations_reached(self, member: Member) -> bool:
         return Reservation.objects.reserved_by_member(member).count() == Reservation.MAX_RESERVATIONS_PER_MEMBER

@@ -4,7 +4,7 @@ import pytest
 from django.db.utils import IntegrityError
 from mixer.backend.django import mixer
 
-from apps.books.const import Language, OrderStatus
+from apps.books.const import Language, OrderStatus, ReservationStatus
 from apps.books.models import Author, Book, Order, Publisher, Reservation
 
 pytestmark = pytest.mark.django_db
@@ -123,6 +123,13 @@ def test_book_available_by_default():
     assert book.is_available
 
 
+def test_not_booked_by_default(book, member):
+    book = mixer.blend(Book)
+
+    assert not book.is_booked
+    assert not book.is_booked_by_member(member)
+
+
 def test_book_queued_orders():
     book: Book = mixer.blend(Book)
     order1 = mixer.blend(Order, book=book, status=OrderStatus.IN_QUEUE)
@@ -175,3 +182,29 @@ def test_process_next_order_in_queue(create_book_order, member, book, mock_send_
         call(next_order_id_1),
         call(next_order_id_2),
     )
+
+
+def test_book_is_reserved_aka_booked(book, member):
+    mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+
+    assert book.is_reserved
+    assert book.is_booked
+    assert book.is_booked_by_member(member)
+
+
+def test_book_is_issued_aka_booked(book, member):
+    order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+    order.reservation.status = ReservationStatus.ISSUED
+    order.reservation.save()
+
+    assert book.is_issued
+    assert book.is_booked
+    assert book.is_booked_by_member(member)
+
+
+def test_book_is_booked_by_another_member(book, another_member, member):
+    mixer.blend(Order, book=book, member=another_member, status=OrderStatus.PROCESSED)
+
+    assert book.is_booked
+    assert not book.is_booked_by_member(member)
+    assert book.is_booked_by_member(another_member)
