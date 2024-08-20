@@ -40,6 +40,15 @@ class Member(User):
 
     objects = UserRoleManager("is_member")
 
+    @property
+    def registration_code(self):
+        """
+        Code that will be sent to member upon registration request.
+        For simplicity, leveraging existing uuid field,
+        which can become essential part of public member profile later on.
+        """
+        return str(self.uuid.int)[:6]
+
 
 class Librarian(User):
     class Meta:

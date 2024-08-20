@@ -69,7 +69,9 @@ env = [
     "CELERY_ALWAYS_EAGER = 1",
     "CI = 1",
     "DEFAULT_FILE_STORAGE = django.core.files.storage.memory.InMemoryStorage",
+    "DISABLE_THROTTLING = 1",
     "PRODUCTION_URL = https://example.com",
+    "THROTTLING_ANON_RATE = 3/minute",
 ]
 markers = [
     "skip_create_books: test_book_list_view.py",

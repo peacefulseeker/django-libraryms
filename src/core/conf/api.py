@@ -2,6 +2,9 @@ from datetime import timedelta
 
 from core.conf.environ import env
 
+DISABLE_THROTTLING = env.bool("DISABLE_THROTTLING", default=False)
+THROTTLING_ANON_RATE = env.str("THROTTLING_ANON_RATE", default="15/minute")
+
 REST_FRAMEWORK = {
     "SEARCH_PARAM": "q",
     "DEFAULT_FILTER_BACKENDS": [
@@ -14,7 +17,7 @@ REST_FRAMEWORK = {
     ],
     "EXCEPTION_HANDLER": "core.api.exceptions.drf_exception_handler",
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "15/minute",
+        "anon": THROTTLING_ANON_RATE,
     },
 }
 

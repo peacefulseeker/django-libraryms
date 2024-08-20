@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from rest_framework import status
 from rest_framework.status import HTTP_200_OK
 
 
@@ -15,7 +16,7 @@ from rest_framework.status import HTTP_200_OK
 )
 def test_spa_route_views(client, path):
     response = client.get(path)
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.context.template_name == "vue-index.html"
     assert response.context["props"] == {}
 
@@ -35,7 +36,7 @@ def test_spa_view_props(client, mock_data, expected):
             mock_serializer.return_value.validate.return_value = mock_data
         response = client.get("/")
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.context["props"] == expected
 
 

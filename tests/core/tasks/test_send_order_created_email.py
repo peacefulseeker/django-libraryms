@@ -9,5 +9,6 @@ def test_send_order_created_email(mock_mailer):
     assert result["sent"] == 1
     call_kwargs = mock_mailer.call_args.kwargs
     assert call_kwargs["subject"] == "Book order created"
-    assert "Hi admin! <br />Please process new book order" in call_kwargs["body"]
+    assert "Hi admin!" in call_kwargs["body"]
+    assert "Please process new book order" in call_kwargs["body"]
     assert "https://example.com/admin/books/order/1/change/" in call_kwargs["body"]
