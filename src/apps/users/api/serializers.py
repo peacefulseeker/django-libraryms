@@ -11,19 +11,35 @@ from apps.users.types import AuthAttrs
 from core.tasks import send_member_registration_request_received, send_registration_notification_to_member
 
 
-class UserSerializer(serializers.ModelSerializer):
+class CookieTokenSerializerMixin:
+    @property
+    def should_fetch_user(self):
+        if "request" not in self.context:
+            return False
+
+        return "fetch_user" in self.context["request"].GET
+
+    def get_user_serializer(self, user: User):
+        if self.should_fetch_user:
+            return UserProfileSerializer(user)
+        return UsernameSerializer(user)
+
+
+class UsernameSerializer(serializers.ModelSerializer):
+    "Only member username supposed to be returned alogn with access token by default"
+
     class Meta:
         model = User
-        fields = (
-            "uuid",
-            "username",
-            "email",
-            "first_name",
-            "last_name",
-        )
+        fields = ("username",)
 
 
-class CookieTokenRefreshSerializer(TokenRefreshSerializer):
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("username", "email", "first_name", "last_name")
+
+
+class CookieTokenRefreshSerializer(CookieTokenSerializerMixin, TokenRefreshSerializer):
     refresh = None
 
     def validate(self, attrs={}):
@@ -37,12 +53,12 @@ class CookieTokenRefreshSerializer(TokenRefreshSerializer):
     def access_token_with_user(self, data):
         access = AccessToken(data["access"])
         user = User.objects.get(id=access["user_id"])
-        user_serializer = UserSerializer(user)
+        user_serializer = self.get_user_serializer(user)
         data["user"] = user_serializer.data
         return data
 
 
-class CookieTokenObtainSerializer(TokenObtainPairSerializer):
+class CookieTokenObtainSerializer(CookieTokenSerializerMixin, TokenObtainPairSerializer):
     user: User
 
     def validate(self, attrs: AuthAttrs):
@@ -53,7 +69,7 @@ class CookieTokenObtainSerializer(TokenObtainPairSerializer):
         return self.access_token_with_user(data)
 
     def access_token_with_user(self, data):
-        user_serializer = UserSerializer(self.user)
+        user_serializer = self.get_user_serializer(self.user)
         data["user"] = user_serializer.data
         return data
 

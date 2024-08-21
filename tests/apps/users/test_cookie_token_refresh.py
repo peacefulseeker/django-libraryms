@@ -28,19 +28,14 @@ class TestCookieRefresh:
 
         assert response.status_code == HTTP_200_OK
 
-    def test_ensure_access_token_returned_with_user(self, as_member, member):
+    def test_ensure_access_token_returned_with_member_username(self, as_member, member):
         response: Response = as_member.post(self.url)
 
         assert response.status_code == HTTP_200_OK
 
         assert response.data["access"]
-        assert response.data["user"]
         assert response.data["user"] == {
-            "uuid": str(member.uuid),
             "username": member.username,
-            "email": member.email,
-            "first_name": member.first_name,
-            "last_name": member.last_name,
         }
 
     def test_deny_access_token_without_refresh_token_cookie(self, as_member):
@@ -58,3 +53,13 @@ class TestCookieRefresh:
 
         assert response.status_code == HTTP_401_UNAUTHORIZED
         assert str(response.data["detail"]) == "Token has wrong type"
+
+    def test_cookie_refresh_with_user_profile(self, as_member, member):
+        response: Response = as_member.post(self.url + "?fetch_user")
+
+        assert response.data["user"] == {
+            "username": member.username,
+            "email": member.email,
+            "first_name": member.first_name,
+            "last_name": member.last_name,
+        }
