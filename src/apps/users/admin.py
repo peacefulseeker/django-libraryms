@@ -5,21 +5,44 @@ from django.utils.translation import gettext_lazy as _
 from apps.users.models import Librarian, Member, User
 
 
-@admin.register(Librarian, Member)
 class PersonAdmin(BaseUserAdmin):
+    show_full_result_count = False
+    filter_horizontal = ("groups",)
+    list_display = ("username", "email", "is_active")
+    search_fields = ["username", "email", "first_name", "last_name"]
+    ordering = ("-date_joined",)
+
+
+@admin.register(Member)
+class MemberAdmin(PersonAdmin):
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        (
+            _("Registration"),
+            {
+                "description": "Code that member will receive upon registration request",
+                "fields": ("registration_code",),
+            },
+        ),
+        (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
+        (_("Permissions"), {"fields": ("is_active", "groups")}),
+    )
+    list_display = ("username", "email", "first_name", "last_name", "is_active")
+    readonly_fields = ("registration_code",)
+
+
+@admin.register(Librarian)
+class LibrarianAdmin(PersonAdmin):
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
-        (_("Permissions"), {"fields": ("groups",)}),
+        (_("Permissions"), {"fields": ("is_active", "is_staff", "groups")}),
     )
-    filter_horizontal = ("groups",)
-    list_display = ("username", "email", "is_staff", "is_active")
+    list_display = PersonAdmin.list_display + ("is_staff",)
 
 
 @admin.register(User)
-class UseraAdmin(BaseUserAdmin):
-    search_fields = ["username", "email"]
-
+class UseraAdmin(PersonAdmin):
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
@@ -36,3 +59,5 @@ class UseraAdmin(BaseUserAdmin):
             },
         ),
     )
+
+    list_display = PersonAdmin.list_display + ("is_staff", "is_superuser")

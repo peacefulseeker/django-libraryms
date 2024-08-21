@@ -1,10 +1,16 @@
 from django.conf import settings
+from rest_framework import generics
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
-from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenViewBase
 
-from apps.users.api.serializers import CookieTokenObtainSerializer, CookieTokenRefreshSerializer
+from apps.users.api.serializers import (
+    CookieTokenObtainSerializer,
+    CookieTokenRefreshSerializer,
+    MemberRegistrationRequestSerializer,
+)
+from core.throttling import AnonRateThrottle
 
 
 class CookieTokenMixin(TokenViewBase):
@@ -38,4 +44,10 @@ class CookieTokenObtainPairView(CookieTokenMixin, TokenObtainPairView):
 
 class CookieTokenRefreshView(CookieTokenMixin, TokenRefreshView):
     serializer_class = CookieTokenRefreshSerializer
+    throttle_classes = [AnonRateThrottle]
+
+
+class MemberRegistrationRequestView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = MemberRegistrationRequestSerializer
     throttle_classes = [AnonRateThrottle]

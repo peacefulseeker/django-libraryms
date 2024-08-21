@@ -1,5 +1,6 @@
 import pytest
 import requests
+from rest_framework import status
 
 from core.tasks import ping_production_website
 
@@ -12,14 +13,14 @@ def mock_get(mocker):
 def test_ping_production_website_success(mock_get):
     # Setup
     mock_response = mock_get.return_value
-    mock_response.status_code = 200
+    mock_response.status_code = status.HTTP_200_OK
     mock_response.elapsed.total_seconds.return_value = 0.5
 
     # Execute
     result = ping_production_website.delay().get()
 
     # Assert
-    assert result["status"] == 200
+    assert result["status"] == status.HTTP_200_OK
     assert result["response_time"] == 0.5
     assert result["url"] == "https://example.com"  # defined in pyproject pytest env
 

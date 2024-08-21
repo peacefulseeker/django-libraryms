@@ -29,3 +29,9 @@ def test_manager_objects_expected_to_return_group_members_only():
     assert User.objects.count() == 3
     assert Librarian.objects.count() == 1
     assert Member.objects.count() == 1
+
+
+def test_member_registration_code():
+    member: Member = mixer.blend(Member)
+
+    assert str(member.uuid.int).startswith(member.registration_code)
