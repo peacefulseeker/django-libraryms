@@ -83,7 +83,7 @@ def send_reservation_confirmed_email(order_id: int):
 
 @shared_task(name="core/send_member_registration_request_received")
 def send_member_registration_request_received(member_id: int):
-    member_admin_path = reverse("admin:users_user_change", kwargs={"object_id": member_id})
+    member_admin_path = reverse("admin:users_member_change", kwargs={"object_id": member_id})
     member_admin_url = urljoin(env("PRODUCTION_URL"), member_admin_path)
 
     body = f"""

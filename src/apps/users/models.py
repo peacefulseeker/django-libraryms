@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -41,6 +42,10 @@ class Member(User):
     objects = UserRoleManager("is_member")
 
     @property
+    @admin.display(
+        # description="Code that member will receive upon registration request",
+        boolean=False,
+    )
     def registration_code(self):
         """
         Code that will be sent to member upon registration request.
