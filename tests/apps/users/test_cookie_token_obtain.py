@@ -36,15 +36,11 @@ class TestTokenFromUsernameOrEmail:
         assert data["access"] is not None
         assert data["refresh"] is not None
 
-    def test_returns_user_data_along_with_token(self, member, serializer):
+    def test_returns_member_username_along_with_token(self, member, serializer):
         data = serializer.validate(self.attrs)
 
         assert data["user"] == {
-            "uuid": str(member.uuid),
             "username": member.username,
-            "email": member.email,
-            "first_name": member.first_name,
-            "last_name": member.last_name,
         }
 
     @pytest.mark.parametrize(
@@ -112,12 +108,14 @@ class TestCookieTokenObtain:
         "password": "member",
     }
 
-    def test_access_token_obtain_from_api(self, as_member, member):
+    def test_access_token_obtain_from_api_with_username_only(self, as_member, member):
         response: Response = as_member.post(self.url, data=self.data)
 
         assert response.status_code == HTTP_200_OK
         assert response.data["access"]
-        assert response.data["user"]
+        assert response.data["user"] == {
+            "username": member.username,
+        }
         assert not hasattr(response, "refresh")
 
     def test_access_token_obtain_denied_for_wrong_credentials(self, as_member):
@@ -158,3 +156,13 @@ class TestCookieTokenObtain:
         expired_cookie = delete_response.cookies.get(settings.SIMPLE_JWT["REFRESH_TOKEN_COOKIE_NAME"])
 
         assert expired_cookie["max-age"] == 0
+
+    def test_cookie_obtain_with_user_profile(self, as_member, member):
+        response: Response = as_member.post(self.url + "?fetch_user", data=self.data)
+
+        assert response.data["user"] == {
+            "username": member.username,
+            "email": member.email,
+            "first_name": member.first_name,
+            "last_name": member.last_name,
+        }

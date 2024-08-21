@@ -1,6 +1,6 @@
 from django.conf import settings
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenViewBase
@@ -9,6 +9,7 @@ from apps.users.api.serializers import (
     CookieTokenObtainSerializer,
     CookieTokenRefreshSerializer,
     MemberRegistrationRequestSerializer,
+    UserProfileSerializer,
 )
 from core.throttling import AnonRateThrottle
 
@@ -51,3 +52,13 @@ class MemberRegistrationRequestView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = MemberRegistrationRequestSerializer
     throttle_classes = [AnonRateThrottle]
+
+
+class MemberProfileView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserProfileSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = request.user
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

@@ -108,6 +108,7 @@ class BookQuerySet(models.QuerySet):
         return self.with_reservation_member().filter(reservation__member=member)
 
     def enqueued_by_member(self, member: Member) -> "BookQuerySet":
+        # TODO: prefetch member orders early
         return self.filter(orders__status=OrderStatus.IN_QUEUE, orders__member=member)
 
 
