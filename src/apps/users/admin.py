@@ -9,7 +9,7 @@ class PersonAdmin(BaseUserAdmin):
     show_full_result_count = False
     filter_horizontal = ("groups",)
     list_display = ("username", "email", "is_active")
-
+    search_fields = ["username", "email", "first_name", "last_name"]
     ordering = ("-date_joined",)
 
 
@@ -42,11 +42,7 @@ class LibrarianAdmin(PersonAdmin):
 
 
 @admin.register(User)
-class UseraAdmin(BaseUserAdmin):
-    show_full_result_count = False
-
-    search_fields = ["username", "email"]
-
+class UseraAdmin(PersonAdmin):
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
@@ -64,4 +60,4 @@ class UseraAdmin(BaseUserAdmin):
         ),
     )
 
-    ordering = ("-date_joined",)
+    list_display = PersonAdmin.list_display + ("is_staff", "is_superuser")
