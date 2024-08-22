@@ -114,7 +114,7 @@ def test_is_not_reserved_by_member(as_member, book):
     assert not response.data["is_reserved_by_member"]
 
 
-def test_is_queued_by_member(as_member, book, member):
+def test_is_enqueued_by_member(as_member, book, member):
     mixer.blend(Order, book=book, member=member, status=OrderStatus.IN_QUEUE)
     url = reverse("book-detail", kwargs={"pk": book.id})
 
@@ -123,7 +123,7 @@ def test_is_queued_by_member(as_member, book, member):
     assert response.data["is_enqueued_by_member"]
 
 
-def test_is_not_queued_by_member(as_member, book):
+def test_not_is_enqueued_by_member(as_member, book):
     url = reverse("book-detail", kwargs={"pk": book.id})
 
     response = as_member.get(url)

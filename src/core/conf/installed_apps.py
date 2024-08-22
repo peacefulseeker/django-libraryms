@@ -1,3 +1,5 @@
+from core.conf.environ import env
+
 # fmt: off
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -22,3 +24,7 @@ INSTALLED_APPS = [
     "core",
 ]
 # fmt: on
+if env("DEBUG"):
+    INSTALLED_APPS += [
+        "debug_toolbar",
+    ]

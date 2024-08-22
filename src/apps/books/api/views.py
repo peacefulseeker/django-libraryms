@@ -17,7 +17,7 @@ from apps.books.api.serializers import (
 from apps.books.const import OrderStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
-from apps.books.models.book import Order, Reservation
+from apps.books.models.book import BookQuerySet, Order, Reservation
 from apps.users.models import Member
 from core.tasks import send_order_created_email
 
@@ -43,18 +43,23 @@ class BookListView(ViewSetMixin, generics.ListAPIView):
         if self.is_authenticated and self.query_params.get("reserved_by_me") is not None:
             return True
 
+    def show_enqueued_by_member(self):
+        if self.is_authenticated and self.query_params.get("enqueued_by_me") is not None:
+            return True
+
     def get_serializer_class(self):
-        if self.show_reserved_by_member():
+        if self.show_reserved_by_member() or self.show_enqueued_by_member():
             return BooksReservedByMemberSerializer
         return BookListSerializer
 
-    def get_queryset(self):
-        queryset = Book.objects.with_author().with_reservation()
+    def get_queryset(self) -> BookQuerySet:
+        queryset = Book.objects.with_author().with_reservation().with_amount_in_queue()
         if self.query_params.get("available") is not None:
             return queryset.available()
         elif self.show_reserved_by_member():
-            reserved_and_enqueued = queryset.reserved_by_member(self.request.user) | queryset.enqueued_by_member(self.request.user)
-            return reserved_and_enqueued.distinct()
+            return queryset.reserved_by_member(self.request.user)
+        elif self.show_enqueued_by_member():
+            return queryset.enqueued_by_member(self.request.user)
         return queryset
 
 
@@ -67,10 +72,10 @@ class BookDetailView(ViewSetMixin, generics.RetrieveAPIView):
         return BookSerializer
 
     def get_queryset(self):
-        queryset = Book.objects.with_author().with_publisher()
+        queryset = Book.objects.with_author().with_publisher().with_amount_in_queue().with_reservation()
 
         if self.is_authenticated:
-            return queryset.with_reservation_member()
+            return queryset.with_enqueued_by_member(self.request.user).with_member_total_reservations_amount(self.request.user)
 
         return queryset
 

@@ -167,7 +167,7 @@ class TestBooksReservedByMemberView:
 
         assert book.orders.count() == 2
 
-        response = authenticated_client(member).get(self.url, {"reserved_by_me": ""})
+        response = authenticated_client(member).get(self.url, {"enqueued_by_me": ""})
         assert len(response.data) == 1
         enqueued_book = response.data[0]
         assert enqueued_book["is_enqueued_by_member"]
@@ -187,13 +187,16 @@ class TestBooksReservedByMemberView:
 
         response = authenticated_client(member).get(self.url, {"reserved_by_me": ""})
 
-        assert len(response.data) == 2
+        assert len(response.data) == 1
         reserved_book = response.data[0]
         assert reserved_book["id"] == book_order.book.id
         assert reserved_book["reservation_id"] == book_order.reservation.id
         assert reserved_book["reservation_term"] == book_order.reservation.term
 
-        enqueued_book = response.data[1]
+        response = authenticated_client(member).get(self.url, {"enqueued_by_me": ""})
+
+        assert len(response.data) == 1
+        enqueued_book = response.data[0]
         assert enqueued_book["id"] == book.id
         assert enqueued_book["is_enqueued_by_member"]
         assert enqueued_book["amount_in_queue"] == 2

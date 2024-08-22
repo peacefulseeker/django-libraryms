@@ -46,7 +46,10 @@ class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
 
 class BooksReservedByMemberSerializer(BookListSerializer):
     reservation_id = serializers.SerializerMethodField("get_reservation_id")
-    is_enqueued_by_member = serializers.SerializerMethodField("get_is_enqueued_by_member")
+
+    # annotated
+    amount_in_queue = serializers.IntegerField()
+    is_enqueued_by_member = serializers.BooleanField(default=False)
 
     class Meta(BookListSerializer.Meta):
         fields = BookListSerializer.Meta.fields + [
@@ -63,15 +66,15 @@ class BooksReservedByMemberSerializer(BookListSerializer):
 
         return obj.reservation.pk
 
-    def get_is_enqueued_by_member(self, obj: Book) -> bool:
-        return obj.is_enqueued_by_member(self.user)
-
 
 class BookSerializer(SerializerMixin, serializers.ModelSerializer):
     author = AuthorSerializer()
     publisher = PublisherSerializer()
     language = serializers.CharField(source="get_language_display")
     cover_image_url = serializers.ImageField(source="cover", use_url=True)
+
+    # annotated
+    amount_in_queue = serializers.IntegerField()
 
     class Meta:
         model = Book
@@ -97,9 +100,12 @@ class BookSerializer(SerializerMixin, serializers.ModelSerializer):
 class BookMemberSerializer(BookSerializer):
     is_issued_to_member = serializers.SerializerMethodField("get_is_issued_to_member")
     is_reserved_by_member = serializers.SerializerMethodField("get_is_reserved_by_member")
-    is_enqueued_by_member = serializers.SerializerMethodField("get_is_enqueued_by_member")
     is_max_reservations_reached = serializers.SerializerMethodField("get_is_max_reservations_reached")
     is_max_enqueued_orders_reached = serializers.SerializerMethodField("get_is_max_enqueued_orders_reached")
+
+    # annotated
+    amount_in_queue = serializers.IntegerField()
+    is_enqueued_by_member = serializers.BooleanField(default=False)
 
     class Meta(BookSerializer.Meta):
         fields = BookSerializer.Meta.fields + [
@@ -110,10 +116,10 @@ class BookMemberSerializer(BookSerializer):
             "is_max_enqueued_orders_reached",
         ]
 
-    def get_is_max_reservations_reached(self, _) -> bool | None:
-        return Reservation.objects.reserved_by_member(self.user).count() >= Reservation.MAX_RESERVATIONS_PER_MEMBER
+    def get_is_max_reservations_reached(self, book: Book) -> bool:
+        return book.total_reservations_amount >= Reservation.MAX_RESERVATIONS_PER_MEMBER
 
-    def get_is_max_enqueued_orders_reached(self, book: Book) -> bool | None:
+    def get_is_max_enqueued_orders_reached(self, book: Book) -> bool:
         return book.amount_in_queue >= Order.MAX_QUEUED_ORDERS_ALLOWED
 
     def get_is_issued_to_member(self, book: Book) -> bool:
@@ -121,6 +127,3 @@ class BookMemberSerializer(BookSerializer):
 
     def get_is_reserved_by_member(self, book: Book) -> bool:
         return book.is_reserved_by_member(self.user)
-
-    def get_is_enqueued_by_member(self, book: Book) -> bool:
-        return book.is_enqueued_by_member(self.user)

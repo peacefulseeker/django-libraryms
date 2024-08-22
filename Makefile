@@ -15,6 +15,9 @@ prod:
 shell:
 	$(manage) shell
 
+sqldebugshell:
+	$(manage) debugsqlshell
+
 static:
 	$(manage) collectstatic --no-input
 

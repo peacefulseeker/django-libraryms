@@ -1,8 +1,9 @@
 from datetime import date, timedelta
-from functools import cached_property
 
 from django.db import models
-from django.db.models import F, QuerySet
+from django.db.models import Count, F, IntegerField, Q, QuerySet
+from django.db.models.expressions import Case, Value, When
+from django.db.models.fields import BooleanField
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
@@ -101,6 +102,27 @@ class BookQuerySet(models.QuerySet):
     def with_publisher(self) -> "BookQuerySet":
         return self.select_related("publisher")
 
+    def with_orders(self) -> "BookQuerySet":
+        return self.prefetch_related("orders")
+
+    def with_amount_in_queue(self) -> "BookQuerySet":
+        return self.annotate(amount_in_queue=Count("orders", filter=Q(orders__status=OrderStatus.IN_QUEUE)))
+
+    def with_enqueued_by_member(self, member: Member) -> "BookQuerySet":
+        subquery = self.filter(orders__member=member, orders__status=OrderStatus.IN_QUEUE).values("id")
+
+        return self.annotate(
+            is_enqueued_by_member=Case(When(id__in=subquery, then=Value(True)), default=Value(False), output_field=BooleanField()),
+        )
+
+    def with_member_total_reservations_amount(self, member: Member) -> "BookQuerySet":
+        total_reservations = Reservation.objects.filter(member=member).count()
+
+        return self.with_reservation_member().annotate(
+            # total_reservations_amount=Count("reservation", filter=Q(reservation__member=member)),
+            total_reservations_amount=Value(total_reservations, output_field=IntegerField()),
+        )
+
     def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
@@ -108,8 +130,11 @@ class BookQuerySet(models.QuerySet):
         return self.with_reservation_member().filter(reservation__member=member)
 
     def enqueued_by_member(self, member: Member) -> "BookQuerySet":
-        # TODO: prefetch member orders early
-        return self.filter(orders__status=OrderStatus.IN_QUEUE, orders__member=member)
+        return (
+            self.with_orders()
+            .filter(orders__member=member, orders__status=OrderStatus.IN_QUEUE)
+            .annotate(is_enqueued_by_member=Value(True, output_field=BooleanField()))
+        )
 
 
 class Book(TimestampedModel):
@@ -183,12 +208,6 @@ class Book(TimestampedModel):
 
         return self.reservation.member == member
 
-    def is_enqueued_by_member(self, member: Member) -> bool:
-        if not self.is_booked:
-            return False
-
-        return self.orders.filter(member=member, status=OrderStatus.IN_QUEUE).exists()
-
     def is_booked_by_member(self, member: Member) -> bool:
         if not self.is_booked:
             return False
@@ -218,10 +237,6 @@ class Book(TimestampedModel):
     @property
     def enqueued_orders(self) -> "OrderQuerySet":
         return self.orders.filter(status=OrderStatus.IN_QUEUE)
-
-    @cached_property
-    def amount_in_queue(self) -> "OrderQuerySet":
-        return self.enqueued_orders.count()
 
     @property
     def has_enqueued_orders(self) -> bool:
