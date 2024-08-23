@@ -31,7 +31,7 @@ to match your local environment needs.
 #### Build backend
 ```shell
 # Installs poetry, collects static assets, runs migrations
-./scripts/build-backend.sh
+make build_backend
 
 # create superuser
 poetry run python src/manage.py createsuperuser

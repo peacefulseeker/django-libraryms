@@ -26,6 +26,9 @@ build_static:
 build_frontend:
 	./scripts/build-frontend.sh
 
+build_backend:
+	./scripts/build-backend.sh
+
 test:
 	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing --cov-fail-under=90
 	poetry run pytest --dead-fixtures
