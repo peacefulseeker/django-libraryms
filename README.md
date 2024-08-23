@@ -24,39 +24,33 @@ git clone --recurse-submodules git@github.com:peacefulseeker/django-libraryms.gi
 cd ./local-project-dir
 cp src/core/.env.ci src/core/.env
 ```
-Set `DEBUG=true` and other env variables such as DATABASE_URL in `src/core/.env`
-to match your local environment setup.
+Set `DEBUG=true` and other env variables such as `DATABASE_URL` in `src/core/.env`
+to match your local environment needs.
 
 
 #### Build backend
-Installs poetry, collects static assets, runs migrations, creates superuser(admin env vars required)
 ```shell
-# change as you prefer
-export ADMIN_USERNAME=admin
-       ADMIN_EMAIL=admin@admin.com
-       ADMIN_PASSWORD=admin
-./scripts/build-backend.sh
+# Installs poetry, collects static assets, runs migrations
+make build_backend
 
-# build frontend, in case you want to see UI when visiting homepage
-./scripts/build-frontend.sh
+# create superuser
+poetry run python src/manage.py createsuperuser
+
+# build frontend, in case you want to see working UI when visiting homepage
+make build_frontend
 ```
 
 #### Run server in development mode
 ```shell
 make server
-# same as
-make s
-# aliased to
-poetry run python src/manage.py runserver 7070
 ```
 
-#### Simulate production server
+#### Run server in production mode
 ```shell
-# builds both backend and frontend
-./scripts/build.sh
-
-# runs gunicorn server, serving frontend static assets(check aliases in Makefile)
-make prod
+# builds frontend assets & collects static
+make build_static
+# runs gunicorn server against localhost:7070 in non-debug mode
+make prodserver
 ```
 
 ### Further plans

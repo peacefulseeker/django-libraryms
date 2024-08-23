@@ -7,9 +7,7 @@ server:
 s:
 	make server
 
-prod:
-	./scripts/build-frontend.sh
-	make static
+prodserver:
 	poetry run gunicorn core.wsgi:application --chdir src --workers 2 -b localhost:$(PORT) -e DEBUG=false
 
 shell:
@@ -20,6 +18,16 @@ sqldebugshell:
 
 static:
 	$(manage) collectstatic --no-input
+
+build_static:
+	make build_frontend
+	make static
+
+build_frontend:
+	./scripts/build-frontend.sh
+
+build_backend:
+	./scripts/build-backend.sh
 
 test:
 	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing --cov-fail-under=90
