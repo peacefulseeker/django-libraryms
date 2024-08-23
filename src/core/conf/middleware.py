@@ -16,6 +16,9 @@ if not env("DEBUG"):
     # https://whitenoise.readthedocs.io/en/stable/django.html#enable-whitenoise
     # should be placed directly after the Django SecurityMiddleware
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+else:
+    MIDDLEWARE.insert(5, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
 
 if env("DB_LOGGING_ENABLED", cast=bool, default=False):
     MIDDLEWARE.insert(2, "core.middleware.sql.SqlPrintingMiddleware")

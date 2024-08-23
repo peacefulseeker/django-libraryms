@@ -38,6 +38,7 @@ whitenoise = {extras = ["brotli"], version = "^6.7.0"}
 optional = true
 
 [tool.poetry.group.dev.dependencies]
+django-debug-toolbar = "^4.4.6"
 mixer = "^7.2.2"
 pytest-cov = "^5.0.0"
 pytest-deadfixtures = "^2.2.1"
