@@ -8,22 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    replaces = [
-        ("books", "0001_initial"),
-        ("books", "0002_add_book_reservation_order_models"),
-        ("books", "0003_alter_reservation_term"),
-        ("books", "0004_order_change_reason_order_last_modified_by_and_more"),
-        ("books", "0005_book_cover_alter_book_isbn"),
-        ("books", "0006_alter_author_year_of_birth_and_more"),
-        ("books", "0007_historicalorder_reservation_order_reservation"),
-        ("books", "0008_alter_book_pages_description_and_more"),
-        ("books", "0009_alter_reservation_options"),
-        ("books", "0010_historicalorder_member_notified_and_more"),
-        ("books", "0011_alter_reservation_options"),
-        ("books", "0012_alter_author_year_of_birth_and_more"),
-        ("books", "0013_alter_book_options"),
-    ]
-
     dependencies = [
         ("users", "0002_user_is_librarian_user_is_member"),
         ("users", "0003_make_user_email_unique"),
