@@ -118,9 +118,11 @@ def test_processed_order_created_when_reservation_assigned():
 
 
 def test_book_available_by_default():
-    book = mixer.blend(Book)
-    assert book.reservation is None
+    book: Book = mixer.blend(Book)
+
     assert book.is_available
+    assert book.reservation_id is None
+    assert not book.is_booked
 
 
 def test_not_booked_by_default(book, member):
@@ -189,6 +191,8 @@ def test_book_is_reserved_aka_booked(book, member):
 
     assert book.is_reserved
     assert book.is_booked
+    assert book.reservation_id
+    assert not book.reservation_term
     assert book.is_booked_by_member(member)
 
 
@@ -199,6 +203,8 @@ def test_book_is_issued_aka_booked(book, member):
 
     assert book.is_issued
     assert book.is_booked
+    assert book.reservation_id
+    assert book.reservation_term
     assert book.is_booked_by_member(member)
 
 
@@ -208,3 +214,5 @@ def test_book_is_booked_by_another_member(book, another_member, member):
     assert book.is_booked
     assert not book.is_booked_by_member(member)
     assert book.is_booked_by_member(another_member)
+    assert book.reservation_id
+    assert not book.reservation_term

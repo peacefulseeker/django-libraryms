@@ -9,6 +9,7 @@ from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 
 from apps.books.api.serializers import (
+    BookEnqueuedByMemberSerializer,
     BookListSerializer,
     BookMemberSerializer,
     BookSerializer,
@@ -48,8 +49,10 @@ class BookListView(ViewSetMixin, generics.ListAPIView):
             return True
 
     def get_serializer_class(self):
-        if self.show_reserved_by_member() or self.show_enqueued_by_member():
+        if self.show_reserved_by_member():
             return BooksReservedByMemberSerializer
+        elif self.show_enqueued_by_member():
+            return BookEnqueuedByMemberSerializer
         return BookListSerializer
 
     def get_queryset(self) -> BookQuerySet:
@@ -75,7 +78,7 @@ class BookDetailView(ViewSetMixin, generics.RetrieveAPIView):
         queryset = Book.objects.with_author().with_publisher().with_amount_in_queue().with_reservation()
 
         if self.is_authenticated:
-            return queryset.with_enqueued_by_member(self.request.user).with_member_total_reservations_amount(self.request.user)
+            return queryset.with_reservation_member().with_enqueued_by_member(self.request.user)
 
         return queryset
 
@@ -136,7 +139,7 @@ class BookOrderView(APIView):
         return self._processable_order(book, member) | self._processed_reserved(book, member)
 
     def _max_reservations_reached(self, member: Member) -> bool:
-        return Reservation.objects.reserved_by_member(member).count() == Reservation.MAX_RESERVATIONS_PER_MEMBER
+        return Reservation.objects.reserved_by_member(member).count() >= Reservation.MAX_RESERVATIONS_PER_MEMBER
 
     def _max_enqueued_orders_reached(self, book: Book) -> bool:
         return book.enqueued_orders.count() >= Order.MAX_QUEUED_ORDERS_ALLOWED

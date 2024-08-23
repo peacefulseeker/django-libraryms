@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from django.db import models
-from django.db.models import Count, F, IntegerField, Q, QuerySet
+from django.db.models import Count, F, Q, QuerySet
 from django.db.models.expressions import Case, Value, When
 from django.db.models.fields import BooleanField
 from django.utils import timezone
@@ -102,9 +102,6 @@ class BookQuerySet(models.QuerySet):
     def with_publisher(self) -> "BookQuerySet":
         return self.select_related("publisher")
 
-    def with_orders(self) -> "BookQuerySet":
-        return self.prefetch_related("orders")
-
     def with_amount_in_queue(self) -> "BookQuerySet":
         return self.annotate(amount_in_queue=Count("orders", filter=Q(orders__status=OrderStatus.IN_QUEUE)))
 
@@ -115,14 +112,6 @@ class BookQuerySet(models.QuerySet):
             is_enqueued_by_member=Case(When(id__in=subquery, then=Value(True)), default=Value(False), output_field=BooleanField()),
         )
 
-    def with_member_total_reservations_amount(self, member: Member) -> "BookQuerySet":
-        total_reservations = Reservation.objects.filter(member=member).count()
-
-        return self.with_reservation_member().annotate(
-            # total_reservations_amount=Count("reservation", filter=Q(reservation__member=member)),
-            total_reservations_amount=Value(total_reservations, output_field=IntegerField()),
-        )
-
     def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
@@ -130,11 +119,7 @@ class BookQuerySet(models.QuerySet):
         return self.with_reservation_member().filter(reservation__member=member)
 
     def enqueued_by_member(self, member: Member) -> "BookQuerySet":
-        return (
-            self.with_orders()
-            .filter(orders__member=member, orders__status=OrderStatus.IN_QUEUE)
-            .annotate(is_enqueued_by_member=Value(True, output_field=BooleanField()))
-        )
+        return self.filter(orders__member=member, orders__status=OrderStatus.IN_QUEUE)
 
 
 class Book(TimestampedModel):
@@ -233,6 +218,10 @@ class Book(TimestampedModel):
     @property
     def reservation_term(self) -> date | None:
         return self.reservation.term if self.is_issued else None
+
+    @property
+    def reservation_id(self) -> int | None:
+        return self.reservation.id if self.is_booked else None
 
     @property
     def enqueued_orders(self) -> "OrderQuerySet":

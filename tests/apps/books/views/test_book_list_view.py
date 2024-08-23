@@ -4,7 +4,7 @@ from django.urls import reverse
 from mixer.backend.django import mixer
 from rest_framework import status
 
-from apps.books.api.serializers import BookListSerializer, BooksReservedByMemberSerializer
+from apps.books.api.serializers import BookEnqueuedByMemberSerializer, BookListSerializer, BooksReservedByMemberSerializer
 from apps.books.const import OrderStatus, ReservationStatus
 from apps.books.models import Author, Book
 from apps.books.models.book import Order, Reservation
@@ -87,7 +87,8 @@ class TestBookListView:
 @pytest.mark.usefixtures("create_books")
 class TestBooksReservedByMemberView:
     url = reverse("books-list")
-    expected_fields = BooksReservedByMemberSerializer.Meta.fields
+    expected_reserved_fields = BooksReservedByMemberSerializer.Meta.fields
+    expected_enqueued_fields = BookEnqueuedByMemberSerializer.Meta.fields
 
     @pytest.fixture
     def _create_book_orders(self, authenticated_client):
@@ -155,7 +156,7 @@ class TestBooksReservedByMemberView:
         response = as_member.get(self.url, {"reserved_by_me": ""})
 
         # assuming most recently added books are placed first
-        assert set(response.data[0]) == set(self.expected_fields)
+        assert set(response.data[0]) == set(self.expected_reserved_fields)
         assert response.data[0]["reservation_id"] == order.reservation.id
         assert response.data[0]["title"] == book.title
 
@@ -170,12 +171,8 @@ class TestBooksReservedByMemberView:
         response = authenticated_client(member).get(self.url, {"enqueued_by_me": ""})
         assert len(response.data) == 1
         enqueued_book = response.data[0]
-        assert enqueued_book["is_enqueued_by_member"]
-        assert enqueued_book["reservation_id"] is None
-        assert enqueued_book["reservation_term"] is None
         assert enqueued_book["amount_in_queue"] == 1
-        assert not enqueued_book["is_issued"]
-        assert set(enqueued_book) == set(self.expected_fields)
+        assert set(enqueued_book) == set(self.expected_enqueued_fields)
 
     def test_list_contains_reserved_and_enqueued_book_of_member(self, book_order, _create_book_orders, authenticated_client, member):
         book, url = _create_book_orders(n=2)
@@ -198,8 +195,7 @@ class TestBooksReservedByMemberView:
         assert len(response.data) == 1
         enqueued_book = response.data[0]
         assert enqueued_book["id"] == book.id
-        assert enqueued_book["is_enqueued_by_member"]
         assert enqueued_book["amount_in_queue"] == 2
 
-        assert set(enqueued_book) == set(self.expected_fields)
-        assert set(reserved_book) == set(self.expected_fields)
+        assert set(enqueued_book) == set(self.expected_enqueued_fields)
+        assert set(reserved_book) == set(self.expected_reserved_fields)
