@@ -3,6 +3,7 @@ from django.urls import path
 from apps.users.api.views import (
     CookieTokenObtainPairView,
     CookieTokenRefreshView,
+    MemberPasswordChange,
     MemberProfileView,
     MemberRegistrationRequestView,
 )
@@ -12,4 +13,5 @@ urlpatterns = [
     path("token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     path("register/", MemberRegistrationRequestView.as_view(), name="member_registration_request"),
     path("me/", MemberProfileView.as_view(), name="member_profile"),
+    path("password/change/", MemberPasswordChange.as_view(), name="member_password_change"),
 ]

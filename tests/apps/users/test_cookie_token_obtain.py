@@ -25,10 +25,12 @@ def serializer() -> CookieTokenObtainSerializer:
 
 
 class TestTokenFromUsernameOrEmail:
-    attrs = {
-        "username": "member",
-        "password": "member",
-    }
+    @pytest.fixture(autouse=True)
+    def setup_props(self, member):
+        self.attrs = {
+            "username": "member",
+            "password": member.raw_password,
+        }
 
     def test_validate_against_username(self, member, serializer):
         data = serializer.validate(self.attrs)
@@ -64,7 +66,7 @@ class TestTokenFromUsernameOrEmail:
             serializer.validate(attrs)
 
     def test_validate_against_email(self, member, serializer):
-        attrs = {"username": "member@member.com", "password": "member"}
+        attrs = {"username": "member@member.com", "password": member.raw_password}
 
         data = serializer.validate(attrs)
 
@@ -80,7 +82,7 @@ class TestTokenFromUsernameOrEmail:
         ],
     )
     def test_validate_against_email_wrong_email(self, email, serializer):
-        attrs = {**self.attrs, "email": email}
+        attrs = {**self.attrs, "username": email}
 
         with pytest.raises(rest_framework.exceptions.AuthenticationFailed):
             serializer.validate(attrs)
@@ -92,7 +94,7 @@ class TestTokenFromUsernameOrEmail:
             serializer.validate(attrs)
 
     def test_ensure_original_username_field_restored_on_any_kind_of_exception(self, mock_token_validate, member, serializer):
-        attrs = {"username": "member@member.com", "password": "member"}
+        attrs = {"username": "member@member.com", "password": member.raw_password}
         mock_token_validate.side_effect = Exception("any exception raised during validation")
 
         with pytest.raises(Exception):
@@ -102,11 +104,13 @@ class TestTokenFromUsernameOrEmail:
 
 
 class TestCookieTokenObtain:
-    url = reverse("token_obtain_pair")
-    data = {
-        "username": "member",
-        "password": "member",
-    }
+    @pytest.fixture(autouse=True)
+    def setup_props(self, member):
+        self.url = reverse("token_obtain_pair")
+        self.data = {
+            "username": "member",
+            "password": member.raw_password,
+        }
 
     def test_access_token_obtain_from_api_with_username_only(self, as_member, member):
         response: Response = as_member.post(self.url, data=self.data)
