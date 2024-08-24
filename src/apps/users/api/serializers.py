@@ -126,3 +126,9 @@ class MemberRegistrationRequestSerializer(serializers.ModelSerializer):
         send_member_registration_request_received.delay(member.id)
         send_registration_notification_to_member.delay(member.id)
         return member
+
+
+class MemberPasswordChangeSerializer(serializers.Serializer):
+    password_current = serializers.CharField(write_only=True, required=True)
+    password_new = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password_new_confirm = serializers.CharField(write_only=True, required=True, validators=[validate_password])

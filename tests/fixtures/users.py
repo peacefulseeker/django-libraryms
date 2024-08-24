@@ -7,7 +7,8 @@ from apps.users.models import Member
 @pytest.fixture
 def member():
     member = mixer.blend(Member, username="member", email="member@member.com")
-    member.set_password("member")
+    member.raw_password = "member1234"  # for authentication related tests
+    member.set_password(member.raw_password)
     member.save()
     return member
 
