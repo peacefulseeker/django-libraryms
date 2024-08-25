@@ -24,7 +24,7 @@ class SqlPrintingMiddleware:
             return response
 
         indentation = 2
-        print("\n\n%s\033[1;35m[SQL Queries for]\033[1;34m %s\033[0m\n" % (" " * indentation, request.path_info))
+        print("\n\n%s\033[1;35m[SQL Queries for]\033[1;34m %s\033[0m\n" % (" " * indentation, repr(request)))
         total_time = 0
         for query in connection.queries:
             nice_sql = query["sql"].replace('"', "").replace(",", ", ")

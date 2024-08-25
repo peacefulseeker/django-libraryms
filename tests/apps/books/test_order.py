@@ -82,7 +82,7 @@ def test_reservation_confirmation(create_book_order, mock_send_reservation_confi
     order.status = OrderStatus.PROCESSED
     order.save()
 
-    mock_send_reservation_confirmed_email.delay.assert_called_once_with(order.pk)
+    mock_send_reservation_confirmed_email.delay.assert_called_once_with(order.pk, order.reservation.pk)
     order.refresh_from_db()
 
 

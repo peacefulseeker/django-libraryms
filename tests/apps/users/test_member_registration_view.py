@@ -13,11 +13,11 @@ class TestMemberRegistrationRequestView:
 
     @pytest.fixture(autouse=True)
     def mock_send_member_registration_request_received(self, mocker):
-        return mocker.patch("src.apps.users.api.serializers.send_member_registration_request_received")
+        return mocker.patch("apps.users.api.serializers.send_member_registration_request_received")
 
     @pytest.fixture(autouse=True)
     def mock_send_registration_notification_to_member(self, mocker):
-        return mocker.patch("src.apps.users.api.serializers.send_registration_notification_to_member")
+        return mocker.patch("apps.users.api.serializers.send_registration_notification_to_member")
 
     @pytest.fixture
     def valid_payload(self):
