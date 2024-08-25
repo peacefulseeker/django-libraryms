@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from typing import Any
 
 from django.db import models
 from django.db.models import Count, F, Q, QuerySet
@@ -282,7 +283,6 @@ class Order(TimestampedModel):
         excluded_fields=["change_reason", "modified_at", "created_at"],
         table_name="books_order_history",
     )
-    member_notified = models.BooleanField(default=False)
 
     @property
     def _history_user(self):
@@ -295,14 +295,21 @@ class Order(TimestampedModel):
     class Meta:
         ordering = ["-created_at"]
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._status_initial = self.status
+
+    def status_changed_to(self, status):
+        return self._status_initial != self.status and self.status == status
+
     def save(self, *args, **kwargs):
         if self.book.is_available:
             self.create_reservation()
-        elif self.status == OrderStatus.MEMBER_CANCELLED:
+        elif self.status_changed_to(OrderStatus.MEMBER_CANCELLED):
             self.cancel_reservation()
-        elif self.status == OrderStatus.REFUSED:
+        elif self.status_changed_to(OrderStatus.REFUSED):
             self.refuse_reservation()
-        elif self.status == OrderStatus.PROCESSED:
+        elif self.status_changed_to(OrderStatus.PROCESSED):
             self.notify_member_of_reservation()
         super().save(*args, **kwargs)
 
@@ -329,8 +336,7 @@ class Order(TimestampedModel):
             self.reservation.delete()
 
     def notify_member_of_reservation(self):
-        if not self.member_notified:
-            send_reservation_confirmed_email.delay(self.pk)
+        send_reservation_confirmed_email.delay(self.id, self.reservation.id)
 
     def __str__(self):
         return f"{self.member} - {self.book} - {self.status}"

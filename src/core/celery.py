@@ -11,7 +11,7 @@ celery = Celery(
     "django_libraryms",
     broker_url=env("CELERY_BROKER_URL", str, default="redis://redis:6379"),
     result_backend=env("CELERY_RESULT_BACKEND", str, default="django-db"),
-    task_always_eager=env("CELERY_ALWAYS_EAGER", cast=bool, default=settings.DEBUG),
+    task_always_eager=env.bool("CELERY_ALWAYS_EAGER", default=settings.DEBUG),
     enable_utc=False,
     result_extended=True,
     task_store_errors_even_if_ignored=True,

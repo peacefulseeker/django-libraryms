@@ -4,6 +4,8 @@ from simple_history.admin import SimpleHistoryAdmin
 
 
 class AppAdminMixin:
+    show_full_result_count = False  # prevents counting objects twice
+
     # there's no need to alter these fields from admin
     global_exclude = (
         "created_at",
@@ -19,7 +21,7 @@ class HistoricalModelAdmin(AppAdminMixin, SimpleHistoryAdmin):
 
 
 class ModelAdmin(AppAdminMixin, admin.ModelAdmin):
-    show_full_result_count = False  # prevents counting objects twice
+    pass
 
 
 class StackedInline(AppAdminMixin, admin.StackedInline):

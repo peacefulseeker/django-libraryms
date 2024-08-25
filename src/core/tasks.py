@@ -1,13 +1,17 @@
 from urllib.parse import urljoin
 
 import requests
+from celery import Task as BaseTask
 from celery import shared_task
+from celery_singleton import Singleton
 from django.urls import reverse
 from sentry_sdk.api import capture_exception
 
 from apps.users.models import Member
 from core.conf.environ import env
 from core.utils.mailer import Mailer
+
+SingletonOrTask = Singleton if not env.bool("CELERY_ALWAYS_EAGER", default=False) else BaseTask
 
 
 @shared_task(
@@ -50,8 +54,8 @@ def send_order_created_email(order_id: int):
     return {"sent": email_sent}
 
 
-@shared_task(name="books/send_reservation_confirmed_email")
-def send_reservation_confirmed_email(order_id: int):
+@shared_task(name="books/send_reservation_confirmed_email", base=SingletonOrTask, unique_on=["reservation_id"])
+def send_reservation_confirmed_email(order_id: int, reservation_id: int):
     from apps.books.models import Order
 
     reservations_url = urljoin(env("PRODUCTION_URL"), "account/reservations/")
@@ -74,9 +78,6 @@ def send_reservation_confirmed_email(order_id: int):
         body=body,
     )
     email_sent = mailer.send()
-
-    order.member_notified = True
-    order.save()
 
     return {"sent": email_sent}
 

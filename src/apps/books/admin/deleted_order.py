@@ -53,6 +53,8 @@ def history_user(obj) -> User:  # pragma: no cover
 @admin.register(HistoricalOrder)
 class DeletedOrderAdmin(ModelAdmin):
     readonly_fields = [field.name for field in HistoricalOrder._meta.get_fields()]
+
+    list_select_related = ["member", "book", "history_user"]
     list_display = (
         history_id,
         history_type,

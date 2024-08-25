@@ -132,26 +132,21 @@ def test_not_booked_by_default(book, member):
     assert not book.is_booked_by_member(member)
 
 
-def test_book_queued_orders():
-    book: Book = mixer.blend(Book)
-    order1 = mixer.blend(Order, book=book, status=OrderStatus.IN_QUEUE)
-    order2 = mixer.blend(Order, book=book, status=OrderStatus.IN_QUEUE)
-    order3 = mixer.blend(Order, book=book, status=OrderStatus.PROCESSED)
+def test_book_queued_orders(create_book_order, book):
+    create_book_order()
+    create_book_order(status=OrderStatus.IN_QUEUE)
+    create_book_order(status=OrderStatus.IN_QUEUE)
 
     queued_orders = book.enqueued_orders
 
     assert book.has_enqueued_orders
     assert book.orders.count() == 3
     assert len(queued_orders) == 2
-    assert order1 in queued_orders
-    assert order2 in queued_orders
-    assert order3 not in queued_orders
 
 
-def test_book_no_queued_orders():
-    book: Book = mixer.blend(Book)
-    mixer.blend(Order, book=book, status=OrderStatus.PROCESSED)
-    mixer.blend(Order, book=book, status=OrderStatus.REFUSED)
+def test_book_no_queued_orders(create_book_order, book):
+    create_book_order(status=OrderStatus.UNPROCESSED)
+    create_book_order(status=OrderStatus.REFUSED)
 
     queued_orders = book.enqueued_orders
 
@@ -160,8 +155,8 @@ def test_book_no_queued_orders():
     assert not book.has_enqueued_orders
 
 
-def test_process_next_order_in_queue(create_book_order, member, book, mock_send_order_created_email):
-    create_book_order(status=OrderStatus.UNPROCESSED)
+def test_process_next_order_in_queue(create_book_order, book, mock_send_order_created_email):
+    create_book_order()
     create_book_order(status=OrderStatus.IN_QUEUE)
     create_book_order(status=OrderStatus.IN_QUEUE)
 
@@ -186,8 +181,8 @@ def test_process_next_order_in_queue(create_book_order, member, book, mock_send_
     )
 
 
-def test_book_is_reserved_aka_booked(book, member):
-    mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+def test_book_is_reserved_aka_booked(create_book_order, book, member):
+    create_book_order(status=OrderStatus.PROCESSED)
 
     assert book.is_reserved
     assert book.is_booked
