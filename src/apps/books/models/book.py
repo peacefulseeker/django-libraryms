@@ -26,9 +26,6 @@ class ReservationQuerySet(models.QuerySet):
         )
 
 
-# TODO: at this point started to think to decouple model CRUD operations from within the models themselves
-# perhaps a good idea would be to move the CRUD operations to a separate service layer
-# thigh might help also in resolving circular dependency issues, especially actual when model typing is used
 class Reservation(TimestampedModel):
     book: "Book"
     member: "Member"
