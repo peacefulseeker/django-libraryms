@@ -14,7 +14,8 @@ def mock_send_reservation_confirmed_email(mocker):
 
 def test_order_str_method():
     order = mixer.blend(Order)
-    expected_str = f"{order.member} - {order.book} - {order.status}"
+
+    expected_str = f"{order.pk} - {OrderStatus.UNPROCESSED.label}"
     assert str(order) == expected_str
 
 

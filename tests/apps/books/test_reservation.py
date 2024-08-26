@@ -12,7 +12,8 @@ pytestmark = pytest.mark.django_db
 
 def test_reservation_str_method():
     reservation = mixer.blend(Reservation)
-    expected_str = f"{reservation.member} - {ReservationStatus.RESERVED.label}"
+
+    expected_str = f"{reservation.pk} - {reservation.member} - {ReservationStatus.RESERVED.label}"
     assert str(reservation) == expected_str
 
 
@@ -55,17 +56,13 @@ def test_reservation_unlinked_from_book_on_status_change(status):
     assert not hasattr(reservation, "book")
 
 
-def test_reservation_ordered_by_last_modified():
+def test_reservation_ordered_by_modified_at():
     reservation1 = mixer.blend(Reservation)
     reservation2 = mixer.blend(Reservation)
     reservation3 = mixer.blend(Reservation)
 
-    reservation2.status = ReservationStatus.RESERVED
     reservation2.save()
-
     reservation1.save()
-
-    reservation3.status = ReservationStatus.COMPLETED
     reservation3.save()
 
     reservations = Reservation.objects.all()
@@ -73,7 +70,7 @@ def test_reservation_ordered_by_last_modified():
     assert list(reservations) == [reservation3, reservation1, reservation2]
 
 
-def test_reservation_ordered_by_last_modified_with_nulls_last():
+def test_reservation_ordered_by_modified_at_with_nulls_last():
     reservation1 = mixer.blend(Reservation)
     reservation2 = mixer.blend(Reservation)
     reservation3 = mixer.blend(Reservation)

@@ -17,6 +17,7 @@ include(
     "conf/security.py",
     "conf/i18n.py",
     "conf/installed_apps.py",
+    "conf/debug_toolbar.py",
     "conf/middleware.py",
     "conf/templates.py",
     "conf/static.py",

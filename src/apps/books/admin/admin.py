@@ -74,13 +74,10 @@ class PublisherAdmin(ModelAdmin, ImportExportModelAdmin):
 @admin.register(Reservation)
 class ReservationAdmin(ModelAdmin):
     readonly_fields = (
-        # "member",
         "created_at",
         "modified_at",
     )
-    autocomplete_fields = [
-        "member",
-    ]
+    autocomplete_fields = ("member",)
     search_fields = ("member",)
     list_display = (
         "id",
