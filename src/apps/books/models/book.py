@@ -57,7 +57,7 @@ class Reservation(TimestampedModel):
         super().save(*args, **kwargs)
 
     class Meta:
-        ordering = [F("modified_at").desc(nulls_last=True)]
+        ordering = ["-created_at"]
 
     @classmethod
     def get_default_term(cls) -> timezone.datetime:
@@ -169,9 +169,10 @@ class Book(TimestampedModel):
             )
 
     def process_next_order(self):
+        self.reservation = None
+        self.save(update_fields=["reservation"])
+
         if not self.has_enqueued_orders:
-            self.reservation = None
-            self.save(update_fields=["reservation"])
             return
 
         next_order: Order = self.enqueued_orders.first()
@@ -223,7 +224,7 @@ class Book(TimestampedModel):
 
     @property
     def enqueued_orders(self) -> "OrderQuerySet":
-        return self.orders.filter(status=OrderStatus.IN_QUEUE)
+        return self.orders.filter(status=OrderStatus.IN_QUEUE).order_by("created_at")
 
     @property
     def has_enqueued_orders(self) -> bool:

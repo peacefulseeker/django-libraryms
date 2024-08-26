@@ -134,14 +134,14 @@ def test_not_booked_by_default(book, member):
 
 def test_book_queued_orders(create_book_order, book):
     create_book_order()
-    create_book_order(status=OrderStatus.IN_QUEUE)
-    create_book_order(status=OrderStatus.IN_QUEUE)
+    order_queued_1 = create_book_order(status=OrderStatus.IN_QUEUE)
+    order_queued_2 = create_book_order(status=OrderStatus.IN_QUEUE)
 
     queued_orders = book.enqueued_orders
 
     assert book.has_enqueued_orders
     assert book.orders.count() == 3
-    assert len(queued_orders) == 2
+    assert list(queued_orders) == [order_queued_1, order_queued_2]
 
 
 def test_book_no_queued_orders(create_book_order, book):
@@ -155,18 +155,25 @@ def test_book_no_queued_orders(create_book_order, book):
     assert not book.has_enqueued_orders
 
 
-def test_process_next_order_in_queue(create_book_order, book, mock_send_order_created_email):
-    create_book_order()
-    create_book_order(status=OrderStatus.IN_QUEUE)
-    create_book_order(status=OrderStatus.IN_QUEUE)
+def test_process_orders_in_queue(create_book_order, book, mock_send_order_created_email):
+    order = create_book_order()
+    order_queued_1 = create_book_order(status=OrderStatus.IN_QUEUE)
+    order_queued_2 = create_book_order(status=OrderStatus.IN_QUEUE)
 
     assert book.enqueued_orders.count() == 2
+    assert book.reservation == order.reservation
 
-    next_order_id_1 = book.enqueued_orders.first().id
+    next_order_1 = book.enqueued_orders.first()
     book.process_next_order()
+    next_order_1.refresh_from_db()
+    assert next_order_1.id == order_queued_1.id
+    assert book.reservation == next_order_1.reservation
 
-    next_order_id_2 = book.enqueued_orders.first().id
+    next_order_2 = book.enqueued_orders.first()
     book.process_next_order()
+    next_order_2.refresh_from_db()
+    assert next_order_2.id == order_queued_2.id
+    assert book.reservation == next_order_2.reservation
 
     assert book.enqueued_orders.count() == 0
     assert all(o.status == OrderStatus.UNPROCESSED for o in book.orders.all())
@@ -176,8 +183,8 @@ def test_process_next_order_in_queue(create_book_order, book, mock_send_order_cr
     assert book.enqueued_orders.count() == 0
 
     mock_send_order_created_email.delay.has_calls(
-        call(next_order_id_1),
-        call(next_order_id_2),
+        call(next_order_1.id),
+        call(next_order_2.id),
     )
 
 
