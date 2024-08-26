@@ -11,31 +11,22 @@ from core.utils.admin import HistoricalModelAdmin
 
 @admin.register(Order)
 class OrderAdmin(HistoricalModelAdmin):
-    readonly_fields = ("last_modified_by", "reservation", "member", "book")
-    history_list_display = ("status",)
-    # Select2 search user-friendly
-    autocomplete_fields = [
-        "member",
+    readonly_fields = (
+        "last_modified_by",
         "reservation",
+        "member",
         "book",
-    ]
-
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    "member",
-                    "book",
-                    "status",
-                    "reservation",
-                    "change_reason",
-                    "last_modified_by",
-                )
-            },
-        ),
     )
-    list_select_related = ["book", "member"]
+    history_list_display = ("status",)
+    fields = (
+        "member",
+        "book",
+        "status",
+        "reservation",
+        "change_reason",
+        "last_modified_by",
+    )
+
     list_display = (
         "id",
         "status",
@@ -44,12 +35,15 @@ class OrderAdmin(HistoricalModelAdmin):
         "last_modified_by",
         "created_at",
     )
-
     list_display_links = (
         "id",
         "status",
         "book",
     )
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        qs = super().get_queryset(request).select_related("reservation", "book", "member", "last_modified_by")
+        return qs
 
     def has_add_permission(self, request: HttpRequest) -> bool:  # pragma: no cover
         """

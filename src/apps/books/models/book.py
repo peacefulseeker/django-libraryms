@@ -84,7 +84,7 @@ class Reservation(TimestampedModel):
         return self.is_issued and self.overdue_days > 0
 
     def __str__(self):
-        return f"{self.member} - {self.get_status_display()}"
+        return f"{self.pk} - {self.member} - {self.get_status_display()}"
 
 
 class BookQuerySet(models.QuerySet):
@@ -336,4 +336,4 @@ class Order(TimestampedModel):
         send_reservation_confirmed_email.delay(self.id, self.reservation.id)
 
     def __str__(self):
-        return f"{self.member} - {self.book} - {self.status}"
+        return f"{self.pk} - {self.get_status_display()}"

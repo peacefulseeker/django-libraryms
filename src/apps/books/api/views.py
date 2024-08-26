@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -125,7 +126,8 @@ class BookOrderView(APIView):
             order_status = OrderStatus.IN_QUEUE
             message = _("Book reservation request put in queue")
 
-        order = BookOrder.objects.create(book=book, member=member, status=order_status)
+        with transaction.atomic():
+            order = BookOrder.objects.create(book=book, member=member, status=order_status)
 
         return order, message
 

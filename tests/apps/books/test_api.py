@@ -137,3 +137,15 @@ class TestBookOrderView:
         assert response.status_code == HTTP_400_BAD_REQUEST
         assert response.data["detail"] == "No cancellable order found"
         assert another_book_order.status == OrderStatus.UNPROCESSED
+
+    def test_book_order_create_ensure_atomicity(self, as_member, book, mocker):
+        url = reverse("book-order", kwargs={"book_id": book.id})
+        mocker.patch("apps.books.models.book.Book.save", side_effect=Exception("Could not update book after order reservation created"))
+
+        with pytest.raises(Exception):
+            response = as_member.post(url)
+            assert response.status_code == HTTP_400_BAD_REQUEST
+
+        assert book.orders.count() == 0
+        assert book.is_available
+        assert Reservation.objects.count() == 0
