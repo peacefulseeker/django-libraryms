@@ -134,14 +134,14 @@ def test_not_booked_by_default(book, member):
 
 def test_book_queued_orders(create_book_order, book):
     create_book_order()
-    create_book_order(status=OrderStatus.IN_QUEUE)
-    create_book_order(status=OrderStatus.IN_QUEUE)
+    order_queued_1 = create_book_order(status=OrderStatus.IN_QUEUE)
+    order_queued_2 = create_book_order(status=OrderStatus.IN_QUEUE)
 
     queued_orders = book.enqueued_orders
 
     assert book.has_enqueued_orders
     assert book.orders.count() == 3
-    assert len(queued_orders) == 2
+    assert list(queued_orders) == [order_queued_1, order_queued_2]
 
 
 def test_book_no_queued_orders(create_book_order, book):
