@@ -56,28 +56,25 @@ def test_reservation_unlinked_from_book_on_status_change(status):
     assert not hasattr(reservation, "book")
 
 
-def test_reservation_ordered_by_modified_at():
+def test_reservation_ordered_by_created_at():
     reservation1 = mixer.blend(Reservation)
     reservation2 = mixer.blend(Reservation)
     reservation3 = mixer.blend(Reservation)
 
+    reservations = Reservation.objects.all()
+
+    assert list(reservations) == [reservation3, reservation2, reservation1]
+
+
+def test_reservation_ordered_by_created_at_even_if_modified():
+    reservation1 = mixer.blend(Reservation)
+    reservation2 = mixer.blend(Reservation)
+    reservation3 = mixer.blend(Reservation)
+
+    reservation3.save()
     reservation2.save()
     reservation1.save()
-    reservation3.save()
 
     reservations = Reservation.objects.all()
 
-    assert list(reservations) == [reservation3, reservation1, reservation2]
-
-
-def test_reservation_ordered_by_modified_at_with_nulls_last():
-    reservation1 = mixer.blend(Reservation)
-    reservation2 = mixer.blend(Reservation)
-    reservation3 = mixer.blend(Reservation)
-
-    reservation3.save()
-    reservation2.save()
-
-    reservations = Reservation.objects.all()
-
-    assert list(reservations) == [reservation2, reservation3, reservation1]
+    assert list(reservations) == [reservation3, reservation2, reservation1]

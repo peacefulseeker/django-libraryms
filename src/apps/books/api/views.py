@@ -93,7 +93,7 @@ class BookOrderView(APIView):
 
         book = get_object_or_404(Book, pk=book_id)
 
-        if self._processable_order(book_id, request.user).exists():
+        if self._processable_order(book, request.user).exists():
             return Response(status=400, data={"detail": _("Book is already ordered or your order is in queue")})
 
         if self._max_enqueued_orders_reached(book):
@@ -127,6 +127,8 @@ class BookOrderView(APIView):
             message = _("Book reservation request put in queue")
 
         with transaction.atomic():
+            if book.is_available:
+                book = Book.objects.select_for_update().get(pk=book.id)
             order = BookOrder.objects.create(book=book, member=member, status=order_status)
 
         return order, message
