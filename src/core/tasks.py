@@ -4,6 +4,7 @@ import requests
 from celery import Task as BaseTask
 from celery import shared_task
 from celery_singleton import Singleton
+from django.db import transaction
 from django.urls import reverse
 from sentry_sdk.api import capture_exception
 
@@ -117,6 +118,37 @@ def send_registration_notification_to_member(member_id: int):
 
     mailer = Mailer(
         subject="Thanks! Your registration request received",
+        # to=env("member.email"),
+        body=body,
+    )
+
+    email_sent = mailer.send()
+
+    return {"sent": email_sent}
+
+
+@shared_task(name="core/send_password_reset_link_to_member")
+def send_password_reset_link_to_member(member_id: int):
+    with transaction.atomic():
+        try:
+            member = Member.objects.select_for_update().get(id=member_id)
+            if not member.is_password_reset_token_valid():
+                member.set_password_reset_token()
+        except Member.DoesNotExist:
+            return {"error": f"Member with id {member_id} does not exist"}
+
+    password_reset_url = urljoin(env("PRODUCTION_URL"), f"account/reset-password/{member.password_reset_token}")
+
+    body = f"""
+        Hi {member.first_name or member.username}! <br />
+        You requested password reset recently.
+        Please visit that link below to set new password for your account:
+        <a href='{password_reset_url}' target='_blank'>Reset password</a>
+        Link expires in 1 hour.
+    """
+
+    mailer = Mailer(
+        subject="Password reset request",
         # to=env("member.email"),
         body=body,
     )

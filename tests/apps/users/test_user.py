@@ -1,7 +1,10 @@
+import uuid
+
 import pytest
+from django.utils import timezone
 from mixer.backend.django import mixer
 
-from apps.users.models import Librarian, Member, User
+from apps.users.models import InvalidPasswordResetTokenError, Librarian, Member, User
 
 pytestmark = pytest.mark.django_db
 
@@ -35,3 +38,44 @@ def test_member_registration_code():
     member: Member = mixer.blend(Member)
 
     assert str(member.uuid.int).startswith(member.registration_code)
+
+
+class TestPasswordResetToken:
+    def test_invalid_by_default(self, member: Member):
+        assert not member.password_reset_token
+        assert not member.password_reset_token_created_at
+        assert not member.is_password_reset_token_valid()
+
+    def test_invalid_raises_when_requested(self, member: Member):
+        with pytest.raises(InvalidPasswordResetTokenError) as exc_info:
+            member.is_password_reset_token_valid(raise_exception=True)
+
+        assert str(exc_info.value) == "No valid reset token found"
+
+    def test_expired_token_reset(self, member: Member):
+        expired_token = member.password_reset_token = uuid.uuid4()
+        member.password_reset_token_created_at = timezone.now() - timezone.timedelta(hours=2)
+        member.save()
+
+        assert not member.is_password_reset_token_valid()
+
+        member.set_password_reset_token()
+        assert member.password_reset_token != expired_token
+        assert member.is_password_reset_token_valid()
+
+    def test_expired_token_check_raises_when_requested(self, member: Member):
+        member.password_reset_token = uuid.uuid4()
+        member.password_reset_token_created_at = timezone.now() - timezone.timedelta(hours=2)
+        member.save()
+
+        with pytest.raises(InvalidPasswordResetTokenError) as exc_info:
+            member.is_password_reset_token_valid(raise_exception=True)
+
+        assert str(exc_info.value) == "Token has expired"
+
+    def test_valid_token(self, member: Member):
+        member.set_password_reset_token()
+
+        assert member.password_reset_token
+        assert member.password_reset_token_created_at
+        assert member.is_password_reset_token_valid()
