@@ -14,5 +14,11 @@ def member():
 
 
 @pytest.fixture
+def member_with_reset_token(member: Member):
+    member.set_password_reset_token()
+    return member
+
+
+@pytest.fixture
 def another_member():
     return mixer.blend(Member)

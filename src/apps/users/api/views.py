@@ -10,11 +10,14 @@ from apps.users.api.serializers import (
     CookieTokenObtainSerializer,
     CookieTokenRefreshSerializer,
     MemberPasswordChangeSerializer,
+    MemberPasswordResetConfirmSerializer,
+    MemberPasswordResetSerializer,
     MemberRegistrationRequestSerializer,
     UserProfileSerializer,
 )
-from apps.users.models import Member
-from core.throttling import AnonRateThrottle
+from apps.users.models import InvalidPasswordResetTokenError, Member
+from core.tasks import send_password_reset_link_to_member
+from core.throttling import AnonRateThrottle, PasswordResetConfirmRateThrottle, PasswordResetRateThrottle
 
 
 class CookieTokenMixin(TokenViewBase):
@@ -70,6 +73,7 @@ class MemberProfileView(generics.RetrieveUpdateAPIView):
 class MemberPasswordChange(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = MemberPasswordChangeSerializer
+    serializer_class = MemberPasswordChangeSerializer
 
     def update(self, request, *args, **kwargs):
         instance: Member = request.user
@@ -98,3 +102,46 @@ class MemberPasswordChange(generics.UpdateAPIView):
         instance.set_password(serializer.validated_data["password_new"])
         instance.save()
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+class MemberPasswordReset(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
+    serializer_class = MemberPasswordResetSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            member = Member.objects.get(email=serializer.validated_data["email"])
+            member.set_password_reset_token()
+            send_password_reset_link_to_member.delay(member.id)
+            return Response(status=HTTP_204_NO_CONTENT)
+        except Member.DoesNotExist:
+            pass
+
+        return Response(status=HTTP_204_NO_CONTENT)
+
+
+class MemberPasswordResetConfirm(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetConfirmRateThrottle]
+    serializer_class = MemberPasswordResetConfirmSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            member = Member.objects.get(password_reset_token=serializer.validated_data["token"])
+            member.is_password_reset_token_valid(raise_exception=True)
+            member.set_password(serializer.validated_data["new_password"])
+            member.password_reset_token = None
+            member.password_reset_token_created_at = None
+            member.save()
+            return Response(status=HTTP_204_NO_CONTENT)
+        except Member.DoesNotExist:
+            return Response({"error": "Invalid token"}, status=HTTP_400_BAD_REQUEST)
+        except InvalidPasswordResetTokenError as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)

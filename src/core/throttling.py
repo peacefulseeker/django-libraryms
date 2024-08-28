@@ -13,3 +13,11 @@ class ThrottlingMixin(BaseThrottle):
 
 class AnonRateThrottle(ThrottlingMixin, AnonRateThrottleNative):
     pass
+
+
+class PasswordResetRateThrottle(AnonRateThrottle):
+    scope = "password_reset"
+
+
+class PasswordResetConfirmRateThrottle(AnonRateThrottle):
+    scope = "password_reset_confirm"

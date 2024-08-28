@@ -132,3 +132,18 @@ class MemberPasswordChangeSerializer(serializers.Serializer):
     password_current = serializers.CharField(write_only=True, required=True)
     password_new = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password_new_confirm = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+
+
+class MemberPasswordResetSerializer(serializers.Serializer):
+    email = serializers.CharField(write_only=True, required=True)
+
+
+class MemberPasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    new_password_confirm = serializers.CharField(write_only=True, validators=[validate_password])
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["new_password_confirm"]:
+            raise serializers.ValidationError({"new_password_confirm": _("Password fields didn't match.")})
+        return attrs
