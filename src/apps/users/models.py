@@ -51,7 +51,10 @@ class User(AbstractUser):
         return True
 
     def set_password_reset_token(self):
-        """Generates a new token for user only in case previous token does not exist or expired"""
+        """
+        Generates a new token for user only in case
+        previous token does not exist or expired
+        """
         if not self.is_password_reset_token_valid():
             self.password_reset_token = uuid.uuid4()
             self.password_reset_token_created_at = timezone.now()
