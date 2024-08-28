@@ -30,6 +30,6 @@ def test_email_sent(member_with_reset_token, mock_mailer):
     assert mailer_kwargs["subject"] == "Password reset request"
     assert f"Hi {member_with_reset_token.first_name}!" in mailer_kwargs["body"]
     assert "You requested password reset recently." in mailer_kwargs["body"]
-    assert f"https://example.com/account/reset-password/{member_with_reset_token.password_reset_token}" in mailer_kwargs["body"]
+    assert f"https://example.com/reset-password/{member_with_reset_token.password_reset_token}" in mailer_kwargs["body"]
     assert "Link expires in 1 hour" in mailer_kwargs["body"]
     assert result["sent"] == 1

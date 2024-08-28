@@ -137,7 +137,7 @@ def send_password_reset_link_to_member(member_id: int):
         except Member.DoesNotExist:
             return {"error": f"Member with id {member_id} does not exist"}
 
-    password_reset_url = urljoin(env("PRODUCTION_URL"), f"account/reset-password/{member.password_reset_token}")
+    password_reset_url = urljoin(env("PRODUCTION_URL"), f"/reset-password/{member.password_reset_token}")
 
     body = f"""
         Hi {member.first_name or member.username}! <br />

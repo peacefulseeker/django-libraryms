@@ -21,7 +21,7 @@ if settings.DEBUG:
 
 urlpatterns += [
     path("", VueAppView.as_view(), name="app_home"),
-    re_path("^(login|books|account|register)", VueAppView.as_view(), name="app_routes"),
+    re_path("^(login|books|account|register|reset-password)", VueAppView.as_view(), name="app_routes"),
 ]
 
 handler404 = "core.views.handler404"
