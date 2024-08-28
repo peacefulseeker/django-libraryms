@@ -141,9 +141,9 @@ def send_password_reset_link_to_member(member_id: int):
 
     body = f"""
         Hi {member.first_name or member.username}! <br />
-        You requested password reset recently.
-        Please visit that link below to set new password for your account:
-        <a href='{password_reset_url}' target='_blank'>Reset password</a>
+        You requested password reset recently. <br />
+        Please visit that link below to set a new password for your account: <br />
+        <a href='{password_reset_url}' target='_blank'>Reset password</a> <br />
         Link expires in 1 hour.
     """
 
