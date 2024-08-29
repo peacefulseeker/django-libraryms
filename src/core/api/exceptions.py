@@ -7,6 +7,6 @@ def drf_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     if isinstance(exc, Throttled):
-        response.data["detail"] = _("Too Many Requests")
+        response.data["detail"] = _("Too Many Requests. Try again later.")
 
     return response

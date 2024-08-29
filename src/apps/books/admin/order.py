@@ -27,6 +27,7 @@ class OrderAdmin(HistoricalModelAdmin):
         "last_modified_by",
     )
 
+    list_filter = ("status",)
     list_display = (
         "id",
         "status",

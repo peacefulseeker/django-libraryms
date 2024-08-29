@@ -27,5 +27,6 @@ def debug_task(self):
 celery.autodiscover_tasks(
     packages=[
         "core",
+        "apps",
     ]
 )
