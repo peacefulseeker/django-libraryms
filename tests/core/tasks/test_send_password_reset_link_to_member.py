@@ -2,6 +2,7 @@ import pytest
 
 from apps.users.models import Member
 from core.tasks import send_password_reset_link_to_member
+from core.utils.mailer import Message
 
 pytestmark = pytest.mark.django_db
 
@@ -26,10 +27,10 @@ def test_ensures_valid_reset_token_before_sent(member: Member):
 def test_email_sent(member_with_reset_token, mock_mailer):
     result = send_password_reset_link_to_member.delay(member_with_reset_token.id).get()
 
-    mailer_kwargs = mock_mailer.call_args.kwargs
-    assert mailer_kwargs["subject"] == "Password reset request"
-    assert f"Hi {member_with_reset_token.first_name}!" in mailer_kwargs["body"]
-    assert "You requested password reset recently." in mailer_kwargs["body"]
-    assert f"https://example.com/reset-password/{member_with_reset_token.password_reset_token}" in mailer_kwargs["body"]
-    assert "Link expires in 1 hour" in mailer_kwargs["body"]
+    message: Message = mock_mailer.call_args[0][0]
+    assert message.subject == "Password reset request"
+    assert f"Hi {member_with_reset_token.first_name}!" in message.body
+    assert "You requested password reset recently." in message.body
+    assert f"https://example.com/reset-password/{member_with_reset_token.password_reset_token}" in message.body
+    assert "Link expires in 1 hour" in message.body
     assert result["sent"] == 1

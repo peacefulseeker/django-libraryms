@@ -3,6 +3,7 @@ from mixer.backend.django import mixer
 
 from apps.users.models import Member
 from core.tasks import send_registration_notification_to_member
+from core.utils.mailer import Message
 
 pytestmark = pytest.mark.django_db
 
@@ -21,12 +22,12 @@ def test_send_success_with_first_name_in_greeting(mock_mailer):
     result = send_registration_notification_to_member.delay(member.id).get()
 
     assert result["sent"]
-    call_kwargs = mock_mailer.call_args.kwargs
-    assert call_kwargs["subject"] == "Thanks! Your registration request received"
-    assert f"Hi {member.first_name}!" in call_kwargs["body"]
-    assert f"Your registration code: {member.registration_code}." in call_kwargs["body"]
-    assert "Please arrive to library to complete registration" in call_kwargs["body"]
-    assert "Don't forget to bring your ID card." in call_kwargs["body"]
+    message: Message = mock_mailer.call_args[0][0]
+    assert message.subject == "Thanks! Your registration request received"
+    assert f"Hi {member.first_name}!" in message.body
+    assert f"Your registration code: {member.registration_code}." in message.body
+    assert "Please arrive to library to complete registration" in message.body
+    assert "Don't forget to bring your ID card." in message.body
 
 
 def test_send_success_with_username_in_greeting(mock_mailer):
@@ -34,4 +35,5 @@ def test_send_success_with_username_in_greeting(mock_mailer):
 
     send_registration_notification_to_member.delay(member.id).get()
 
-    assert f"Hi {member.username}!" in mock_mailer.call_args.kwargs["body"]
+    message: Message = mock_mailer.call_args[0][0]
+    assert f"Hi {member.username}!" in message.body

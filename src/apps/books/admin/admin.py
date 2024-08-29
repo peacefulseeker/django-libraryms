@@ -88,6 +88,7 @@ class ReservationAdmin(ModelAdmin):
         "modified_at",
     )
 
+    list_filter = ("status",)
     list_select_related = ["member", "book"]
     list_display_links = (
         "id",
