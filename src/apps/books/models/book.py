@@ -31,7 +31,7 @@ class Reservation(TimestampedModel):
     member: "Member"
     order: "Order"
 
-    # NOTE: atm. API Only restriction. Admin can still add unlimited reservations to members
+    # NOTE: API Only restriction. Admins can still add unlimited reservations to members
     MAX_RESERVATIONS_PER_MEMBER = 5
     DONE_STATES = [
         ReservationStatus.COMPLETED,
@@ -39,7 +39,7 @@ class Reservation(TimestampedModel):
         ReservationStatus.REFUSED,
     ]
 
-    objects: ReservationQuerySet = models.Manager.from_queryset(ReservationQuerySet)()
+    objects: ReservationQuerySet = ReservationQuerySet.as_manager()
 
     member = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
     status = models.CharField(
@@ -122,7 +122,7 @@ class BookQuerySet(models.QuerySet):
 
 class Book(TimestampedModel):
     orders: "QuerySet[Order]"
-    objects: BookQuerySet = models.Manager.from_queryset(BookQuerySet)()
+    objects: BookQuerySet = BookQuerySet.as_manager()
 
     title = models.CharField(max_length=200, unique=True)
     author = models.ForeignKey("Author", related_name="books", on_delete=models.CASCADE)
@@ -252,8 +252,9 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(TimestampedModel):
+    # NOTE: API Only restriction. Admins can still enqueue ulimited amount of orders to members
     MAX_QUEUED_ORDERS_ALLOWED = 3
-    objects: OrderQuerySet = models.Manager.from_queryset(OrderQuerySet)()
+    objects: OrderQuerySet = OrderQuerySet.as_manager()
 
     member = models.ForeignKey(Member, related_name="orders", on_delete=models.SET_NULL, null=True)
     book = models.ForeignKey(Book, related_name="orders", on_delete=models.SET_NULL, null=True)

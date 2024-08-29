@@ -1,5 +1,4 @@
 import pytest
-from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import APIException, Throttled
 from rest_framework.views import APIView
 
@@ -24,7 +23,7 @@ def test_drf_exception_handler_throttled(api_request, api_view):
 
     assert response is not None
     assert response.status_code == 429
-    assert response.data["detail"] == _("Too Many Requests")
+    assert response.data["detail"] == "Too many requests. Try again later."
 
 
 def test_drf_exception_handler_non_throttled(api_request, api_view):
@@ -36,7 +35,7 @@ def test_drf_exception_handler_non_throttled(api_request, api_view):
     assert response is not None
     assert response.status_code == 500
     assert "detail" in response.data
-    assert response.data["detail"] != _("Too Many Requests")
+    assert response.data["detail"] != "Too many requests. Try again later."
 
 
 def test_drf_exception_handler_non_drf_exception(api_request, api_view):
