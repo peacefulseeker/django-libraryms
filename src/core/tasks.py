@@ -10,7 +10,7 @@ from sentry_sdk.api import capture_exception
 
 from apps.users.models import Member
 from core.conf.environ import env
-from core.utils.mailer import Mailer
+from core.utils.mailer import Mailer, Message
 
 SingletonOrTask = Singleton if not env.bool("CELERY_ALWAYS_EAGER", default=False) else BaseTask
 
@@ -46,9 +46,11 @@ def send_order_created_email(order_id: int):
         Please process new book order <a href='{order_url}' target='_blank'>here</a>
     """
     mailer = Mailer(
-        subject="Book order created",
-        # to=env("LIBRARIAN_ADMIN_EMAIL"),
-        body=body,
+        Message(
+            subject="Book order created",
+            # to=env("LIBRARIAN_ADMIN_EMAIL"),
+            body=body,
+        )
     )
     email_sent = mailer.send()
 
@@ -74,9 +76,11 @@ def send_reservation_confirmed_email(order_id: int, reservation_id: int):
     """
 
     mailer = Mailer(
-        subject="Book is ready to be picked up",
-        # to=(order.member.email,),
-        body=body,
+        Message(
+            subject="Book is ready to be picked up",
+            # to=(order.member.email,),
+            body=body,
+        )
     )
     email_sent = mailer.send()
 
@@ -93,9 +97,11 @@ def send_member_registration_request_received(member_id: int):
         New member registration request received. Check <a href='{member_admin_url}' target='_blank'>here</a>
     """
     mailer = Mailer(
-        subject="Registration request received",
-        # to=env("LIBRARIAN_ADMIN_EMAIL"),
-        body=body,
+        Message(
+            subject="Registration request received",
+            # to=env("LIBRARIAN_ADMIN_EMAIL"),
+            body=body,
+        )
     )
     email_sent = mailer.send()
 
@@ -117,9 +123,11 @@ def send_registration_notification_to_member(member_id: int):
     """
 
     mailer = Mailer(
-        subject="Thanks! Your registration request received",
-        # to=env("member.email"),
-        body=body,
+        Message(
+            subject="Thanks! Your registration request received",
+            # to=env("member.email"),
+            body=body,
+        )
     )
 
     email_sent = mailer.send()
@@ -148,9 +156,11 @@ def send_password_reset_link_to_member(member_id: int):
     """
 
     mailer = Mailer(
-        subject="Password reset request",
-        # to=env("member.email"),
-        body=body,
+        Message(
+            subject="Password reset request",
+            # to=env("member.email"),
+            body=body,
+        )
     )
 
     email_sent = mailer.send()

@@ -34,4 +34,4 @@ def send_reservation_term_reminder(due_in_days=2):
         )
 
     emails_sent = Mailer.send_mass_mail(messages, fail_silently=True)
-    return emails_sent
+    return {"sent": emails_sent}
