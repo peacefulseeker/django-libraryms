@@ -87,6 +87,10 @@ class Member(User):
         """
         return str(self.uuid.int)[:6]
 
+    @property
+    def name(self):
+        return self.first_name or self.username
+
 
 class Librarian(User):
     class Meta:

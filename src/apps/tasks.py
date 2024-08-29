@@ -20,7 +20,7 @@ def send_reservation_term_reminder(due_in_days=2):
     for reservation in reservations:
         member = reservation.member
         body = f"""
-            Hi {member.first_name or member.username}!<br />
+            Hi {member.name}!<br />
             Your book '{reservation.book.title}' reservation is due on {reservation.term}.<br />
             Please return it on time or extend it. <br />
             Otherwise, you will be charged a fine. <br />

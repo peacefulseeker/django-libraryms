@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from typing import NamedTuple
 
 import sentry_sdk
 from django.conf import settings
@@ -6,19 +6,11 @@ from django.core.mail import EmailMessage, get_connection
 from django_ses import SESBackend
 
 
-@dataclass
-class Message:
+class Message(NamedTuple):
     subject: str
     body: str
     from_email: str = settings.AWS_SES_FROM_EMAIL
-    to: list | tuple = (settings.AWS_SES_FROM_EMAIL,)
-
-    def __post_init__(self):
-        if not isinstance(self.to, (list, tuple)):
-            raise ValueError("'to' must be a list or tuple")
-
-    def __str__(self):
-        return self.subject
+    to: list[str] | tuple[str] = (settings.AWS_SES_FROM_EMAIL,)
 
 
 class HtmlEmailMessage(EmailMessage):
@@ -31,9 +23,8 @@ class Mailer:
         subject,
         body,
         from_email=settings.AWS_SES_FROM_EMAIL,
-        to=(settings.AWS_SES_FROM_EMAIL,),  # list or tuple
-        reply_to=("noreply@django-libraryms.fly.dev",),  # list or tuple
-        headers={},
+        to: list[str] | tuple[str] = (settings.AWS_SES_FROM_EMAIL,),
+        reply_to: list[str] | tuple[str] = ("noreply@django-libraryms.fly.dev",),
     ):
         self.email = HtmlEmailMessage(
             subject=subject,
@@ -41,7 +32,6 @@ class Mailer:
             from_email=from_email,
             to=to,
             reply_to=reply_to,
-            headers=headers,
         )
 
     def send(self) -> int:

@@ -67,7 +67,7 @@ def send_reservation_confirmed_email(order_id: int, reservation_id: int):
         return {"error": f"Order with id {order_id} does not exist"}
 
     body = f"""
-        Hi {order.member.first_name or order.member.username}!<br />
+        Hi {order.member.name}!<br />
         "{order.book.title}" book is ready to be picked up. <br />
         Your Reservation ID: {order.reservation.pk} <br />
         Check all your reservations <a href='{reservations_url}' target='_blank'>here</a>
@@ -110,7 +110,7 @@ def send_registration_notification_to_member(member_id: int):
         return {"error": f"Member with id {member_id} does not exist"}
 
     body = f"""
-        Hi {member.first_name or member.username}! <br />
+        Hi {member.name}! <br />
         Your registration code: {member.registration_code}. <br />
         Please arrive to library to complete registration. <br />
         Don't forget to bring your ID card.
@@ -140,7 +140,7 @@ def send_password_reset_link_to_member(member_id: int):
     password_reset_url = urljoin(env("PRODUCTION_URL"), f"/reset-password/{member.password_reset_token}")
 
     body = f"""
-        Hi {member.first_name or member.username}! <br />
+        Hi {member.name}! <br />
         You requested password reset recently. <br />
         Please visit that link below to set a new password for your account: <br />
         <a href='{password_reset_url}' target='_blank'>Reset password</a> <br />
