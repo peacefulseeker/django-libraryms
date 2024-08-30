@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.app.task import Task
 from django.conf import settings
 
 from core.conf.environ import env
@@ -20,7 +21,7 @@ celery = Celery(
 
 
 @celery.task(bind=True, ignore_result=True)
-def debug_task(self):  # type: ignore
+def debug_task(self: Task) -> None:
     print(f"Request: {self.request!r}")  # pragma: no cover
 
 
