@@ -12,7 +12,7 @@ FROM node:${NODE_VERSION}-slim as frontend
     ENV NODE_ENV="production"
 
     # Install pnpm
-    ARG PNPM_VERSION=9.5.0
+    ARG PNPM_VERSION=9.9.0
     RUN npm install -g pnpm@$PNPM_VERSION
 
     RUN apt-get update -qq && \
