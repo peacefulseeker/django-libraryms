@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 from typing import Any
 
 from django.apps import apps as django_apps
@@ -33,7 +33,7 @@ def history_type(obj: Model) -> str:  # pragma: no cover
 @admin.display(
     description="date of deletion",
 )
-def history_date(obj: Model) -> date:  # pragma: no cover
+def history_date(obj: Model) -> datetime:  # pragma: no cover
     return obj.history_date
 
 
