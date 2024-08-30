@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db import models
 from django.utils import timezone
 
@@ -16,10 +18,10 @@ class TimestampedModel(models.Model):
         abstract = True
 
     @property
-    def changed(self):
+    def changed(self) -> bool:
         return True if self.modified_at else False
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if self.pk:
             self.modified_at = timezone.now()
         return super(TimestampedModel, self).save(*args, **kwargs)

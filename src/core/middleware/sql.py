@@ -1,5 +1,9 @@
+from typing import Callable
+
 from django.conf import settings
 from django.db import connection
+from django.http import HttpRequest
+from django.http.response import HttpResponseBase
 
 
 class SqlPrintingMiddleware:
@@ -9,17 +13,17 @@ class SqlPrintingMiddleware:
     Original source: https://gist.github.com/vstoykov/1390853/5d2e8fac3ca2b2ada8c7de2fb70c021e50927375
     """
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponseBase]) -> None:
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponseBase:
         response = self.get_response(request)
 
         response = self.process_response(request, response)
 
         return response
 
-    def process_response(self, request, response):
+    def process_response(self, request: HttpRequest, response: HttpResponseBase) -> HttpResponseBase:
         if len(connection.queries) == 0 or request.path_info.startswith(settings.MEDIA_URL):
             return response
 
@@ -29,7 +33,7 @@ class SqlPrintingMiddleware:
         for query in connection.queries:
             nice_sql = query["sql"].replace('"', "").replace(",", ", ")
             sql = "\033[1;31m[%s]\033[0m %s" % (query["time"], nice_sql)
-            total_time = total_time + float(query["time"])
+            total_time = total_time + float(query["time"])  # type: ignore[assignment]
             print("%s%s\n" % (" " * indentation, sql))
         replace_tuple = (" " * indentation, str(total_time))
         print("%s\033[1;32m[TOTAL TIME: %s seconds]\033[0m" % replace_tuple)

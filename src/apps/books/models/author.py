@@ -36,10 +36,10 @@ class Author(TimestampedModel):
             )
         ]
 
-    def clean(self) -> None | ValidationError:
+    def clean(self) -> None:
         if all([self.year_of_birth, self.year_of_death]):
             if self.year_of_birth > self.year_of_death:
                 raise ValidationError(_("Year of birth cannot be greater than year of death"))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"

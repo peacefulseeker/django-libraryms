@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import Any
 
 from django.apps import apps as django_apps
 from django.contrib import admin
-from django.db.models import QuerySet
+from django.db.models import Model, QuerySet
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
@@ -18,35 +19,35 @@ HistoricalOrder._meta.verbose_name_plural = _("Deleted orders")
 @admin.display(
     description="id",
 )
-def history_id(obj):  # pragma: no cover
+def history_id(obj: Model) -> int:  # pragma: no cover
     return obj.id
 
 
 @admin.display(
     description="status",
 )
-def history_type(obj):  # pragma: no cover
+def history_type(obj: Model) -> str:  # pragma: no cover
     return obj.get_history_type_display()
 
 
 @admin.display(
     description="date of deletion",
 )
-def history_date(obj):  # pragma: no cover
+def history_date(obj: Model) -> datetime:  # pragma: no cover
     return obj.history_date
 
 
 @admin.display(
     description="reason/comment",
 )
-def history_change_reason(obj):  # pragma: no cover
+def history_change_reason(obj: Model) -> str:  # pragma: no cover
     return obj.history_change_reason
 
 
 @admin.display(
     description="performed by",
 )
-def history_user(obj) -> User:  # pragma: no cover
+def history_user(obj: Model) -> User:  # pragma: no cover
     return obj.history_user
 
 

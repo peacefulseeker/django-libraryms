@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from typing import Any
+from typing import Any, Optional
 
 from django.db import models
 from django.db.models import Count, F, Q, QuerySet
@@ -49,7 +49,7 @@ class Reservation(TimestampedModel):
     )
     term = models.DateField(_("Due date"), default=None, blank=True, null=True, help_text=_("Date when reservation expires, 14 days by default"))
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if self.status == ReservationStatus.ISSUED and self.term is None:
             self.term = Reservation.get_default_term()
         elif self.status in self.DONE_STATES and hasattr(self, "book"):
@@ -76,14 +76,14 @@ class Reservation(TimestampedModel):
         return self.status == ReservationStatus.COMPLETED
 
     @property
-    def overdue_days(self):
+    def overdue_days(self) -> int:
         return abs((self.term - timezone.now()).days) if self.term else 0
 
     @property
     def is_overdue(self) -> bool:
         return self.is_issued and self.overdue_days > 0
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.pk} - {self.member} - {self.get_status_display()}"
 
 
@@ -151,11 +151,11 @@ class Book(TimestampedModel):
     def __str__(self) -> str:
         return f"{self.title}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         self.create_order_for_reservation()
         return super().save(*args, **kwargs)
 
-    def create_order_for_reservation(self):
+    def create_order_for_reservation(self) -> None:
         """
         Since books can only be created through admin,
         we create the order as processed for consistency
@@ -168,8 +168,8 @@ class Book(TimestampedModel):
                 status=OrderStatus.PROCESSED,
             )
 
-    def process_next_order(self):
-        self.reservation = None
+    def process_next_order(self) -> None:
+        self.reservation = None  # type: ignore[assignment]
         self.save(update_fields=["reservation"])
 
         if not self.has_enqueued_orders:
@@ -232,7 +232,7 @@ class Book(TimestampedModel):
 
 
 class OrderQuerySet(models.QuerySet):
-    def processed_reserved(self, book, member) -> "OrderQuerySet":
+    def processed_reserved(self, book: int | Book, member: Member) -> "OrderQuerySet":
         return self.filter(
             book=book,
             member=member,
@@ -240,7 +240,7 @@ class OrderQuerySet(models.QuerySet):
             reservation__status=ReservationStatus.RESERVED,
         )
 
-    def processable(self, book, member) -> "OrderQuerySet":
+    def processable(self, book: int | Book, member: Member) -> "OrderQuerySet":
         return self.filter(
             book=book,
             member=member,
@@ -284,11 +284,11 @@ class Order(TimestampedModel):
     )
 
     @property
-    def _history_user(self):
+    def _history_user(self) -> Optional[User]:
         return self.last_modified_by
 
     @_history_user.setter
-    def _history_user(self, value):
+    def _history_user(self, value: User) -> None:
         self.last_modified_by = value
 
     class Meta:
@@ -298,10 +298,10 @@ class Order(TimestampedModel):
         super().__init__(*args, **kwargs)
         self._status_initial = self.status
 
-    def status_changed_to(self, status):
+    def status_changed_to(self, status: str) -> bool:
         return self._status_initial != self.status and self.status == status
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if self.book.is_available:
             self.create_reservation()
         elif self.status_changed_to(OrderStatus.MEMBER_CANCELLED):
@@ -312,30 +312,30 @@ class Order(TimestampedModel):
             self.notify_member_of_reservation()
         super().save(*args, **kwargs)
 
-    def cancel(self):
+    def cancel(self) -> None:
         self.status = OrderStatus.MEMBER_CANCELLED
         self.save()
 
-    def create_reservation(self):
+    def create_reservation(self) -> None:
         Reservation(member=self.member, book=self.book, order=self).save()
         self.book.save(update_fields=["reservation"])
 
-    def cancel_reservation(self):
+    def cancel_reservation(self) -> None:
         if self.reservation is not None:
             self.reservation.status = ReservationStatus.CANCELLED
             self.reservation.save()
 
-    def refuse_reservation(self):
+    def refuse_reservation(self) -> None:
         if self.reservation is not None:
             self.reservation.status = ReservationStatus.REFUSED
             self.reservation.save()
 
-    def delete_reservation(self):
+    def delete_reservation(self) -> None:
         if self.reservation is not None:
             self.reservation.delete()
 
-    def notify_member_of_reservation(self):
+    def notify_member_of_reservation(self) -> None:
         send_reservation_confirmed_email.delay(self.id, self.reservation.id)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.pk} - {self.get_status_display()}"

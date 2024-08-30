@@ -11,7 +11,7 @@ from core.utils.admin import ModelAdmin, ReadonlyTabularInline
 @admin.display(
     description="Cover preview",
 )
-def cover_preview(obj):
+def cover_preview(obj: Book) -> str:
     return format_html('<img src="{}" width="150"/>', obj.cover.url)  # pragma: no cover
 
 
@@ -97,12 +97,11 @@ class ReservationAdmin(ModelAdmin):
 
     inlines = (OrderInline,)
 
-    def has_add_permission(self, request: HttpRequest, obj: Reservation = None) -> bool:  # pragma: no cover
+    def has_add_permission(self, request: HttpRequest) -> bool | None:  # pragma: no cover
         """
-        New reservations are created either through book orders API or particular book item admin.
+        New reservations are created either through book orders API or through book object in admin.
         In this case, opening in popup mode assumes it's opened from book item admin or other model admin
         which has a relation with reservation model.
         """
         is_popup = bool(request.GET.get("_popup"))
-        if is_popup:
-            return True
+        return is_popup or None
