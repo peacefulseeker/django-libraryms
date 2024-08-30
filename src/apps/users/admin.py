@@ -8,7 +8,7 @@ from apps.users.models import Librarian, Member, User
 class PersonAdmin(BaseUserAdmin):
     show_full_result_count = False
     filter_horizontal = ("groups",)
-    list_display = ("username", "email", "is_active")
+    list_display: tuple[str, ...] = ("username", "email", "is_active")
     search_fields = ["username", "email", "first_name", "last_name"]
     ordering = ("-date_joined",)
 
@@ -27,7 +27,7 @@ class MemberAdmin(PersonAdmin):
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
         (_("Permissions"), {"fields": ("is_active", "groups")}),
     )
-    list_display = ("username", "email", "first_name", "last_name", "is_active")
+    list_display = PersonAdmin.list_display + ("first_name", "last_name")
     readonly_fields = ("registration_code",)
 
 

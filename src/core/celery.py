@@ -20,7 +20,7 @@ celery = Celery(
 
 
 @celery.task(bind=True, ignore_result=True)
-def debug_task(self):
+def debug_task(self):  # type: ignore
     print(f"Request: {self.request!r}")  # pragma: no cover
 
 

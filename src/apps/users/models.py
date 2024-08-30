@@ -1,5 +1,5 @@
 import uuid
-from typing import NoReturn
+from typing import Any
 
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, UserManager
@@ -13,11 +13,11 @@ class InvalidPasswordResetTokenError(Exception):
 
 
 class UserRoleManager(UserManager):
-    def __init__(self, role_flag):
+    def __init__(self, role_flag: str) -> None:
         super().__init__()
         self.role_flag = role_flag
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet:
         return super().get_queryset().filter(**{self.role_flag: True})
 
 
@@ -36,7 +36,7 @@ class User(AbstractUser):
     password_reset_token = models.UUIDField(unique=True, null=True, blank=True, editable=False)
     password_reset_token_created_at = models.DateTimeField(null=True, blank=True)
 
-    def is_password_reset_token_valid(self, raise_exception: bool = False) -> bool | NoReturn:
+    def is_password_reset_token_valid(self, raise_exception: bool = False) -> bool | None:
         if not self.password_reset_token or not self.password_reset_token_created_at:
             if raise_exception:
                 raise InvalidPasswordResetTokenError("No valid reset token found")
@@ -50,7 +50,7 @@ class User(AbstractUser):
 
         return True
 
-    def set_password_reset_token(self):
+    def set_password_reset_token(self) -> None:
         """
         Generates a new token for user only in case
         previous token does not exist or expired
@@ -70,7 +70,7 @@ class Member(User):
 
     objects = UserRoleManager("is_member")
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         self.is_member = True
         super(Member, self).save(*args, **kwargs)
 
@@ -79,7 +79,7 @@ class Member(User):
         # description="Code that member will receive upon registration request",
         boolean=False,
     )
-    def registration_code(self):
+    def registration_code(self) -> str:
         """
         Code that will be sent to member upon registration request.
         For simplicity, leveraging existing uuid field,
@@ -88,7 +88,7 @@ class Member(User):
         return str(self.uuid.int)[:6]
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.first_name or self.username
 
 
@@ -96,7 +96,7 @@ class Librarian(User):
     class Meta:
         proxy = True
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         self.is_staff = True
         self.is_librarian = True
         super(Librarian, self).save(*args, **kwargs)

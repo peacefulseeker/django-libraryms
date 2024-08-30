@@ -28,11 +28,11 @@ class ViewSetMixin:
     request: Request
 
     @property
-    def is_authenticated(self):
+    def is_authenticated(self) -> bool:
         return self.request.user.is_authenticated
 
     @property
-    def query_params(self):
+    def query_params(self) -> dict[str, str]:
         return self.request.query_params
 
 
@@ -41,15 +41,13 @@ class BookListView(ViewSetMixin, generics.ListAPIView):
     filter_backends = [filters.SearchFilter]
     search_fields = ["title", "author__first_name", "author__last_name"]
 
-    def show_reserved_by_member(self):
-        if self.is_authenticated and self.query_params.get("reserved_by_me") is not None:
-            return True
+    def show_reserved_by_member(self) -> bool:
+        return self.is_authenticated and self.query_params.get("reserved_by_me") is not None
 
-    def show_enqueued_by_member(self):
-        if self.is_authenticated and self.query_params.get("enqueued_by_me") is not None:
-            return True
+    def show_enqueued_by_member(self) -> bool:
+        return self.is_authenticated and self.query_params.get("enqueued_by_me") is not None
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[BookListSerializer | BookMemberSerializer | BooksReservedByMemberSerializer]:
         if self.show_reserved_by_member():
             return BooksReservedByMemberSerializer
         elif self.show_enqueued_by_member():
@@ -70,12 +68,12 @@ class BookListView(ViewSetMixin, generics.ListAPIView):
 class BookDetailView(ViewSetMixin, generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[BookSerializer | BookMemberSerializer]:
         if self.is_authenticated:
             return BookMemberSerializer
         return BookSerializer
 
-    def get_queryset(self):
+    def get_queryset(self) -> BookQuerySet:
         queryset = Book.objects.with_author().with_publisher().with_amount_in_queue().with_reservation()
 
         if self.is_authenticated:
@@ -106,11 +104,11 @@ class BookOrderView(APIView):
         return Response({"detail": message, "order_id": order.id, "book_id": book_id})
 
     def delete(self, request: Request, book_id: int) -> Response:
-        return self._cancel_order(book_id, request.user.id)
+        return self._cancel_order(book_id, request.user)
 
-    def _cancel_order(self, book_id: int, member_id) -> Response:
+    def _cancel_order(self, book_id: int, member: Member) -> Response:
         try:
-            order = self._cancellable_order(book_id, member_id).select_related("book", "reservation").get()
+            order = self._cancellable_order(book_id, member).select_related("book", "reservation").get()
             order.cancel()
         except Order.DoesNotExist:
             return Response(status=400, data={"detail": _("No cancellable order found")})
@@ -133,14 +131,14 @@ class BookOrderView(APIView):
 
         return order, message
 
-    def _processable_order(self, book: Book, member: Member) -> "QuerySet[BookOrder]":
+    def _processable_order(self, book: int | Book, member: Member) -> "QuerySet[BookOrder]":
         return BookOrder.objects.processable(book, member)
 
-    def _processed_reserved(self, book: Book, member: Member) -> "QuerySet[BookOrder]":
-        return BookOrder.objects.processed_reserved(book, member)
+    def _processed_reserved(self, book_id: int, member: Member) -> "QuerySet[BookOrder]":
+        return BookOrder.objects.processed_reserved(book_id, member)
 
-    def _cancellable_order(self, book: Book, member: Member) -> "QuerySet[BookOrder]":
-        return self._processable_order(book, member) | self._processed_reserved(book, member)
+    def _cancellable_order(self, book_id: int | Book, member: Member) -> "QuerySet[BookOrder]":
+        return self._processable_order(book_id, member) | self._processed_reserved(book_id, member)
 
     def _max_reservations_reached(self, member: Member) -> bool:
         return Reservation.objects.reserved_by_member(member).count() >= Reservation.MAX_RESERVATIONS_PER_MEMBER

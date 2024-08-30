@@ -7,8 +7,9 @@ if not env("DEBUG") and SENTRY_DSN:
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.types import Event, Hint
 
-    def strip_user_data(event, hint):
+    def strip_user_data(event: Event, _hint: Hint) -> Event:
         if event.get("user"):
             user = event["user"]
             event["user"] = {

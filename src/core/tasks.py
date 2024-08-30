@@ -1,3 +1,4 @@
+from typing import Any
 from urllib.parse import urljoin
 
 import requests
@@ -22,7 +23,7 @@ SingletonOrTask = Singleton if not env.bool("CELERY_ALWAYS_EAGER", default=False
     retry_backoff=True,
     max_retries=3,
 )
-def ping_production_website(url=env("PRODUCTION_URL")):
+def ping_production_website(url: str = env("PRODUCTION_URL")) -> dict[str, Any]:
     try:
         response = requests.get(url, headers={"User-Agent": "DjangoLibraryMS/CeleryBeat"})
     except requests.exceptions.RequestException as e:
@@ -37,7 +38,7 @@ def ping_production_website(url=env("PRODUCTION_URL")):
 
 
 @shared_task(name="books/send_order_created_email")
-def send_order_created_email(order_id: int):
+def send_order_created_email(order_id: int) -> dict[str, int]:
     order_path = reverse("admin:books_order_change", kwargs={"object_id": order_id})
     order_url = urljoin(env("PRODUCTION_URL"), order_path)
 
@@ -58,7 +59,7 @@ def send_order_created_email(order_id: int):
 
 
 @shared_task(name="books/send_reservation_confirmed_email", base=SingletonOrTask, unique_on=["reservation_id"])
-def send_reservation_confirmed_email(order_id: int, reservation_id: int):
+def send_reservation_confirmed_email(order_id: int, reservation_id: int) -> dict[str, Any]:
     from apps.books.models import Order
 
     reservations_url = urljoin(env("PRODUCTION_URL"), "account/reservations/")
@@ -88,7 +89,7 @@ def send_reservation_confirmed_email(order_id: int, reservation_id: int):
 
 
 @shared_task(name="core/send_member_registration_request_received")
-def send_member_registration_request_received(member_id: int):
+def send_member_registration_request_received(member_id: int) -> dict[str, int]:
     member_admin_path = reverse("admin:users_member_change", kwargs={"object_id": member_id})
     member_admin_url = urljoin(env("PRODUCTION_URL"), member_admin_path)
 
@@ -109,7 +110,7 @@ def send_member_registration_request_received(member_id: int):
 
 
 @shared_task(name="core/send_registration_notification_to_member")
-def send_registration_notification_to_member(member_id: int):
+def send_registration_notification_to_member(member_id: int) -> dict[str, Any]:
     try:
         member = Member.objects.get(id=member_id)
     except Member.DoesNotExist:
@@ -136,7 +137,7 @@ def send_registration_notification_to_member(member_id: int):
 
 
 @shared_task(name="core/send_password_reset_link_to_member")
-def send_password_reset_link_to_member(member_id: int):
+def send_password_reset_link_to_member(member_id: int) -> dict[str, Any]:
     with transaction.atomic():
         try:
             member = Member.objects.select_for_update().get(id=member_id)

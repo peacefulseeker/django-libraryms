@@ -5,10 +5,10 @@ from apps.books.models.book import Order
 from apps.users.models import User
 
 
-class SerializerMixin:
+class SerializerMixin(serializers.ModelSerializer):
     @property
-    def user(self) -> User | None:
-        return self.context["request"].user if self.context["request"].user.is_authenticated else None
+    def user(self) -> User:
+        return self.context["request"].user
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = ["status", "term"]
 
 
-class BookListSerializer(SerializerMixin, serializers.ModelSerializer):
+class BookListSerializer(SerializerMixin):
     author = AuthorSerializer()
     cover_image_url = serializers.ImageField(source="cover", use_url=True)
 
@@ -62,7 +62,7 @@ class BookEnqueuedByMemberSerializer(BookListSerializer):
         ]
 
 
-class BookSerializer(SerializerMixin, serializers.ModelSerializer):
+class BookSerializer(SerializerMixin):
     author = AuthorSerializer()
     publisher = PublisherSerializer()
     language = serializers.CharField(source="get_language_display")

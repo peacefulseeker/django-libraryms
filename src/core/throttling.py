@@ -1,14 +1,16 @@
+from typing import Any
+
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle as AnonRateThrottleNative
 from rest_framework.throttling import BaseThrottle
 
 
 class ThrottlingMixin(BaseThrottle):
-    def allow_request(self, request, view):
+    def allow_request(self, *args: Any, **kwargs: dict[str, Any]) -> bool:
         if settings.DISABLE_THROTTLING:
             return True
 
-        return super().allow_request(request, view)
+        return super().allow_request(*args, **kwargs)
 
 
 class AnonRateThrottle(ThrottlingMixin, AnonRateThrottleNative):

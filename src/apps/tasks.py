@@ -10,7 +10,7 @@ from core.utils.mailer import Mailer, Message
 
 
 @shared_task(name="books/reservation_term_reminder")
-def send_reservation_term_reminder(due_in_days=2):
+def send_reservation_term_reminder(due_in_days: int = 2) -> dict[str, int]:
     now = timezone.now()
     reservations: list[Reservation] = Reservation.objects.select_related("book", "member").filter(
         term=now + timezone.timedelta(days=due_in_days), status=ReservationStatus.ISSUED

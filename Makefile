@@ -43,6 +43,7 @@ lint:
 	poetry run ruff format --check src tests
 	poetry run ruff check src tests
 	poetry run toml-sort pyproject.toml --check
+	poetry run mypy src
 
 
 # docker

@@ -36,19 +36,19 @@ class Mailer:
         return self.email.send()
 
     @classmethod
-    def compact_body(cls, body) -> str:
+    def compact_body(cls, body: str) -> str:
         "Strips whitespaces before/after and within each body line"
 
         return "".join([line.strip() for line in body.split("\n")])
 
     @classmethod
-    def send_mass_mail(cls, messages: list[Message], fail_silently=False) -> tuple[int, list[EmailMessage]]:
+    def send_mass_mail(cls, messages: list[Message], fail_silently: bool = False) -> int:
         """
         Extends Django's send_mass_mail() to support sending mass emails as html by default.
         """
 
         connection: SESBackend = get_connection(fail_silently=fail_silently)
-        messages = [
+        html_messages = [
             HtmlEmailMessage(
                 subject=message.subject,
                 body=cls.compact_body(message.body),
@@ -58,10 +58,10 @@ class Mailer:
             )
             for message in messages
         ]
-        emails_sent = connection.send_messages(messages)
+        emails_sent = connection.send_messages(html_messages)
 
         if fail_silently:
-            failed_delivery = [m for m in messages if m.extra_headers.get("status", 200) != 200]
+            failed_delivery = [m for m in html_messages if m.extra_headers.get("status", 200) != 200]
             for failed_email in failed_delivery:
                 sentry_sdk.capture_message(
                     "Failed to send reminder email",

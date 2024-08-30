@@ -1,10 +1,14 @@
+from typing import Any, Protocol
+
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenViewBase
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.users.api.serializers import (
     CookieTokenObtainSerializer,
@@ -20,12 +24,16 @@ from core.tasks import send_password_reset_link_to_member
 from core.throttling import AnonRateThrottle, PasswordResetConfirmRateThrottle, PasswordResetRateThrottle
 
 
-class CookieTokenMixin(TokenViewBase):
-    def finalize_response(self, request, response: Response, *args, **kwargs):
+class WithAPIViewProtocol(Protocol):
+    finalize_response: APIView.finalize_response
+
+
+class CookieTokenMixin(WithAPIViewProtocol):
+    def finalize_response(self, request: Request, response: Response, *args: Any, **kwargs: Any) -> Response:
         self._store_refresh_token_in_http_cookie(response)
         return super().finalize_response(request, response, *args, **kwargs)
 
-    def _store_refresh_token_in_http_cookie(self, response: Response):
+    def _store_refresh_token_in_http_cookie(self, response: Response) -> None:
         if response.data.get("refresh"):
             cookie_max_age = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
             response.set_cookie(
@@ -40,17 +48,17 @@ class CookieTokenMixin(TokenViewBase):
 
 
 class CookieTokenObtainPairView(CookieTokenMixin, TokenObtainPairView):
-    serializer_class = CookieTokenObtainSerializer
+    serializer_class = CookieTokenObtainSerializer  # type: ignore[assignment]
     throttle_classes = [AnonRateThrottle]
 
-    def delete(self, request):
+    def delete(self, request: Request) -> Response:
         response = Response(data={}, status=HTTP_204_NO_CONTENT)
         response.delete_cookie(settings.SIMPLE_JWT["REFRESH_TOKEN_COOKIE_NAME"])
         return response
 
 
 class CookieTokenRefreshView(CookieTokenMixin, TokenRefreshView):
-    serializer_class = CookieTokenRefreshSerializer
+    serializer_class = CookieTokenRefreshSerializer  # type: ignore[assignment]
     throttle_classes = [AnonRateThrottle]
 
 
@@ -64,7 +72,7 @@ class MemberProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserProfileSerializer
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         instance = request.user
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -75,7 +83,7 @@ class MemberPasswordChange(generics.UpdateAPIView):
     serializer_class = MemberPasswordChangeSerializer
     serializer_class = MemberPasswordChangeSerializer
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         instance: Member = request.user
 
         serializer = self.get_serializer(instance, data=request.data)
@@ -109,7 +117,7 @@ class MemberPasswordReset(generics.GenericAPIView):
     throttle_classes = [PasswordResetRateThrottle]
     serializer_class = MemberPasswordResetSerializer
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -129,7 +137,7 @@ class MemberPasswordResetConfirm(generics.GenericAPIView):
     throttle_classes = [PasswordResetConfirmRateThrottle]
     serializer_class = MemberPasswordResetConfirmSerializer
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
