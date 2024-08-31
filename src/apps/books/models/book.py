@@ -44,7 +44,7 @@ class Reservation(TimestampedModel):
     extensions: "ReservationExtension"
 
     RESERVATION_TERM = timedelta(days=14)
-    MAX_EXTENSIONS_PER_MEMBER = 4
+    MAX_EXTENSIONS_PER_MEMBER = 2
     # NOTE: API Only restriction. Admins can still add unlimited reservations to members
     MAX_RESERVATIONS_PER_MEMBER = 5
     DONE_STATES = [

@@ -99,5 +99,5 @@ def test_max_extensions_reached():
         mixer.blend(ReservationExtension, status=ReservationExtensionStatus.APPROVED, reservation=reservation)
 
     assert not reservation.is_extendable
-    assert reservation.extensions.count() == 2
+    assert reservation.extensions.count() == Reservation.MAX_EXTENSIONS_PER_MEMBER
     assert reservation.term > term_before_extension
