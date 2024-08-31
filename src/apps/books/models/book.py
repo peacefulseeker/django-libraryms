@@ -110,11 +110,7 @@ class Reservation(TimestampedModel):
 
 
 class ReservationExtensionQuerySet(models.QuerySet):
-    def approved(self) -> "ReservationExtensionQuerySet":
-        return self.filter(status=ReservationExtensionStatus.APPROVED)
-
-    def cancellable(self) -> "ReservationExtensionQuerySet":
-        return self.filter(status=ReservationExtensionStatus.REQUESTED)
+    pass
 
 
 class ReservationExtension(TimestampedModel):
@@ -125,13 +121,7 @@ class ReservationExtension(TimestampedModel):
         on_delete=models.CASCADE,
         related_name="extensions",
     )
-    approved_at = models.DateTimeField(
-        _("Approved at"),
-        default=None,
-        blank=True,
-        null=True,
-    )
-    approved_by: User = models.ForeignKey(
+    processed_by: User = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
@@ -157,7 +147,6 @@ class ReservationExtension(TimestampedModel):
         if self.status == ReservationExtensionStatus.REQUESTED:
             pass  # TODO: send request email to admin?
         if self.status_changed_to(ReservationExtensionStatus.APPROVED):
-            self.approved_at = timezone.now()
             self.reservation.extend()
         elif self.status_changed_to(ReservationExtensionStatus.REFUSED):
             pass

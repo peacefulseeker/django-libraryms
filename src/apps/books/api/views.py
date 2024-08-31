@@ -175,10 +175,7 @@ class BookReservationExtendView(APIView):
         if not reservation.requested_extensions:
             return Response(status=400, data={"detail": _("No cancellable reservation extension found")})
 
-        latest_extension: ReservationExtension = self.requested_extensions[0]
+        latest_extension: ReservationExtension = reservation.requested_extensions[0]
         latest_extension.cancel()
 
         return Response(status=HTTP_204_NO_CONTENT)
-
-    def _cancellable_extension(self, reservation: Reservation) -> "QuerySet[ReservationExtension]":
-        return reservation.extensions.filter(status=ReservationExtensionStatus.REQUESTED)

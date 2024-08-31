@@ -26,6 +26,7 @@ def test_defaults(instance):
     assert instance.reservation.status == ReservationStatus.ISSUED
     assert instance.status == ReservationExtensionStatus.REQUESTED
     assert not instance.is_approved
+    assert not instance.processed_by
     assert str(instance) == f"{instance.pk} - {instance.get_status_display()}"
 
 
@@ -34,18 +35,15 @@ def test_approval(instance):
     instance.save()
 
     assert instance.modified_at
-    assert instance.approved_at
     assert instance.is_approved
-    assert instance.approved_by
+    assert instance.processed_by
 
 
 def test_extend_once_on_approval(instance):
     instance.status = ReservationExtensionStatus.APPROVED
     instance.save()
-    approved_at = instance.approved_at
 
     instance.save()
-    assert instance.approved_at == approved_at
     assert instance.reservation.extensions.count() == 1
 
 

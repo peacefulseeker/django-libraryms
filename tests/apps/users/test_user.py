@@ -24,10 +24,8 @@ def test_model_properties(model, is_staff, is_member, is_librarian):
     assert instance.is_librarian == is_librarian
 
 
-def test_manager_objects_expected_to_return_group_members_only():
+def test_manager_objects_expected_to_return_group_members_only(librarian_staff, member):
     mixer.blend(User)
-    mixer.blend(Librarian)
-    mixer.blend(Member)
 
     assert User.objects.count() == 3
     assert Librarian.objects.count() == 1

@@ -26,6 +26,17 @@ def as_member(authenticated_client, member) -> APIClient:
 
 
 @pytest.fixture
+def as_another_member(authenticated_client, another_member) -> APIClient:
+    return authenticated_client(another_member)
+
+
+@pytest.fixture
 def as_admin(client, admin_user) -> APIClient:
     client.force_login(user=admin_user)
+    return client
+
+
+@pytest.fixture
+def as_librarian_staff(client, librarian_staff) -> APIClient:
+    client.force_login(user=librarian_staff)
     return client

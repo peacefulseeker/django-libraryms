@@ -34,11 +34,11 @@ class OrderInline(ReadonlyTabularInline):
 
 
 class ReservationExtensionInline(ReadonlyTabularInline):
-    fields = ("status", "created_at", "modified_at", "approved_by")
+    fields = ("status", "created_at", "modified_at", "processed_by")
     model = ReservationExtension
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).select_related("approved_by")
+        return super().get_queryset(request).select_related("processed_by")  # pragma: no cover
 
 
 @admin.register(Book)
@@ -125,30 +125,30 @@ class ReservationAdmin(ModelAdmin):
 @admin.register(ReservationExtension)
 class ReservationExtensionAdmin(ModelAdmin):
     readonly_fields = (
-        "approved_by",
-        "approved_at",
+        "processed_by",
         "reservation",
+        "created_at",
+        "modified_at",
     )
     list_display = (
         "status",
         "reservation",
+        "processed_by",
         "created_at",
         "modified_at",
-        "approved_by",
     )
-
     list_select_related = [
         "reservation",
         "reservation__member",
-        "approved_by",
+        "processed_by",
     ]
 
     def save_model(self, request: HttpRequest, obj: ReservationExtension, form: Any, change: Any) -> None:
         if form.changed_data:
-            obj.approved_by = request.user
+            obj.processed_by = request.user
         return super().save_model(request, obj, form, change)
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         "API only creation supported"
 
-        return False
+        return False  # pragma: no cover
