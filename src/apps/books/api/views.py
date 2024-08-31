@@ -168,7 +168,7 @@ class BookReservationExtendView(APIView):
 
     def delete(self, request: Request, book_id: int) -> Response:
         try:
-            reservation: Reservation = Reservation.objects.select_related("member").with_requested_extensions().get(book=book_id, member=request.user)
+            reservation: Reservation = Reservation.objects.with_requested_extensions().get(book=book_id, member=request.user)
         except Reservation.DoesNotExist:
             return Response(status=400, data={"detail": _("No reservation found")})
 
