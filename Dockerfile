@@ -25,7 +25,7 @@ FROM node:${NODE_VERSION}-slim as frontend
     COPY --link frontend ./
 
     # Build application
-    RUN pnpm run build
+    RUN pnpm vite build
 
     # Remove development dependencies
     RUN pnpm prune --prod
