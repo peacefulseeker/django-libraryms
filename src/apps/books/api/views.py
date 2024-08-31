@@ -16,7 +16,7 @@ from apps.books.api.serializers import (
     BookSerializer,
     BooksReservedByMemberSerializer,
 )
-from apps.books.const import OrderStatus, ReservationExtensionStatus
+from apps.books.const import OrderStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
 from apps.books.models.book import BookQuerySet, Order, Reservation, ReservationExtension
