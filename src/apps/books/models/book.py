@@ -124,6 +124,7 @@ class ReservationExtension(TimestampedModel):
     processed_by: User = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
+        blank=True,
         null=True,
         related_name="+",
     )
@@ -161,10 +162,6 @@ class ReservationExtension(TimestampedModel):
     def cancel(self) -> None:
         self.status = ReservationExtensionStatus.CANCELLED
         self.save()
-
-    @property
-    def is_approved(self) -> bool:
-        return self.status == ReservationExtensionStatus.APPROVED
 
 
 class BookQuerySet(models.QuerySet):
