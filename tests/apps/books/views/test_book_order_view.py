@@ -21,22 +21,6 @@ pytestmark = [
 ]
 
 
-def test_no_auth_needed_to_view_books_list(client):
-    url = reverse("books-list")
-
-    response: Response = client.get(url)
-
-    assert response.status_code == HTTP_200_OK
-
-
-def test_no_auth_needed_to_view_a_single_book(client, book):
-    url = reverse("book-detail", kwargs={"pk": book.id})
-
-    response: Response = client.get(url)
-
-    assert response.status_code == HTTP_200_OK
-
-
 class TestBookOrderView:
     @pytest.fixture
     def mock_send_order_created_email(self, mocker):

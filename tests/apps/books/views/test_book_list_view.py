@@ -32,7 +32,7 @@ class TestBookListView:
     search_param = settings.REST_FRAMEWORK["SEARCH_PARAM"]
     expected_fields = BookListSerializer.Meta.fields
 
-    def test_list_books(self, client):
+    def test_list_books_no_auth_needed(self, client):
         response = client.get(self.url)
 
         assert response.status_code == status.HTTP_200_OK

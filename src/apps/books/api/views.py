@@ -16,10 +16,10 @@ from apps.books.api.serializers import (
     BookSerializer,
     BooksReservedByMemberSerializer,
 )
-from apps.books.const import OrderStatus
+from apps.books.const import OrderStatus, ReservationExtensionStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
-from apps.books.models.book import BookQuerySet, Order, Reservation
+from apps.books.models.book import BookQuerySet, Order, Reservation, ReservationExtension
 from apps.users.models import Member
 from core.tasks import send_order_created_email
 
@@ -145,3 +145,40 @@ class BookOrderView(APIView):
 
     def _max_enqueued_orders_reached(self, book: Book) -> bool:
         return book.enqueued_orders.count() >= Order.MAX_QUEUED_ORDERS_ALLOWED
+
+
+class BookReservationExtendView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request, book_id: int) -> Response:
+        try:
+            reservation: Reservation = Reservation.objects.with_requested_extensions().get(book=book_id, member=request.user)
+        except Reservation.DoesNotExist:
+            return Response(status=400, data={"detail": _("No reservation found")})
+
+        if reservation.requested_extensions:
+            return Response(status=400, data={"detail": _("Reservation extension already requested")})
+
+        if not reservation.is_extendable:
+            return Response(status=400, data={"detail": _("Reservation cannot be extended")})
+
+        ReservationExtension.objects.create(reservation=reservation)
+
+        return Response(status=200, data={"detail": _("Reservation extension requested")})
+
+    def delete(self, request: Request, book_id: int) -> Response:
+        try:
+            reservation: Reservation = Reservation.objects.select_related("member").with_requested_extensions().get(book=book_id, member=request.user)
+        except Reservation.DoesNotExist:
+            return Response(status=400, data={"detail": _("No reservation found")})
+
+        if not reservation.requested_extensions:
+            return Response(status=400, data={"detail": _("No cancellable reservation extension found")})
+
+        latest_extension: ReservationExtension = self.requested_extensions[0]
+        latest_extension.cancel()
+
+        return Response(status=HTTP_204_NO_CONTENT)
+
+    def _cancellable_extension(self, reservation: Reservation) -> "QuerySet[ReservationExtension]":
+        return reservation.extensions.filter(status=ReservationExtensionStatus.REQUESTED)

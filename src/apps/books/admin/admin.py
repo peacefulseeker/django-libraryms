@@ -1,10 +1,13 @@
+from typing import Any
+
 from django.contrib import admin
+from django.db.models.query import QuerySet
 from django.http import HttpRequest
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 
 from apps.books.models import Author, Book, Publisher, Reservation
-from apps.books.models.book import Order
+from apps.books.models.book import Order, ReservationExtension
 from core.utils.admin import ModelAdmin, ReadonlyTabularInline
 
 
@@ -30,17 +33,29 @@ class OrderInline(ReadonlyTabularInline):
     model = Order
 
 
+class ReservationExtensionInline(ReadonlyTabularInline):
+    fields = ("status", "created_at", "modified_at", "approved_by")
+    model = ReservationExtension
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).select_related("approved_by")
+
+
 @admin.register(Book)
 class BookAdmin(ModelAdmin, ImportExportModelAdmin):
     search_fields = ("title", "author__first_name", "author__last_name", cover_preview)
-    autocomplete_fields = [
+    autocomplete_fields = (
         "reservation",
         "author",
         "publisher",
-    ]
+    )
 
     save_as = True  # allows duplication of the object
-    list_select_related = ["author", "reservation", "reservation__member"]
+    list_select_related = (
+        "author",
+        "reservation",
+        "reservation__member",
+    )
     list_display = ("title", "reservation", "author", "published_at", "created_at")
     list_display_links = (
         "title",
@@ -95,7 +110,7 @@ class ReservationAdmin(ModelAdmin):
         "status",
     )
 
-    inlines = (OrderInline,)
+    inlines = (OrderInline, ReservationExtensionInline)
 
     def has_add_permission(self, request: HttpRequest) -> bool | None:  # pragma: no cover
         """
@@ -105,3 +120,35 @@ class ReservationAdmin(ModelAdmin):
         """
         is_popup = bool(request.GET.get("_popup"))
         return is_popup or None
+
+
+@admin.register(ReservationExtension)
+class ReservationExtensionAdmin(ModelAdmin):
+    readonly_fields = (
+        "approved_by",
+        "approved_at",
+        "reservation",
+    )
+    list_display = (
+        "status",
+        "reservation",
+        "created_at",
+        "modified_at",
+        "approved_by",
+    )
+
+    list_select_related = [
+        "reservation",
+        "reservation__member",
+        "approved_by",
+    ]
+
+    def save_model(self, request: HttpRequest, obj: ReservationExtension, form: Any, change: Any) -> None:
+        if form.changed_data:
+            obj.approved_by = request.user
+        return super().save_model(request, obj, form, change)
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        "API only creation supported"
+
+        return False

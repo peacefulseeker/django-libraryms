@@ -5,7 +5,7 @@ from django.db.models.query import QuerySet
 from django.http import HttpRequest
 
 from apps.books.models import Order
-from apps.books.models.book import Reservation
+from apps.books.models.book import OrderQuerySet, Reservation
 from core.utils.admin import HistoricalModelAdmin
 
 
@@ -42,7 +42,7 @@ class OrderAdmin(HistoricalModelAdmin):
         "book",
     )
 
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+    def get_queryset(self, request: HttpRequest) -> OrderQuerySet:
         qs = super().get_queryset(request).select_related("reservation", "book", "member", "last_modified_by")
         return qs
 

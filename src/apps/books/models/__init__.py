@@ -1,5 +1,5 @@
 from apps.books.models.author import Author
-from apps.books.models.book import Book, Order, Reservation
+from apps.books.models.book import Book, Order, Reservation, ReservationExtension
 from apps.books.models.publisher import Publisher
 
 __all__ = [
@@ -7,5 +7,6 @@ __all__ = [
     "Book",
     "Order",
     "Reservation",
+    "ReservationExtension",
     "Publisher",
 ]

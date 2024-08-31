@@ -1,12 +1,13 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, timedelta
 
 import pytest
 from mixer.backend.django import mixer
 
-from apps.books.const import ReservationStatus
+from apps.books.const import ReservationExtensionStatus, ReservationStatus
 from apps.books.models import Book, Reservation
+from apps.books.models.book import ReservationExtension
 
-frozen_date = datetime(2024, 7, 1, 0, 0, tzinfo=timezone.utc)
+frozen_date = date(2024, 7, 1)
 pytestmark = pytest.mark.django_db
 
 
@@ -18,7 +19,7 @@ def test_reservation_str_method():
 
 
 def test_reservation_defaults_on_create():
-    reservation = mixer.blend(Reservation)
+    reservation: Reservation = mixer.blend(Reservation)
 
     assert reservation.status in dict(ReservationStatus.choices).keys()
     assert reservation.status == ReservationStatus.RESERVED
@@ -26,11 +27,13 @@ def test_reservation_defaults_on_create():
     assert not reservation.is_issued
     assert reservation.overdue_days == 0
     assert not reservation.is_overdue
+    assert not reservation.is_extendable
+    assert reservation.extensions.count() == 0
 
 
 @pytest.mark.freeze_time(frozen_date.isoformat())
 def test_reservation_issued():
-    reservation = mixer.blend(Reservation, status=ReservationStatus.ISSUED)
+    reservation: Reservation = mixer.blend(Reservation, status=ReservationStatus.ISSUED)
 
     assert reservation.is_issued
     assert reservation.term == frozen_date + timedelta(days=14)
@@ -78,3 +81,23 @@ def test_reservation_ordered_by_created_at_even_if_modified():
     reservations = Reservation.objects.all()
 
     assert list(reservations) == [reservation3, reservation2, reservation1]
+
+
+def test_reservation_is_extendable():
+    reservation = mixer.blend(Reservation, status=ReservationStatus.ISSUED)
+
+    assert reservation.is_extendable
+    assert reservation.extensions.count() == 0
+
+
+def test_max_extensions_reached():
+    reservation = mixer.blend(Reservation, status=ReservationStatus.ISSUED)
+    assert reservation.is_extendable
+    term_before_extension = reservation.term
+
+    for _ in range(Reservation.MAX_EXTENSIONS_PER_MEMBER):
+        mixer.blend(ReservationExtension, status=ReservationExtensionStatus.APPROVED, reservation=reservation)
+
+    assert not reservation.is_extendable
+    assert reservation.extensions.count() == 2
+    assert reservation.term > term_before_extension
