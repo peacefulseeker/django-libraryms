@@ -165,6 +165,7 @@ class ReservationExtension(TimestampedModel):
         self.status = ReservationExtensionStatus.CANCELLED
         self.save()
 
+    @property
     def reservation_term(self) -> date:
         return self.reservation.term
 
