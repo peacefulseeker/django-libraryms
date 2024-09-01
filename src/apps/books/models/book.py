@@ -11,7 +11,7 @@ from simple_history.models import HistoricalRecords
 
 from apps.books.const import Language, OrderStatus, ReservationExtensionStatus, ReservationStatus
 from apps.users.models import Member, User
-from core.tasks import send_order_created_email, send_reservation_confirmed_email
+from core.tasks import send_order_created_email, send_reservation_confirmed_email, send_reservation_extension_approved_email
 from core.utils.models import TimestampedModel
 
 
@@ -82,8 +82,12 @@ class Reservation(TimestampedModel):
         return (timezone.now() + cls.RESERVATION_TERM).date()
 
     @property
+    def extensions_amount_left(self) -> int:
+        return self.MAX_EXTENSIONS_PER_MEMBER - self.extensions.count()
+
+    @property
     def is_extendable(self) -> bool:
-        return self.status == ReservationStatus.ISSUED and self.extensions.count() < self.MAX_EXTENSIONS_PER_MEMBER
+        return self.status == ReservationStatus.ISSUED and self.extensions_amount_left > 0
 
     @property
     def is_issued(self) -> bool:
@@ -145,16 +149,14 @@ class ReservationExtension(TimestampedModel):
         return self._status_initial != self.status and self.status == status
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        if self.status == ReservationExtensionStatus.REQUESTED:
-            pass  # TODO: send request email to admin?
         if self.status_changed_to(ReservationExtensionStatus.APPROVED):
             self.reservation.extend()
-        elif self.status_changed_to(ReservationExtensionStatus.REFUSED):
-            pass
-            # TODO: send refusal email to member?
-
-        self._status_initial = self.status
+            send_reservation_extension_approved_email.delay(self.reservation.pk)
         super().save(*args, **kwargs)
+
+        # in case of repetitive instance reuse, makes sure to update
+        # the initial status on each save
+        self._status_initial = self.status
 
     def __str__(self) -> str:
         return f"{self.pk} - {self.get_status_display()}"
@@ -162,6 +164,9 @@ class ReservationExtension(TimestampedModel):
     def cancel(self) -> None:
         self.status = ReservationExtensionStatus.CANCELLED
         self.save()
+
+    def reservation_term(self) -> date:
+        return self.reservation.term
 
 
 class BookQuerySet(models.QuerySet):
@@ -373,12 +378,16 @@ class Order(TimestampedModel):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+
+        # in case of repetitive instance reuse, makes sure to update
+        # the initial status on each save
         self._status_initial = self.status
 
     def status_changed_to(self, status: str) -> bool:
         return self._status_initial != self.status and self.status == status
 
     def save(self, *args: Any, **kwargs: Any) -> None:
+        # TODO: move out to explicit action. Order might not have ID yet here
         if self.book.is_available:
             self.create_reservation()
         elif self.status_changed_to(OrderStatus.MEMBER_CANCELLED):

@@ -21,7 +21,7 @@ from apps.books.models import Book
 from apps.books.models import Order as BookOrder
 from apps.books.models.book import BookQuerySet, Order, Reservation, ReservationExtension
 from apps.users.models import Member
-from core.tasks import send_order_created_email
+from core.tasks import send_extension_request_received_email, send_order_created_email
 
 
 class ViewSetMixin:
@@ -162,7 +162,8 @@ class BookReservationExtendView(APIView):
         if not reservation.is_extendable:
             return Response(status=400, data={"detail": _("Reservation cannot be extended")})
 
-        ReservationExtension.objects.create(reservation=reservation)
+        extension = ReservationExtension.objects.create(reservation=reservation)
+        send_extension_request_received_email.delay(extension.id)
 
         return Response(status=200, data={"detail": _("Reservation extension requested")})
 

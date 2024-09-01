@@ -73,7 +73,7 @@ def send_reservation_confirmed_email(order_id: int, reservation_id: int) -> dict
         Hi {order.member.name}!<br />
         "{order.book.title}" book is ready to be picked up. <br />
         Your Reservation ID: {order.reservation.pk} <br />
-        Check all your reservations <a href='{reservations_url}' target='_blank'>here</a>
+        View all your reservations <a href='{reservations_url}' target='_blank'>here</a>
     """
 
     mailer = Mailer(
@@ -83,6 +83,57 @@ def send_reservation_confirmed_email(order_id: int, reservation_id: int) -> dict
             body=body,
         )
     )
+    email_sent = mailer.send()
+
+    return {"sent": email_sent}
+
+
+@shared_task(name="books/send_extension_request_received_email")
+def send_extension_request_received_email(extension_id: int) -> dict[str, int]:
+    extension_admin_path = reverse("admin:books_reservationextension_change", kwargs={"object_id": extension_id})
+    extension_admin_url = urljoin(env("PRODUCTION_URL"), extension_admin_path)
+
+    body = f"""
+        Hi admin! <br />
+        New reservation extension request received. <br />
+        Please, process it <a href='{extension_admin_url}' target='_blank'>here</a>
+    """
+    mailer = Mailer(
+        Message(
+            subject="New reservation extension request",
+            # to=env("LIBRARIAN_ADMIN_EMAIL"),
+            body=body,
+        )
+    )
+    email_sent = mailer.send()
+
+    return {"sent": email_sent}
+
+
+@shared_task(name="books/send_reservation_extension_approved_email", base=SingletonOrTask, unique_on=["reservation_id"])
+def send_reservation_extension_approved_email(reservation_id: int) -> dict[str, str | int]:
+    from apps.books.models.book import Reservation
+
+    try:
+        reservation: Reservation = Reservation.objects.select_related("member", "book").get(id=reservation_id)
+    except Reservation.DoesNotExist:
+        return {"error": f"Reservation with id {reservation_id} does not exist"}
+
+    reservations_url = urljoin(env("PRODUCTION_URL"), "account/reservations/")
+    body = f"""
+        Hi {reservation.member.name}! <br />
+        Your "{reservation.book.title}" reservation is now extended till {reservation.term}. <br />
+        View all your reservations <a href='{reservations_url}' target='_blank'>here</a>
+    """
+
+    mailer = Mailer(
+        Message(
+            subject=f"Your reservation: {reservation_id} was approved.",
+            # to=env("member.email"),
+            body=body,
+        )
+    )
+
     email_sent = mailer.send()
 
     return {"sent": email_sent}

@@ -6,6 +6,7 @@ from django.http import HttpRequest
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 
+from apps.books.const import ReservationExtensionStatus
 from apps.books.models import Author, Book, Publisher, Reservation
 from apps.books.models.book import Order, ReservationExtension
 from core.utils.admin import ModelAdmin, ReadonlyTabularInline
@@ -43,7 +44,7 @@ class ReservationExtensionInline(ReadonlyTabularInline):
 
 @admin.register(Book)
 class BookAdmin(ModelAdmin, ImportExportModelAdmin):
-    search_fields = ("title", "author__first_name", "author__last_name", cover_preview)
+    search_fields = ("title", "author__first_name", "author__last_name")
     autocomplete_fields = (
         "reservation",
         "author",
@@ -127,6 +128,7 @@ class ReservationExtensionAdmin(ModelAdmin):
     readonly_fields = (
         "processed_by",
         "reservation",
+        "reservation_term",
         "created_at",
         "modified_at",
     )
@@ -142,6 +144,15 @@ class ReservationExtensionAdmin(ModelAdmin):
         "reservation__member",
         "processed_by",
     ]
+
+    def get_form(self, request: Any, obj: ReservationExtension | None = None, **kwargs: Any) -> Any:
+        form = super().get_form(request, obj, **kwargs)
+
+        if obj and obj.status != ReservationExtensionStatus.APPROVED:
+            default_extension_days = obj.reservation.RESERVATION_TERM.days
+            form.base_fields["status"].help_text = f"Once approved, reservation term will be extended by {default_extension_days} days"
+
+        return form
 
     def save_model(self, request: HttpRequest, obj: ReservationExtension, form: Any, change: Any) -> None:
         if form.changed_data:
