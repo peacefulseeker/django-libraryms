@@ -154,8 +154,8 @@ class ReservationExtension(TimestampedModel):
             send_reservation_extension_approved_email.delay(self.reservation.pk)
         super().save(*args, **kwargs)
 
-        # in case of repetitive instance reuse, makes sure to update
-        # the initial status on each save
+        # in case of repetitive instance reuse,
+        # makes sure to update the initial status after each save
         self._status_initial = self.status
 
     def __str__(self) -> str:
@@ -378,16 +378,12 @@ class Order(TimestampedModel):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-
-        # in case of repetitive instance reuse, makes sure to update
-        # the initial status on each save
         self._status_initial = self.status
 
     def status_changed_to(self, status: str) -> bool:
         return self._status_initial != self.status and self.status == status
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        # TODO: move out to explicit action. Order might not have ID yet here
         if self.book.is_available:
             self.create_reservation()
         elif self.status_changed_to(OrderStatus.MEMBER_CANCELLED):
@@ -396,8 +392,11 @@ class Order(TimestampedModel):
             self.refuse_reservation()
         elif self.status_changed_to(OrderStatus.PROCESSED):
             self.notify_member_of_reservation()
-        self._status_initial = self.status
         super().save(*args, **kwargs)
+
+        # in case of repetitive instance reuse,
+        # makes sure to update the initial status after each save
+        self._status_initial = self.status
 
     def cancel(self) -> None:
         self.status = OrderStatus.MEMBER_CANCELLED
