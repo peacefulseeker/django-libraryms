@@ -135,6 +135,7 @@ class ReservationExtensionAdmin(ModelAdmin):
     list_display = (
         "status",
         "reservation",
+        "reservation__book",
         "processed_by",
         "created_at",
         "modified_at",
@@ -142,6 +143,7 @@ class ReservationExtensionAdmin(ModelAdmin):
     list_select_related = [
         "reservation",
         "reservation__member",
+        "reservation__book",
         "processed_by",
     ]
 
