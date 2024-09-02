@@ -99,7 +99,7 @@ class Reservation(TimestampedModel):
 
     @property
     def is_extendable(self) -> bool:
-        return self.status == ReservationStatus.ISSUED and self.extensions_available > 0
+        return self.is_issued and self.extensions_available > 0
 
     @property
     def is_issued(self) -> bool:
