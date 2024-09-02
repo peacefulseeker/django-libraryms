@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from typing import Any, Optional
 
 from django.db import models
-from django.db.models import Count, Exists, F, OuterRef, Q, QuerySet
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, QuerySet
 from django.db.models.expressions import Case, Value, When
 from django.db.models.fields import BooleanField
 from django.utils import timezone
@@ -16,7 +16,7 @@ from core.utils.models import TimestampedModel
 
 
 class ReservationQuerySet(models.QuerySet):
-    def with_extensions(self) -> "BookQuerySet":
+    def with_extensions(self) -> "ReservationQuerySet":
         return self.prefetch_related("extensions").annotate(
             has_requested_extension=Exists(
                 ReservationExtension.objects.filter(
@@ -24,6 +24,15 @@ class ReservationQuerySet(models.QuerySet):
                     status=ReservationExtensionStatus.REQUESTED,
                 ),
             )
+        )
+
+    def with_requested_extensions(self) -> "ReservationQuerySet":
+        return self.prefetch_related(
+            Prefetch(
+                "extensions",
+                queryset=ReservationExtension.objects.filter(status=ReservationExtensionStatus.REQUESTED),
+                to_attr="requested_extensions",
+            ),
         )
 
     def reserved_by_member(self, member: Member) -> "ReservationQuerySet":
@@ -43,6 +52,7 @@ class Reservation(TimestampedModel):
     extensions: "ReservationExtensionQuerySet"
 
     # annotated
+    requested_extensions: "ReservationExtensionQuerySet"
     has_requested_extension: bool
 
     RESERVATION_TERM = timedelta(days=14)
@@ -222,6 +232,9 @@ class BookQuerySet(models.QuerySet):
 class Book(TimestampedModel):
     orders: "QuerySet[Order]"
     objects: BookQuerySet = BookQuerySet.as_manager()
+
+    # annotated
+    has_requested_extension: bool
 
     title = models.CharField(max_length=200, unique=True)
     author = models.ForeignKey("Author", related_name="books", on_delete=models.CASCADE)
