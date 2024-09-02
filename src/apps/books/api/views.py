@@ -59,7 +59,7 @@ class BookListView(ViewSetMixin, generics.ListAPIView):
         if self.query_params.get("available") is not None:
             return queryset.available()
         elif self.show_reserved_by_member():
-            return queryset.reserved_by_member(self.request.user)
+            return queryset.with_reservation_extensions().reserved_by_member(self.request.user)
         elif self.show_enqueued_by_member():
             return queryset.enqueued_by_member(self.request.user)
         return queryset
@@ -152,11 +152,11 @@ class BookReservationExtendView(APIView):
 
     def post(self, request: Request, book_id: int) -> Response:
         try:
-            reservation: Reservation = Reservation.objects.with_requested_extensions().get(book=book_id, member=request.user)
+            reservation: Reservation = Reservation.objects.with_extensions().get(book=book_id, member=request.user)
         except Reservation.DoesNotExist:
             return Response(status=400, data={"detail": _("No reservation found")})
 
-        if reservation.requested_extensions:
+        if reservation.has_requested_extension:
             return Response(status=400, data={"detail": _("Reservation extension already requested")})
 
         if not reservation.is_extendable:
@@ -169,14 +169,14 @@ class BookReservationExtendView(APIView):
 
     def delete(self, request: Request, book_id: int) -> Response:
         try:
-            reservation: Reservation = Reservation.objects.with_requested_extensions().get(book=book_id, member=request.user)
+            reservation: Reservation = Reservation.objects.with_extensions().get(book=book_id, member=request.user)
         except Reservation.DoesNotExist:
             return Response(status=400, data={"detail": _("No reservation found")})
 
-        if not reservation.requested_extensions:
+        if not reservation.has_requested_extension:
             return Response(status=400, data={"detail": _("No cancellable reservation extension found")})
 
-        latest_extension: ReservationExtension = reservation.requested_extensions[0]
-        latest_extension.cancel()
+        requested_extension: ReservationExtension = reservation.extensions.first()
+        requested_extension.cancel()
 
         return Response(status=HTTP_204_NO_CONTENT)

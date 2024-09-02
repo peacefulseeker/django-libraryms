@@ -45,11 +45,19 @@ class BookListSerializer(SerializerMixin):
 
 
 class BooksReservedByMemberSerializer(BookListSerializer):
+    has_requested_extension = serializers.BooleanField()
+    reservation_extendable = serializers.SerializerMethodField()
+
     class Meta(BookListSerializer.Meta):
         fields = BookListSerializer.Meta.fields + [
             "reservation_id",
             "reservation_term",
+            "reservation_extendable",
+            "has_requested_extension",
         ]
+
+    def get_reservation_extendable(self, obj: Book) -> bool:
+        return not obj.has_requested_extension and obj.reservation_extendable
 
 
 class BookEnqueuedByMemberSerializer(BookListSerializer):

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from typing import Any, Optional
 
 from django.db import models
-from django.db.models import Count, F, Prefetch, Q, QuerySet
+from django.db.models import Count, Exists, F, OuterRef, Q, QuerySet
 from django.db.models.expressions import Case, Value, When
 from django.db.models.fields import BooleanField
 from django.utils import timezone
@@ -16,7 +16,17 @@ from core.utils.models import TimestampedModel
 
 
 class ReservationQuerySet(models.QuerySet):
-    def reserved_by_member(self, member: Member) -> "QuerySet[Reservation]":
+    def with_extensions(self) -> "BookQuerySet":
+        return self.prefetch_related("extensions").annotate(
+            has_requested_extension=Exists(
+                ReservationExtension.objects.filter(
+                    reservation=OuterRef("pk"),
+                    status=ReservationExtensionStatus.REQUESTED,
+                ),
+            )
+        )
+
+    def reserved_by_member(self, member: Member) -> "ReservationQuerySet":
         return self.filter(
             member=member,
             status__in=[
@@ -25,23 +35,15 @@ class ReservationQuerySet(models.QuerySet):
             ],
         )
 
-    def with_requested_extensions(self) -> "QuerySet[Reservation]":
-        requested_extensions = Prefetch(
-            "extensions",
-            queryset=ReservationExtension.objects.filter(
-                status=ReservationExtensionStatus.REQUESTED,
-            ),
-            to_attr="requested_extensions",
-        )
-
-        return self.prefetch_related(requested_extensions)
-
 
 class Reservation(TimestampedModel):
     book: "Book"
     member: "Member"
     order: "Order"
-    extensions: "ReservationExtension"
+    extensions: "ReservationExtensionQuerySet"
+
+    # annotated
+    has_requested_extension: bool
 
     RESERVATION_TERM = timedelta(days=14)
     MAX_EXTENSIONS_PER_MEMBER = 2
@@ -82,12 +84,16 @@ class Reservation(TimestampedModel):
         return (timezone.now() + cls.RESERVATION_TERM).date()
 
     @property
-    def extensions_amount_left(self) -> int:
+    def extensions_available(self) -> int:
         return self.MAX_EXTENSIONS_PER_MEMBER - self.extensions.count()
 
     @property
+    def requested_extension(self) -> bool:
+        return self.extensions.filter(status=ReservationExtensionStatus.REQUESTED).count() > 0
+
+    @property
     def is_extendable(self) -> bool:
-        return self.status == ReservationStatus.ISSUED and self.extensions_amount_left > 0
+        return self.status == ReservationStatus.ISSUED and self.extensions_available > 0
 
     @property
     def is_issued(self) -> bool:
@@ -193,6 +199,16 @@ class BookQuerySet(models.QuerySet):
             is_enqueued_by_member=Case(When(id__in=subquery, then=Value(True)), default=Value(False), output_field=BooleanField()),
         )
 
+    def with_reservation_extensions(self) -> "BookQuerySet":
+        return self.prefetch_related("reservation__extensions").annotate(
+            has_requested_extension=Exists(
+                ReservationExtension.objects.filter(
+                    reservation=OuterRef("reservation__pk"),
+                    status=ReservationExtensionStatus.REQUESTED,
+                ),
+            )
+        )
+
     def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
@@ -296,6 +312,10 @@ class Book(TimestampedModel):
     @property
     def is_booked(self) -> bool:
         return self.is_reserved or self.is_issued
+
+    @property
+    def reservation_extendable(self) -> bool:
+        return self.reservation.is_extendable if self.is_issued else False
 
     @property
     def reservation_term(self) -> date | None:
