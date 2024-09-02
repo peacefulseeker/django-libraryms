@@ -137,18 +137,20 @@ class TestBooksReservedByMemberView:
         assert response.data[0]["title"] == book.title
 
     @pytest.mark.skip_create_books
-    def test_reservation_id_presents_for_a_reserved_book(self, as_member, member, book):
+    def test_reserved_book_expectations(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         assert order.reservation.status == ReservationStatus.RESERVED
 
         response = as_member.get(self.url, {"reserved_by_me": ""})
 
         # assuming most recently added books are placed first
+        assert not response.data[0]["has_requested_extension"]
+        assert not response.data[0]["reservation_extendable"]
         assert response.data[0]["reservation_id"] == order.reservation.id
         assert response.data[0]["title"] == book.title
 
     @pytest.mark.skip_create_books
-    def test_reservation_id_presents_for_an_issued_book(self, as_member, member, book):
+    def test_issued_book_expectations(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         order.reservation.status = ReservationStatus.ISSUED
         order.reservation.save()
@@ -157,6 +159,8 @@ class TestBooksReservedByMemberView:
 
         # assuming most recently added books are placed first
         assert set(response.data[0]) == set(self.expected_reserved_fields)
+        assert not response.data[0]["has_requested_extension"]
+        assert response.data[0]["reservation_extendable"]
         assert response.data[0]["reservation_id"] == order.reservation.id
         assert response.data[0]["title"] == book.title
 

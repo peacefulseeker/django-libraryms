@@ -42,6 +42,7 @@ def test_approval(instance, mock_send_reservation_extension_approved_email):
 
     assert instance.modified_at
     assert instance.reservation.term > reservation_term
+    assert instance.reservation.extensions_available == instance.reservation.MAX_EXTENSIONS_PER_MEMBER - 1
     mock_send_reservation_extension_approved_email.delay.assert_called_once_with(instance.reservation.id)
 
 

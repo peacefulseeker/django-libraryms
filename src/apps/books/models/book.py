@@ -98,10 +98,6 @@ class Reservation(TimestampedModel):
         return self.MAX_EXTENSIONS_PER_MEMBER - self.extensions.count()
 
     @property
-    def requested_extension(self) -> bool:
-        return self.extensions.filter(status=ReservationExtensionStatus.REQUESTED).count() > 0
-
-    @property
     def is_extendable(self) -> bool:
         return self.status == ReservationStatus.ISSUED and self.extensions_available > 0
 
