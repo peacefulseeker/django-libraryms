@@ -14,6 +14,7 @@ def test_order_save_model(as_admin, book_order, admin_user):
     change_url = reverse("admin:books_order_change", args=[book_order.id])
 
     assert book_order.status == OrderStatus.UNPROCESSED
+    assert not book_order.last_modified_by
 
     response = as_admin.post(
         change_url,

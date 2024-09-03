@@ -7,7 +7,7 @@ from rest_framework import status
 from apps.books.api.serializers import BookEnqueuedByMemberSerializer, BookListSerializer, BooksReservedByMemberSerializer
 from apps.books.const import OrderStatus, ReservationStatus
 from apps.books.models import Author, Book
-from apps.books.models.book import Order, Reservation
+from apps.books.models.book import Order, Reservation, ReservationExtension
 from apps.users.models import Member
 
 pytestmark = pytest.mark.django_db
@@ -32,7 +32,7 @@ class TestBookListView:
     search_param = settings.REST_FRAMEWORK["SEARCH_PARAM"]
     expected_fields = BookListSerializer.Meta.fields
 
-    def test_list_books(self, client):
+    def test_list_books_no_auth_needed(self, client):
         response = client.get(self.url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -137,18 +137,20 @@ class TestBooksReservedByMemberView:
         assert response.data[0]["title"] == book.title
 
     @pytest.mark.skip_create_books
-    def test_reservation_id_presents_for_a_reserved_book(self, as_member, member, book):
+    def test_reserved_book_expectations(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         assert order.reservation.status == ReservationStatus.RESERVED
 
         response = as_member.get(self.url, {"reserved_by_me": ""})
 
         # assuming most recently added books are placed first
+        assert not response.data[0]["has_requested_extension"]
+        assert not response.data[0]["reservation_extendable"]
         assert response.data[0]["reservation_id"] == order.reservation.id
         assert response.data[0]["title"] == book.title
 
     @pytest.mark.skip_create_books
-    def test_reservation_id_presents_for_an_issued_book(self, as_member, member, book):
+    def test_issued_book_expectations(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         order.reservation.status = ReservationStatus.ISSUED
         order.reservation.save()
@@ -157,8 +159,22 @@ class TestBooksReservedByMemberView:
 
         # assuming most recently added books are placed first
         assert set(response.data[0]) == set(self.expected_reserved_fields)
+        assert not response.data[0]["has_requested_extension"]
+        assert response.data[0]["reservation_extendable"]
         assert response.data[0]["reservation_id"] == order.reservation.id
         assert response.data[0]["title"] == book.title
+
+    def test_issued_book_extension_requested(self, as_member, member, book):
+        order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
+        order.reservation.status = ReservationStatus.ISSUED
+        order.reservation.save()
+
+        mixer.blend(ReservationExtension, reservation=order.reservation)
+
+        response = as_member.get(self.url, {"reserved_by_me": ""})
+
+        assert response.data[0]["has_requested_extension"]
+        assert not response.data[0]["reservation_extendable"]
 
     def test_list_contains_single_enqueued_book_of_member(self, _create_book_orders, authenticated_client, member):
         book, url = _create_book_orders(n=1)

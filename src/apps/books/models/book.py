@@ -2,21 +2,40 @@ from datetime import date, timedelta
 from typing import Any, Optional
 
 from django.db import models
-from django.db.models import Count, F, Q, QuerySet
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, QuerySet
 from django.db.models.expressions import Case, Value, When
 from django.db.models.fields import BooleanField
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
-from apps.books.const import Language, OrderStatus, ReservationStatus
+from apps.books.const import Language, OrderStatus, ReservationExtensionStatus, ReservationStatus
 from apps.users.models import Member, User
-from core.tasks import send_order_created_email, send_reservation_confirmed_email
+from core.tasks import send_order_created_email, send_reservation_confirmed_email, send_reservation_extension_approved_email
 from core.utils.models import TimestampedModel
 
 
 class ReservationQuerySet(models.QuerySet):
-    def reserved_by_member(self, member: Member) -> "QuerySet[Reservation]":
+    def with_extensions(self) -> "ReservationQuerySet":
+        return self.prefetch_related("extensions").annotate(
+            has_requested_extension=Exists(
+                ReservationExtension.objects.filter(
+                    reservation=OuterRef("pk"),
+                    status=ReservationExtensionStatus.REQUESTED,
+                ),
+            )
+        )
+
+    def with_requested_extensions(self) -> "ReservationQuerySet":
+        return self.prefetch_related(
+            Prefetch(
+                "extensions",
+                queryset=ReservationExtension.objects.filter(status=ReservationExtensionStatus.REQUESTED),
+                to_attr="requested_extensions",
+            ),
+        )
+
+    def reserved_by_member(self, member: Member) -> "ReservationQuerySet":
         return self.filter(
             member=member,
             status__in=[
@@ -30,7 +49,14 @@ class Reservation(TimestampedModel):
     book: "Book"
     member: "Member"
     order: "Order"
+    extensions: "ReservationExtensionQuerySet"
 
+    # annotated
+    requested_extensions: "ReservationExtensionQuerySet"
+    has_requested_extension: bool
+
+    RESERVATION_TERM = timedelta(days=14)
+    MAX_EXTENSIONS_PER_MEMBER = 2
     # NOTE: API Only restriction. Admins can still add unlimited reservations to members
     MAX_RESERVATIONS_PER_MEMBER = 5
     DONE_STATES = [
@@ -47,7 +73,7 @@ class Reservation(TimestampedModel):
         max_length=2,
         default=ReservationStatus.RESERVED,
     )
-    term = models.DateField(_("Due date"), default=None, blank=True, null=True, help_text=_("Date when reservation expires, 14 days by default"))
+    term = models.DateField(_("Due date"), default=None, blank=True, null=True, help_text=_("Reservation term"))
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         if self.status == ReservationStatus.ISSUED and self.term is None:
@@ -59,9 +85,21 @@ class Reservation(TimestampedModel):
     class Meta:
         ordering = ["-created_at"]
 
+    def extend(self) -> None:
+        self.term += self.RESERVATION_TERM
+        self.save()
+
     @classmethod
-    def get_default_term(cls) -> timezone.datetime:
-        return timezone.now() + timedelta(days=14)
+    def get_default_term(cls) -> date:
+        return (timezone.now() + cls.RESERVATION_TERM).date()
+
+    @property
+    def extensions_available(self) -> int:
+        return self.MAX_EXTENSIONS_PER_MEMBER - self.extensions.count()
+
+    @property
+    def is_extendable(self) -> bool:
+        return self.is_issued and self.extensions_available > 0
 
     @property
     def is_issued(self) -> bool:
@@ -87,6 +125,63 @@ class Reservation(TimestampedModel):
         return f"{self.pk} - {self.member} - {self.get_status_display()}"
 
 
+class ReservationExtensionQuerySet(models.QuerySet):
+    pass
+
+
+class ReservationExtension(TimestampedModel):
+    objects: ReservationExtensionQuerySet = ReservationExtensionQuerySet.as_manager()
+
+    reservation: Reservation = models.ForeignKey(
+        Reservation,
+        on_delete=models.CASCADE,
+        related_name="extensions",
+    )
+    processed_by: User = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="+",
+    )
+    status = models.CharField(
+        choices=ReservationExtensionStatus,
+        max_length=2,
+        default=ReservationExtensionStatus.REQUESTED,
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._status_initial = self.status
+
+    def status_changed_to(self, status: str) -> bool:
+        return self._status_initial != self.status and self.status == status
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if self.status_changed_to(ReservationExtensionStatus.APPROVED):
+            self.reservation.extend()
+            send_reservation_extension_approved_email.delay(self.reservation.pk)
+        super().save(*args, **kwargs)
+
+        # in case of repetitive instance reuse,
+        # makes sure to update the initial status after each save
+        self._status_initial = self.status
+
+    def __str__(self) -> str:
+        return f"{self.pk} - {self.get_status_display()}"
+
+    def cancel(self) -> None:
+        self.status = ReservationExtensionStatus.CANCELLED
+        self.save()
+
+    @property
+    def reservation_term(self) -> date:
+        return self.reservation.term
+
+
 class BookQuerySet(models.QuerySet):
     def with_reservation(self) -> "BookQuerySet":
         return self.select_related("reservation")
@@ -110,6 +205,16 @@ class BookQuerySet(models.QuerySet):
             is_enqueued_by_member=Case(When(id__in=subquery, then=Value(True)), default=Value(False), output_field=BooleanField()),
         )
 
+    def with_reservation_extensions(self) -> "BookQuerySet":
+        return self.prefetch_related("reservation__extensions").annotate(
+            has_requested_extension=Exists(
+                ReservationExtension.objects.filter(
+                    reservation=OuterRef("reservation__pk"),
+                    status=ReservationExtensionStatus.REQUESTED,
+                ),
+            )
+        )
+
     def available(self) -> "BookQuerySet":
         return self.filter(reservation__isnull=True)
 
@@ -123,6 +228,9 @@ class BookQuerySet(models.QuerySet):
 class Book(TimestampedModel):
     orders: "QuerySet[Order]"
     objects: BookQuerySet = BookQuerySet.as_manager()
+
+    # annotated
+    has_requested_extension: bool
 
     title = models.CharField(max_length=200, unique=True)
     author = models.ForeignKey("Author", related_name="books", on_delete=models.CASCADE)
@@ -215,12 +323,12 @@ class Book(TimestampedModel):
         return self.is_reserved or self.is_issued
 
     @property
-    def reservation_term(self) -> date | None:
-        return self.reservation.term if self.is_issued else None
+    def reservation_extendable(self) -> bool:
+        return self.reservation.is_extendable if self.is_issued else False
 
     @property
-    def reservation_id(self) -> int | None:
-        return self.reservation.id if self.is_booked else None
+    def reservation_term(self) -> date | None:
+        return self.reservation.term if self.is_issued else None
 
     @property
     def enqueued_orders(self) -> "OrderQuerySet":
@@ -311,6 +419,10 @@ class Order(TimestampedModel):
         elif self.status_changed_to(OrderStatus.PROCESSED):
             self.notify_member_of_reservation()
         super().save(*args, **kwargs)
+
+        # in case of repetitive instance reuse,
+        # makes sure to update the initial status after each save
+        self._status_initial = self.status
 
     def cancel(self) -> None:
         self.status = OrderStatus.MEMBER_CANCELLED

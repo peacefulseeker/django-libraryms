@@ -11,7 +11,7 @@ from apps.books.models.book import Order
 pytestmark = pytest.mark.django_db
 
 
-def test_retrieves_existing_book(client):
+def test_retrieves_existing_book_with_no_auth_needed(client):
     book = mixer.blend(Book)
     url = reverse("book-detail", kwargs={"pk": book.id})
 

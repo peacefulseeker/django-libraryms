@@ -1,7 +1,10 @@
 import pytest
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from mixer.backend.django import mixer
 
-from apps.users.models import Member
+from apps.books.models.book import ReservationExtension
+from apps.users.models import Librarian, Member
 
 
 @pytest.fixture
@@ -22,3 +25,24 @@ def member_with_reset_token(member: Member):
 @pytest.fixture
 def another_member():
     return mixer.blend(Member)
+
+
+@pytest.fixture(scope="session")
+def librarian_group(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        group = Group.objects.get_or_create(name="Librarians")[0]
+        content_type = ContentType.objects.get_for_model(ReservationExtension)
+        permission = Permission.objects.get(
+            codename="change_reservationextension",
+            content_type=content_type,
+        )
+        group.permissions.add(permission)
+        return group
+
+
+@pytest.fixture(scope="session")
+def librarian_staff(django_db_setup, django_db_blocker, librarian_group):
+    with django_db_blocker.unblock():
+        librarian: Librarian = Librarian.objects.get_or_create(username="librarian", email="librarian@librarian.com")[0]
+        librarian.groups.add(librarian_group)
+        return librarian

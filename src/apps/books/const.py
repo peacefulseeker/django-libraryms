@@ -18,6 +18,13 @@ class ReservationStatus(models.TextChoices):
     CANCELLED = "X"
 
 
+class ReservationExtensionStatus(models.TextChoices):
+    REQUESTED = "R"
+    APPROVED = "A"
+    REFUSED = "RF"
+    CANCELLED = "X"
+
+
 # assume that member can cancel the order
 # and librarian can refuse and process the order
 class OrderStatus(models.TextChoices):

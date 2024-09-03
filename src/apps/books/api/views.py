@@ -1,12 +1,14 @@
+from gettext import ngettext
+
 from django.db import transaction
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import filters, generics
+from rest_framework import status as status_codes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 
 from apps.books.api.serializers import (
@@ -19,9 +21,9 @@ from apps.books.api.serializers import (
 from apps.books.const import OrderStatus
 from apps.books.models import Book
 from apps.books.models import Order as BookOrder
-from apps.books.models.book import BookQuerySet, Order, Reservation
+from apps.books.models.book import BookQuerySet, Order, Reservation, ReservationExtension
 from apps.users.models import Member
-from core.tasks import send_order_created_email
+from core.tasks import send_extension_request_received_email, send_order_created_email
 
 
 class ViewSetMixin:
@@ -59,7 +61,7 @@ class BookListView(ViewSetMixin, generics.ListAPIView):
         if self.query_params.get("available") is not None:
             return queryset.available()
         elif self.show_reserved_by_member():
-            return queryset.reserved_by_member(self.request.user)
+            return queryset.with_reservation_extensions().reserved_by_member(self.request.user)
         elif self.show_enqueued_by_member():
             return queryset.enqueued_by_member(self.request.user)
         return queryset
@@ -87,15 +89,15 @@ class BookOrderView(APIView):
 
     def post(self, request: Request, book_id: int) -> Response:
         if self._max_reservations_reached(request.user):
-            return Response(status=400, data={"detail": _("Maximum number of reservations reached")})
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("Maximum number of reservations reached")})
 
         book = get_object_or_404(Book, pk=book_id)
 
         if self._processable_order(book, request.user).exists():
-            return Response(status=400, data={"detail": _("Book is already ordered or your order is in queue")})
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("Book is already ordered or your order is in queue")})
 
         if self._max_enqueued_orders_reached(book):
-            return Response(status=400, data={"detail": _("Maximum number of orders in queue reached")})
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("Maximum number of orders in queue reached")})
 
         order, message = self._create_order(book, request.user)
         if order.status == OrderStatus.UNPROCESSED:
@@ -111,9 +113,9 @@ class BookOrderView(APIView):
             order = self._cancellable_order(book_id, member).select_related("book", "reservation").get()
             order.cancel()
         except Order.DoesNotExist:
-            return Response(status=400, data={"detail": _("No cancellable order found")})
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No cancellable order found")})
 
-        return Response(status=HTTP_204_NO_CONTENT)
+        return Response(status=status_codes.HTTP_204_NO_CONTENT)
 
     def _create_order(self, book: Book, member: Member) -> tuple[BookOrder, str]:
         order_status = OrderStatus.UNPROCESSED
@@ -145,3 +147,50 @@ class BookOrderView(APIView):
 
     def _max_enqueued_orders_reached(self, book: Book) -> bool:
         return book.enqueued_orders.count() >= Order.MAX_QUEUED_ORDERS_ALLOWED
+
+
+class BookReservationExtendView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request, book_id: int) -> Response:
+        try:
+            reservation: Reservation = Reservation.objects.with_extensions().get(book=book_id, member=request.user)
+        except Reservation.DoesNotExist:
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No reservation found")})
+
+        if reservation.has_requested_extension:
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("Reservation extension already requested")})
+
+        if not reservation.is_extendable:
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("Reservation cannot be extended")})
+
+        extension = ReservationExtension.objects.create(reservation=reservation)
+        send_extension_request_received_email.delay(extension.id)
+
+        return Response(status=status_codes.HTTP_200_OK, data={"detail": _("Reservation extension requested")})
+
+    def delete(self, request: Request, book_id: int) -> Response:
+        try:
+            reservation: Reservation = Reservation.objects.with_requested_extensions().get(book=book_id, member=request.user)
+        except Reservation.DoesNotExist:
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No reservation found")})
+
+        if not reservation.requested_extensions:
+            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No cancellable reservation extension found")})
+
+        requested_extension: ReservationExtension = reservation.requested_extensions[0]
+        requested_extension.cancel()
+
+        extensions_available = reservation.extensions_available
+        if extensions_available:
+            detail = ngettext(
+                "You have %(extensions)d more extension available for this book",
+                "You have %(extensions)d more extensions available for this book",
+                extensions_available,
+            ) % {
+                "extensions": extensions_available,
+            }
+        else:
+            detail = _("You have no more extensions available for this book")
+
+        return Response(status=status_codes.HTTP_200_OK, data={"detail": detail})
