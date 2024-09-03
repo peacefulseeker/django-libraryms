@@ -1,5 +1,5 @@
 manage = poetry run python src/manage.py
-testinparallel = poetry run pytest --verbosity=0 --numprocesses auto --dist loadscope
+testinparallel = poetry run pytest --capture=fd --verbosity=0 --numprocesses auto --dist loadscope
 PORT := 7070
 
 server:

@@ -1,4 +1,5 @@
 import pytest
+from django.db import IntegrityError
 from mixer.backend.django import mixer
 
 from apps.books.models import Publisher
@@ -19,7 +20,7 @@ def test_publisher_str_method():
 
 def test_publisher_name_unique():
     mixer.blend(Publisher, name="Unique Publisher")
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         mixer.blend(Publisher, name="Unique Publisher")
 
 

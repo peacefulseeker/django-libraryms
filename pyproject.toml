@@ -71,7 +71,7 @@ addopts = [
     "--reuse-db",
     "--verbosity=1",
     "-p no:warnings",
-    "-s",
+    "--capture=no", # ouputs prints statements / db errors(if any, like integrity errors)
 ]
 env = [
     "CELERY_ALWAYS_EAGER = 1",
