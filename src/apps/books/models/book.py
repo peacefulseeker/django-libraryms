@@ -331,10 +331,6 @@ class Book(TimestampedModel):
         return self.reservation.term if self.is_issued else None
 
     @property
-    def reservation_id(self) -> int | None:
-        return self.reservation.id if self.is_booked else None
-
-    @property
     def enqueued_orders(self) -> "OrderQuerySet":
         return self.orders.filter(status=OrderStatus.IN_QUEUE).order_by("created_at")
 
