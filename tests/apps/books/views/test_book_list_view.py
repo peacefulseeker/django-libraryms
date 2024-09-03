@@ -13,21 +13,16 @@ from apps.users.models import Member
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture()
-def create_books(request):
-    if "skip_create_books" in request.keywords:
-        return
-
-    author1 = mixer.blend(Author, first_name="John", last_name="Doe")
-    author2 = mixer.blend(Author, first_name="Jane", last_name="Smith")
-
-    mixer.blend(Book, title="Book 1", author=author1)
-    mixer.blend(Book, title="Book 2", author=author1)
-    mixer.blend(Book, title="Book 3", author=author2)
-
-
-@pytest.mark.usefixtures("create_books")
 class TestBookListView:
+    @pytest.fixture(autouse=True)
+    def setup_books(self):
+        author1 = mixer.blend(Author, first_name="John", last_name="Doe")
+        author2 = mixer.blend(Author, first_name="Jane", last_name="Smith")
+
+        mixer.blend(Book, title="Book 1", author=author1)
+        mixer.blend(Book, title="Book 2", author=author1)
+        mixer.blend(Book, title="Book 3", author=author2)
+
     url = reverse("books-list")
     search_param = settings.REST_FRAMEWORK["SEARCH_PARAM"]
     expected_fields = BookListSerializer.Meta.fields
@@ -83,27 +78,6 @@ class TestBookListView:
 
         assert set(response.data[0]) == set(self.expected_fields)
 
-
-@pytest.mark.usefixtures("create_books")
-class TestBooksReservedByMemberView:
-    url = reverse("books-list")
-    expected_reserved_fields = BooksReservedByMemberSerializer.Meta.fields
-    expected_enqueued_fields = BookEnqueuedByMemberSerializer.Meta.fields
-
-    @pytest.fixture
-    def _create_book_orders(self, authenticated_client):
-        def _create(n=2):
-            book = mixer.blend(Book)
-            url = reverse("book-order", kwargs={"book_id": book.id})
-
-            for _ in range(n):
-                _member = mixer.blend(Member)
-                authenticated_client(_member).post(url)
-
-            return book, url
-
-        return _create
-
     def test_get_reserved_books_unauthenticated_returns_all(self, client):
         response = client.get(self.url, {"reserved_by_me": ""})
 
@@ -126,8 +100,28 @@ class TestBooksReservedByMemberView:
             assert "is_enqueued_by_member" not in book
             assert "amount_in_queue" not in book
 
+
+class TestBooksReservedByMemberView:
+    url = reverse("books-list")
+    expected_reserved_fields = BooksReservedByMemberSerializer.Meta.fields
+    expected_enqueued_fields = BookEnqueuedByMemberSerializer.Meta.fields
+
+    @pytest.fixture
+    def _create_book_orders(self, authenticated_client):
+        def _create(n=2):
+            book = mixer.blend(Book)
+            url = reverse("book-order", kwargs={"book_id": book.id})
+
+            for _ in range(n):
+                _member = mixer.blend(Member)
+                authenticated_client(_member).post(url)
+
+            return book, url
+
+        return _create
+
     def test_get_a_reserved_book_as_auth_member(self, as_member, member):
-        book = Book.objects.first()
+        book = mixer.blend(Book)
         book.reservation = mixer.blend(Reservation, member=member)
         book.save(update_fields=["reservation"])
 
@@ -136,7 +130,6 @@ class TestBooksReservedByMemberView:
         assert response.status_code == status.HTTP_200_OK
         assert response.data[0]["title"] == book.title
 
-    @pytest.mark.skip_create_books
     def test_reserved_book_expectations(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         assert order.reservation.status == ReservationStatus.RESERVED
@@ -149,7 +142,6 @@ class TestBooksReservedByMemberView:
         assert response.data[0]["reservation_id"] == order.reservation.id
         assert response.data[0]["title"] == book.title
 
-    @pytest.mark.skip_create_books
     def test_issued_book_expectations(self, as_member, member, book):
         order = mixer.blend(Order, book=book, member=member, status=OrderStatus.PROCESSED)
         order.reservation.status = ReservationStatus.ISSUED

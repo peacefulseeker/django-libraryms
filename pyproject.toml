@@ -51,6 +51,7 @@ pytest-mock = "^3.14.0"
 ruff = "^0.5.1"
 toml-sort = "^0.23.1"
 types-requests = "^2.32.0.20240712"
+pytest-xdist = "^3.6.1"
 
 [tool.coverage.report]
 omit = [
@@ -59,6 +60,8 @@ omit = [
     "src/core/middleware/sql.py",
     "src/core/wsgi.py",
 ]
+[tool.coverage.run]
+disable_warnings = ["module-not-measured"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
@@ -67,7 +70,7 @@ addopts = [
     "--reuse-db",
     "-p no:warnings",
     "-s",
-    "-v",
+    "--verbosity=1",
 ]
 env = [
     "CELERY_ALWAYS_EAGER = 1",
@@ -76,9 +79,6 @@ env = [
     "DISABLE_THROTTLING = 1",
     "PRODUCTION_URL = https://example.com",
     "THROTTLING_ANON_RATE = 3/minute",
-]
-markers = [
-    "skip_create_books: test_book_list_view.py",
 ]
 python_files = "test*.py"
 pythonpath = ". src"

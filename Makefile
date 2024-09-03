@@ -1,4 +1,5 @@
 manage = poetry run python src/manage.py
+testinparallel = poetry run pytest --verbosity=0 --numprocesses auto --dist loadscope
 PORT := 7070
 
 server:
@@ -30,8 +31,14 @@ build_backend:
 	./scripts/build-backend.sh
 
 test:
-	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing:skip-covered --cov-fail-under=90
+	$(testinparallel)
 	poetry run pytest --dead-fixtures
+
+testwithcoverage:
+	$(testinparallel) \
+		--cov=apps --cov=core --cov-report=html:htmlcov \
+		--cov-report=term-missing:skip-covered \
+		--cov-fail-under=90
 
 fmt:
 	poetry run ruff format src tests
