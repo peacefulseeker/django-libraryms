@@ -77,19 +77,46 @@ class TestReservationExtendCancelView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["detail"] == "No reservation found"
 
-    def test_no_pending_extension_exists(self, as_member, member_reservation):
+    def test_no_requested_extension_exists(self, as_member, member_reservation):
         response: Response = as_member.delete(self.url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["detail"] == "No cancellable reservation extension found"
 
-    def test_cancel_pending_extension(self, as_member, reservation_extension):
+    def test_cancel_requested_extension(self, as_member, reservation_extension):
         assert reservation_extension.status == ReservationExtensionStatus.REQUESTED
         response = as_member.delete(self.url)
 
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.status_code == status.HTTP_200_OK
         reservation_extension.refresh_from_db()
         assert reservation_extension.status == ReservationExtensionStatus.CANCELLED
+
+    def test_cancel_requested_extension_with_1_extension_left_hint(self, as_member, reservation_extension, mocker):
+        mocker.patch("apps.books.models.book.Reservation.extensions_available", return_value=1, new_callable=mocker.PropertyMock)
+
+        assert reservation_extension.status == ReservationExtensionStatus.REQUESTED
+        response = as_member.delete(self.url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["detail"] == "You have 1 extension available for this book"
+
+    def test_cancel_requested_extension_with_4_extensions_left_hint(self, as_member, reservation_extension, mocker):
+        mocker.patch("apps.books.models.book.Reservation.extensions_available", return_value=4, new_callable=mocker.PropertyMock)
+
+        assert reservation_extension.status == ReservationExtensionStatus.REQUESTED
+        response = as_member.delete(self.url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["detail"] == "You have 4 extensions available for this book"
+
+    def test_cancel_requested_extension_with_no_more_extensions_left_hint(self, as_member, reservation_extension, mocker):
+        mocker.patch("apps.books.models.book.Reservation.extensions_available", return_value=0, new_callable=mocker.PropertyMock)
+
+        assert reservation_extension.status == ReservationExtensionStatus.REQUESTED
+        response = as_member.delete(self.url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["detail"] == "You have no more extensions available for this book"
 
     def test_cant_cancel_approved_extension(self, as_member, reservation_extension):
         reservation_extension.status = ReservationExtensionStatus.APPROVED
