@@ -61,9 +61,6 @@ omit = [
     "src/core/wsgi.py",
 ]
 
-[tool.coverage.run]
-disable_warnings = ["module-not-measured"]
-
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
 addopts = [
