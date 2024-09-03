@@ -61,8 +61,8 @@ jobs:
       - name: build
         uses: ./.github/actions/build
 
-      - name: test
-        run: make test
+      - name: test with coverage
+        run: make testwithcoverage
 
       - name: Generate coverage badge
         if: github.ref == 'refs/heads/main'

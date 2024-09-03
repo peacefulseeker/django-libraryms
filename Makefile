@@ -1,4 +1,11 @@
 manage = poetry run python src/manage.py
+test = poetry run pytest --capture=fd --verbosity=0
+testinparallel = $(test) --numprocesses auto
+testwithcoverage = $(test) \
+		--cov=apps --cov=core \
+		--cov-report=term-missing:skip-covered \
+		--cov-fail-under=90
+
 PORT := 7070
 
 server:
@@ -30,8 +37,17 @@ build_backend:
 	./scripts/build-backend.sh
 
 test:
-	poetry run pytest --cov=apps --cov=core --cov-report=html:htmlcov --cov-report=term-missing:skip-covered --cov-fail-under=90
+	$(testinparallel)
 	poetry run pytest --dead-fixtures
+
+testwithcoverage:
+	$(testwithcoverage)
+
+testwithhtmlcoverage:
+	$(testwithcoverage) --cov-report=html:htmlcov
+
+opencoverage:
+	open ./htmlcov/index.html
 
 fmt:
 	poetry run ruff format src tests
@@ -58,6 +74,3 @@ upbuild:
 
 upbuildnocache:
 	docker compose up -d --build --force-recreate
-
-opencoverage:
-	open ./htmlcov/index.html

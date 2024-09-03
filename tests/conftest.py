@@ -11,7 +11,6 @@ pytest_plugins = [
     "tests.fixtures.api",
     "tests.fixtures.users",
     "tests.fixtures.books",
-    "tests.fixtures.mailing",
 ]
 
 
@@ -36,3 +35,10 @@ def _create_tmp_index_template():
 
     # teardown
     os.remove(f.name)
+
+
+@pytest.fixture(autouse=True)
+def mock_mailer(mocker):
+    mocked = mocker.patch("core.tasks.Mailer")
+    mocked.return_value.send.return_value = 1
+    return mocked
