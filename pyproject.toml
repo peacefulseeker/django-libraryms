@@ -64,7 +64,7 @@ omit = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
 addopts = [
-    "--capture=no",  # ouputs prints statements / db errors(if any, like integrity errors)
+    "--capture=no",  # ouputs print statements / db warnings(e.g. Integrity errors)
     "--maxfail=1",
     "--reuse-db",
     "--verbosity=1",
