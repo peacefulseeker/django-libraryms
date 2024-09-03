@@ -1,6 +1,11 @@
 import os
 
+import django
 import pytest
+
+# this allows to run pytest --help / pytest --version without erorrs :shrug:
+django.setup()
+
 
 pytest_plugins = [
     "tests.fixtures.api",
