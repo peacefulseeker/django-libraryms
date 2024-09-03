@@ -21,6 +21,6 @@ def test_success(mock_mailer, member_reservation):
 
     assert result["sent"]
     message: Message = mock_mailer.call_args[0][0]
-    assert message.subject == f"Your reservation: {member_reservation.id} was approved."
+    assert message.subject == f'Your "{member_reservation.book.title}" reservation was approved.'
     assert f"Hi {member.first_name}!" in message.body
     assert f'Your "{member_reservation.book.title}" reservation is now extended till {member_reservation.term}. <br />' in message.body

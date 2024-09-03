@@ -101,7 +101,6 @@ def send_extension_request_received_email(extension_id: int) -> dict[str, int]:
     mailer = Mailer(
         Message(
             subject="New reservation extension request",
-            # to=env("LIBRARIAN_ADMIN_EMAIL"),
             body=body,
         )
     )
@@ -128,8 +127,7 @@ def send_reservation_extension_approved_email(reservation_id: int) -> dict[str, 
 
     mailer = Mailer(
         Message(
-            subject=f"Your reservation: {reservation_id} was approved.",
-            # to=env("member.email"),
+            subject=f'Your "{reservation.book.title}" reservation was approved.',
             body=body,
         )
     )
