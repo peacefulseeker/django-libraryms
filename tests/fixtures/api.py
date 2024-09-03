@@ -4,20 +4,22 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-@pytest.fixture
-def client():
+@pytest.fixture(scope="session")
+def client() -> APIClient:
     return APIClient()
 
 
 @pytest.fixture
-def authenticated_client(client):
+def authenticated_client(client: APIClient):
     def _client(user) -> APIClient:
         refresh = RefreshToken.for_user(user)
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
         client.cookies[settings.SIMPLE_JWT["REFRESH_TOKEN_COOKIE_NAME"]] = str(refresh)
         return client
 
-    return _client
+    yield _client
+
+    client.logout()
 
 
 @pytest.fixture
