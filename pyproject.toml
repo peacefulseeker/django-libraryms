@@ -67,11 +67,11 @@ disable_warnings = ["module-not-measured"]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
 addopts = [
+    "--capture=no",  # ouputs prints statements / db errors(if any, like integrity errors)
     "--maxfail=1",
     "--reuse-db",
     "--verbosity=1",
     "-p no:warnings",
-    "--capture=no", # ouputs prints statements / db errors(if any, like integrity errors)
 ]
 env = [
     "CELERY_ALWAYS_EAGER = 1",
