@@ -184,8 +184,8 @@ class BookReservationExtendView(APIView):
         extensions_available = reservation.extensions_available
         if extensions_available:
             detail = ngettext(
-                "You have %(extensions)d extension available for this book",
-                "You have %(extensions)d extensions available for this book",
+                "You have %(extensions)d more extension available for this book",
+                "You have %(extensions)d more extensions available for this book",
                 extensions_available,
             ) % {
                 "extensions": extensions_available,

@@ -98,7 +98,7 @@ class TestReservationExtendCancelView:
         response = as_member.delete(self.url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["detail"] == "You have 1 extension available for this book"
+        assert response.data["detail"] == "You have 1 more extension available for this book"
 
     def test_cancel_requested_extension_with_4_extensions_left_hint(self, as_member, reservation_extension, mocker):
         mocker.patch("apps.books.models.book.Reservation.extensions_available", return_value=4, new_callable=mocker.PropertyMock)
@@ -107,7 +107,7 @@ class TestReservationExtendCancelView:
         response = as_member.delete(self.url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["detail"] == "You have 4 extensions available for this book"
+        assert response.data["detail"] == "You have 4 more extensions available for this book"
 
     def test_cancel_requested_extension_with_no_more_extensions_left_hint(self, as_member, reservation_extension, mocker):
         mocker.patch("apps.books.models.book.Reservation.extensions_available", return_value=0, new_callable=mocker.PropertyMock)
