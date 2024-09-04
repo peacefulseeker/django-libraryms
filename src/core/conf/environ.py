@@ -15,6 +15,7 @@ env = environ.Env(
     TIME_ZONE=(str, "Europe/Riga"),
     PRODUCTION_URL=(str, "https://django-libraryms.fly.dev"),
     DATABASE_URL=(str, "sqlite:///db.sqlite3"),
+    FRONTEND_ASSETS_VERSION=(str, ""),
 )
 
 if env("CI"):

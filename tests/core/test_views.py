@@ -38,6 +38,19 @@ def test_spa_view_props(client, mock_data, expected):
 
         assert response.status_code == status.HTTP_200_OK
         assert response.context["props"] == expected
+        assert response.context["FRONTEND_ASSETS_URL"] == "/static/frontend/"
+
+
+def test_frontend_assets_url_from_env(client):
+    import os
+
+    os.environ["FRONTEND_ASSETS_VERSION"] = "timestamp_hash"
+    os.environ["AWS_S3_CUSTOM_DOMAIN"] = "cdn.example.com"
+
+    response = client.get("/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.context["FRONTEND_ASSETS_URL"] == "https://cdn.example.com/v/timestamp_hash/"
 
 
 def test_404_handler(client):

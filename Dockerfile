@@ -1,34 +1,4 @@
-ARG NODE_VERSION=20.9.0
 ARG PYTHON_VERSION=3.11-slim-bullseye
-
-FROM node:${NODE_VERSION}-slim as frontend
-
-    LABEL fly_launch_runtime="Vite"
-
-    # Vite app lives here
-    WORKDIR /app
-
-    # Set production environment
-    ENV NODE_ENV="production"
-
-    # Install pnpm
-    ARG PNPM_VERSION=9.9.0
-    RUN npm install -g pnpm@$PNPM_VERSION
-
-    RUN apt-get update -qq && \
-        apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
-
-    # Install node modules
-    COPY --link frontend/package.json frontend/pnpm-lock.yaml ./
-    RUN pnpm install --frozen-lockfile --prod=false
-
-    COPY --link frontend ./
-
-    # Build application
-    RUN pnpm vite build
-
-    # Remove development dependencies
-    RUN pnpm prune --prod
 
 from python:${PYTHON_VERSION} as poetry-deps-export
     WORKDIR /
@@ -58,8 +28,6 @@ FROM backend-build as app
     WORKDIR /app
 
     COPY src /app/src
-    COPY --from=frontend /app/dist /app/src/core/assets/frontend/
-    COPY --from=frontend /app/dist/index.html /app/src/core/templates/vue-index.html
 
     RUN python src/manage.py collectstatic --no-input
 
