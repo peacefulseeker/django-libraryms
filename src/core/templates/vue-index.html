@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="{{ FRONTEND_ASSETS_URL }}favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Catalogue</title>
+    <script type="module" crossorigin src="{{ FRONTEND_ASSETS_URL }}assets/index.js"></script>
+    <link rel="stylesheet" crossorigin href="{{ FRONTEND_ASSETS_URL }}assets/index.css">
+  </head>
+  <body>
+    <div hidden>{{ props|json_script:"app-props" }}</div>
+    <script>
+      try {
+          window.__rootProps = JSON.parse(document.getElementById('app-props').textContent);
+      } catch (error) {
+          window.__rootProps = {};
+      }
+    </script>
+    <div id="app"></div>
+  </body>
+</html>

@@ -5,7 +5,7 @@ from django.urls import path, re_path
 from django.urls.conf import include
 from django.views.generic.base import TemplateView
 
-from core.views import VueAppView
+from core.views import Handler404, VueAppView
 
 urlpatterns = [
     path("api/v1/", include("core.urls.api.v1"), name="api"),
@@ -24,4 +24,4 @@ urlpatterns += [
     re_path("^(login|books|account|register|reset-password)", VueAppView.as_view(), name="app_routes"),
 ]
 
-handler404 = "core.views.handler404"
+handler404 = Handler404.as_view()
