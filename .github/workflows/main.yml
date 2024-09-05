@@ -14,12 +14,6 @@ on:
     branches:
         - main
 
-  workflow_dispatch:
-    inputs:
-      frontend_version:
-        description: 'Frontend assets version'
-        required: true
-
 env:
   CI: true
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -109,17 +103,5 @@ jobs:
           submodules: 'recursive'
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-  deploy-frontend-version:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Deploy frontend version secret
-        run: |
-          flyctl secrets set FRONTEND_ASSETS_VERSION=${{ github.event.inputs.frontend_version }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

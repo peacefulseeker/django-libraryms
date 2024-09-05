@@ -1,0 +1,20 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      frontend_assets_version:
+        description: 'Frontend assets version'
+        required: true
+
+jobs:
+  deploy-frontend-assets-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy FRONTEND_ASSETS_VERSION secret
+        run: |
+          flyctl secrets set FRONTEND_ASSETS_VERSION=${{ github.event.inputs.frontend_assets_version }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
