@@ -11,7 +11,8 @@ on:
     #   - '.dockerignore'
       - 'demo/**'
   pull_request:
-
+    branches:
+        - main
 
 env:
   CI: true
