@@ -16,6 +16,9 @@
       } catch (error) {
           window.__rootProps = {};
       }
+      function __toFrontendAssetsUrl(filename) {
+        return '{{ FRONTEND_ASSETS_URL }}' + filename;
+      }
     </script>
     <div id="app"></div>
   </body>
