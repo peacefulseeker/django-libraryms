@@ -17,9 +17,9 @@ Check out the [MVP Goal & Requirements](../../wiki/MVP-Goal-&-Requirements)
 #### Tool versions
 Check [tool-versions](./.tool-versions)
 
-#### Clone locally with frontend submodule(separate repo)
+#### Clone project(s) locally
 ```shell
-git clone --recurse-submodules git@github.com:peacefulseeker/django-libraryms.git ./local-project-dir
+git clone  git@github.com:peacefulseeker/django-libraryms.git ./local-project-dir
 
 cd ./local-project-dir
 cp src/core/.env.ci src/core/.env
@@ -36,7 +36,14 @@ make build_backend
 # create superuser
 poetry run python src/manage.py createsuperuser
 
-# build frontend, in case you want to see working UI when visiting homepage
+```
+
+#### Build frontend locally
+```shell
+# clone to frontend folder (gitignored)
+git clone git@github.com:peacefulseeker/django-libraryms-frontend.git ./local-project-dir/frontend
+
+# this will prepare assets as for production env
 make build_frontend
 ```
 
