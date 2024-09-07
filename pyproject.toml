@@ -33,13 +33,13 @@ psycopg2-binary = "^2.9.9"
 python = "~3.11"
 redis = "^5.0.8"
 sentry-sdk = {extras = ["django"], version = "^2.12.0"}
+boto3-stubs = {extras = ["s3", "ses", "sesv2"], version = "^1.35.13.post1"}
 whitenoise = {extras = ["brotli"], version = "^6.7.0"}
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-boto3-stubs = {extras = ["s3", "ses", "sesv2"], version = "^1.35.13.post1"}
 django-debug-toolbar = "^4.4.6"
 mixer = "^7.2.2"
 mypy = "^1.11.2"
