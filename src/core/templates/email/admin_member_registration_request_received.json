@@ -1,0 +1,8 @@
+{
+    "Template": {
+        "TemplateName": "AdminMemberRegistrationRequestReceived",
+        "SubjectPart": "Registration request received",
+        "HtmlPart": "Hi admin! <br />New member registration request received. Check <a href='{{member_admin_url}}' target='_blank'>here</a>",
+        "TextPart": "Hi admin!\r\nNew member registration request received. Check <a href='{{member_admin_url}}' target='_blank'>here</a>"
+    }
+}

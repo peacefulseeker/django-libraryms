@@ -1,0 +1,8 @@
+{
+    "Template": {
+        "TemplateName": "MemberRegistrationNotification",
+        "SubjectPart": "Thanks! Your registration request received",
+        "HtmlPart": "Hi {{member_name}}!<br />Your registration code: {{member_registration_code}}.<br />Please arrive to library to complete registration.<br />Don't forget to bring your ID card.",
+        "TextPart": "Hi {{member_name}}!\r\nYour registration code: {{member_registration_code}}.\r\nPlease arrive to library to complete registration.\r\nDon't forget to bring your ID card."
+    }
+}

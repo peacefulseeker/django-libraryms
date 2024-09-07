@@ -21,19 +21,19 @@ def test_send_success_with_first_name_in_greeting(mock_mailer):
 
     result = send_registration_notification_to_member.delay(member.id).get()
 
+    message: Message = mock_mailer.send_templated_email.call_args[0][0]
     assert result["sent"]
-    message: Message = mock_mailer.call_args[0][0]
-    assert message.subject == "Thanks! Your registration request received"
-    assert f"Hi {member.first_name}!" in message.body
-    assert f"Your registration code: {member.registration_code}." in message.body
-    assert "Please arrive to library to complete registration" in message.body
-    assert "Don't forget to bring your ID card." in message.body
+    assert message.template_data == {
+        "member_name": member.name,
+        "member_registration_code": member.registration_code,
+    }
+    assert message.template_name == "MemberRegistrationNotification"
 
 
-def test_send_success_with_username_in_greeting(mock_mailer):
+def test_template_data_includes_username(mock_mailer):
     member: Member = mixer.blend(Member, first_name="")
 
     send_registration_notification_to_member.delay(member.id).get()
 
-    message: Message = mock_mailer.call_args[0][0]
-    assert f"Hi {member.username}!" in message.body
+    message: Message = mock_mailer.send_templated_email.call_args[0][0]
+    assert message.template_data["member_name"] == member.username

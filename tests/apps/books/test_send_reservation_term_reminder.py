@@ -6,7 +6,6 @@ from mixer.backend.django import mixer
 from apps.books.const import ReservationStatus
 from apps.books.models.book import Book, Reservation
 from apps.tasks import send_reservation_term_reminder
-from core.utils.mailer import Message
 
 todays_date = datetime(2024, 8, 31, 0, 0, tzinfo=timezone.utc)
 pytestmark = [
@@ -15,40 +14,9 @@ pytestmark = [
 ]
 
 
-def errored_ses_message_headers():
-    return {
-        "message": "Message",
-        "reason": "No clue",
-        "status": 500,
-        "error_message": "Failed to send email",
-        "error_code": 123,
-    }
-
-
 @pytest.fixture
-def mock_send_mass_mail(mocker):
-    return mocker.patch("apps.tasks.Mailer.send_mass_mail")
-
-
-@pytest.fixture
-def _mock_send_messages_with_failure(mocker):
-    def mock_send_messages_with_failure(failed_indices: list[int]):
-        def mock_send_messages(messages: list[Message]):
-            for i in failed_indices:
-                messages[i].extra_headers = errored_ses_message_headers()
-
-            return len(messages) - len(failed_indices)
-
-        get_connection_mock = mocker.patch("core.utils.mailer.get_connection")
-        get_connection_mock.return_value.send_messages.side_effect = mock_send_messages
-        return get_connection_mock
-
-    return mock_send_messages_with_failure
-
-
-@pytest.fixture
-def mock_sentry_capture_message(mocker):
-    return mocker.patch("core.utils.mailer.sentry_sdk.capture_message")
+def mock_send_mass_templated_email(mocker):
+    return mocker.patch("apps.tasks.Mailer.send_mass_templated_email", side_effect=lambda messages: len(messages))
 
 
 @pytest.fixture
@@ -89,48 +57,14 @@ def test_send_2_reminders(_create_book_reservations):
     assert result["sent"] == 2
 
 
-def test_individual_message_properties(_create_book_reservations, mock_send_mass_mail):
+def test_templated_message_properties(_create_book_reservations, mock_send_mass_templated_email):
     _create_book_reservations(due_in_days=[10, 2, 2])
-
-    send_reservation_term_reminder.delay(due_in_days=2)
-
-    messages = mock_send_mass_mail.call_args[0][0]
-    fail_silently = mock_send_mass_mail.call_args[1]["fail_silently"]
-    assert fail_silently
-    assert mock_send_mass_mail.call_count == 1
-    assert len(messages) == 2
-    assert messages[0].subject == messages[1].subject == "Reservation term is ending in 2 days"
-    assert messages[0].body != messages[1].body
-    assert "https://example.com/account/reservations/" in messages[0].body
-
-
-def test_single_failed_delivery_captured(_create_book_reservations, mock_sentry_capture_message, _mock_send_messages_with_failure):
-    _create_book_reservations(due_in_days=[10, 2, 2])
-    fail_first_index = 0
-    mocked_sent = _mock_send_messages_with_failure(failed_indices=[fail_first_index])
 
     result = send_reservation_term_reminder.delay(due_in_days=2).get()
 
-    assert result == {"sent": 1}
-    messages = mocked_sent.return_value.send_messages.call_args[0][0]
-    assert len(messages) == 2
-    assert messages[fail_first_index].extra_headers == errored_ses_message_headers()
-
-    assert mock_sentry_capture_message.call_count == 1
-    sentry_message = mock_sentry_capture_message.call_args[0][0]
-    sentry_extra = mock_sentry_capture_message.call_args[1]
-    assert sentry_message == "Failed to send reminder email"
-    assert sentry_extra["extra"] == messages[fail_first_index].extra_headers
-
-
-def test_multiple_failed_deliveries_captured(_create_book_reservations, mock_sentry_capture_message, _mock_send_messages_with_failure):
-    _create_book_reservations(due_in_days=[10, 2, 2, 2, 2])
-    mocked_sent = _mock_send_messages_with_failure(failed_indices=[0, 1])
-
-    result = send_reservation_term_reminder.delay(due_in_days=2).get()
-
-    assert result == {"sent": 2}
-    messages = mocked_sent.return_value.send_messages.call_args[0][0]
-    assert len(messages) == 4
-
-    assert mock_sentry_capture_message.call_count == 2
+    messages = mock_send_mass_templated_email.call_args[0][0]
+    assert result == {"sent": 2, "messages_amount": 2}
+    assert mock_send_mass_templated_email.call_count == 1
+    assert messages[0].template_name == "MemberReservationReminder"
+    assert messages[0].template_data["reservations_url"] == "https://example.com/account/reservations/"
+    assert messages[0].template_data["due_in_days"] == 2

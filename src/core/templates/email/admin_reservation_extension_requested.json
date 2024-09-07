@@ -1,0 +1,8 @@
+{
+    "Template": {
+        "TemplateName": "AdminReservationExtensionRequested",
+        "SubjectPart": "New reservation extension request",
+        "HtmlPart": "Hi admin! <br />New reservation extension request received. <br /> Please, process it <a href='{{extension_admin_url}}' target='_blank'>here</a>",
+        "TextPart": "Hi admin! \r\nNew reservation extension request received. \r\n Please, process it <a href='{{extension_admin_url}}' target='_blank'>here</a>"
+    }
+}

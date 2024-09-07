@@ -23,5 +23,5 @@ def _use_simple_password_hasher(settings):
 @pytest.fixture(autouse=True)
 def mock_mailer(mocker):
     mocked = mocker.patch("core.tasks.Mailer")
-    mocked.return_value.send.return_value = 1
+    mocked.send_templated_email.return_value = 1
     return mocked

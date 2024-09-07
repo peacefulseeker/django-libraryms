@@ -41,19 +41,13 @@ def ping_production_website(url: str = env("PRODUCTION_URL")) -> dict[str, Any]:
 def send_order_created_email(order_id: int) -> dict[str, int]:
     order_path = reverse("admin:books_order_change", kwargs={"object_id": order_id})
     order_url = urljoin(env("PRODUCTION_URL"), order_path)
-
-    body = f"""
-        Hi admin! <br />
-        Please process new book order <a href='{order_url}' target='_blank'>here</a>
-    """
-    mailer = Mailer(
-        Message(
-            subject="Book order created",
-            # to=env("LIBRARIAN_ADMIN_EMAIL"),
-            body=body,
-        )
+    message: Message = Message(
+        template_data={
+            "order_url": order_url,
+        },
+        template_name="AdminOrderCreated",
     )
-    email_sent = mailer.send()
+    email_sent = Mailer.send_templated_email(message)
 
     return {"sent": email_sent}
 
@@ -69,21 +63,16 @@ def send_reservation_confirmed_email(order_id: int, reservation_id: int) -> dict
     except Order.DoesNotExist:
         return {"error": f"Order with id {order_id} does not exist"}
 
-    body = f"""
-        Hi {order.member.name}!<br />
-        "{order.book.title}" book is ready to be picked up. <br />
-        Your Reservation ID: {order.reservation.pk} <br />
-        View all your reservations <a href='{reservations_url}' target='_blank'>here</a>
-    """
-
-    mailer = Mailer(
-        Message(
-            subject="Book is ready to be picked up",
-            # to=(order.member.email,),
-            body=body,
-        )
+    message: Message = Message(
+        template_data={
+            "member_name": order.member.name,
+            "book_title": order.book.title,
+            "reservations_id": order.reservation.pk,
+            "reservations_url": reservations_url,
+        },
+        template_name="MemberReservationConfirmed",
     )
-    email_sent = mailer.send()
+    email_sent = Mailer.send_templated_email(message)
 
     return {"sent": email_sent}
 
@@ -92,19 +81,13 @@ def send_reservation_confirmed_email(order_id: int, reservation_id: int) -> dict
 def send_extension_request_received_email(extension_id: int) -> dict[str, int]:
     extension_admin_path = reverse("admin:books_reservationextension_change", kwargs={"object_id": extension_id})
     extension_admin_url = urljoin(env("PRODUCTION_URL"), extension_admin_path)
-
-    body = f"""
-        Hi admin! <br />
-        New reservation extension request received. <br />
-        Please, process it <a href='{extension_admin_url}' target='_blank'>here</a>
-    """
-    mailer = Mailer(
-        Message(
-            subject="New reservation extension request",
-            body=body,
-        )
+    message: Message = Message(
+        template_data={
+            "extension_admin_url": extension_admin_url,
+        },
+        template_name="AdminReservationExtensionRequested",
     )
-    email_sent = mailer.send()
+    email_sent = Mailer.send_templated_email(message)
 
     return {"sent": email_sent}
 
@@ -119,20 +102,16 @@ def send_reservation_extension_approved_email(reservation_id: int) -> dict[str, 
         return {"error": f"Reservation with id {reservation_id} does not exist"}
 
     reservations_url = urljoin(env("PRODUCTION_URL"), "account/reservations/")
-    body = f"""
-        Hi {reservation.member.name}! <br />
-        Your "{reservation.book.title}" reservation is now extended till {reservation.term}. <br />
-        View all your reservations <a href='{reservations_url}' target='_blank'>here</a>
-    """
-
-    mailer = Mailer(
-        Message(
-            subject=f'Your "{reservation.book.title}" reservation was approved.',
-            body=body,
-        )
+    message: Message = Message(
+        template_data={
+            "member_name": reservation.member.name,
+            "book_title": reservation.book.title,
+            "reservation_term": str(reservation.term),
+            "reservations_url": reservations_url,
+        },
+        template_name="MemberReservationExtensionApproved",
     )
-
-    email_sent = mailer.send()
+    email_sent = Mailer.send_templated_email(message)
 
     return {"sent": email_sent}
 
@@ -141,19 +120,13 @@ def send_reservation_extension_approved_email(reservation_id: int) -> dict[str, 
 def send_member_registration_request_received(member_id: int) -> dict[str, int]:
     member_admin_path = reverse("admin:users_member_change", kwargs={"object_id": member_id})
     member_admin_url = urljoin(env("PRODUCTION_URL"), member_admin_path)
-
-    body = f"""
-        Hi admin! <br />
-        New member registration request received. Check <a href='{member_admin_url}' target='_blank'>here</a>
-    """
-    mailer = Mailer(
-        Message(
-            subject="Registration request received",
-            # to=env("LIBRARIAN_ADMIN_EMAIL"),
-            body=body,
-        )
+    message: Message = Message(
+        template_data={
+            "member_admin_url": member_admin_url,
+        },
+        template_name="AdminMemberRegistrationRequestReceived",
     )
-    email_sent = mailer.send()
+    email_sent = Mailer.send_templated_email(message)
 
     return {"sent": email_sent}
 
@@ -165,22 +138,14 @@ def send_registration_notification_to_member(member_id: int) -> dict[str, Any]:
     except Member.DoesNotExist:
         return {"error": f"Member with id {member_id} does not exist"}
 
-    body = f"""
-        Hi {member.name}! <br />
-        Your registration code: {member.registration_code}. <br />
-        Please arrive to library to complete registration. <br />
-        Don't forget to bring your ID card.
-    """
-
-    mailer = Mailer(
-        Message(
-            subject="Thanks! Your registration request received",
-            # to=env("member.email"),
-            body=body,
-        )
+    message: Message = Message(
+        template_data={
+            "member_name": member.name,
+            "member_registration_code": member.registration_code,
+        },
+        template_name="MemberRegistrationNotification",
     )
-
-    email_sent = mailer.send()
+    email_sent = Mailer.send_templated_email(message)
 
     return {"sent": email_sent}
 
@@ -196,23 +161,13 @@ def send_password_reset_link_to_member(member_id: int) -> dict[str, Any]:
             return {"error": f"Member with id {member_id} does not exist"}
 
     password_reset_url = urljoin(env("PRODUCTION_URL"), f"/reset-password/{member.password_reset_token}")
-
-    body = f"""
-        Hi {member.name}! <br />
-        You requested password reset recently. <br />
-        Please visit that link below to set a new password for your account: <br />
-        <a href='{password_reset_url}' target='_blank'>Reset password</a> <br />
-        Link expires in 1 hour.
-    """
-
-    mailer = Mailer(
-        Message(
-            subject="Password reset request",
-            # to=env("member.email"),
-            body=body,
-        )
+    message: Message = Message(
+        template_data={
+            "member_name": member.name,
+            "password_reset_url": password_reset_url,
+        },
+        template_name="MemberPasswordResetLink",
     )
-
-    email_sent = mailer.send()
+    email_sent = Mailer.send_templated_email(message)
 
     return {"sent": email_sent}

@@ -1,0 +1,8 @@
+{
+    "Template": {
+        "TemplateName": "MemberReservationReminder",
+        "SubjectPart": "Reservation term is ending in {{due_in_days}} days",
+        "HtmlPart": "Hi {{member_name}}!<br />Your book '{{book_title}}' reservation is due on {{reservation_term}}.<br />Please return it on time or extend it. <br />Otherwise, you will be charged a fine. <br />Check all your reservations <a href='{{reservations_url}}' target='_blank'>here</a>",
+        "TextPart": "Hi {{member_name}}!\r\nYour book '{{book_title}}' reservation is due on {{reservation_term}}.\r\nPlease return it on time or extend it. \r\nOtherwise, you will be charged a fine. \r\nCheck all your reservations <a href='{{reservations_url}}' target='_blank'>here</a>"
+    }
+}

@@ -8,8 +8,8 @@ def test_send_order_created_email(mock_mailer):
     result = send_order_created_email.delay(order_id).get()
 
     assert result["sent"] == 1
-    message: Message = mock_mailer.call_args[0][0]
-    assert message.subject == "Book order created"
-    assert "Hi admin!" in message.body
-    assert "Please process new book order" in message.body
-    assert "https://example.com/admin/books/order/1/change/" in message.body
+    message: Message = mock_mailer.send_templated_email.call_args[0][0]
+    assert message.template_name == "AdminOrderCreated"
+    assert message.template_data == {
+        "order_url": "https://example.com/admin/books/order/1/change/",
+    }
