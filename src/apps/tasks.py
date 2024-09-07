@@ -29,8 +29,10 @@ def send_reservation_term_reminder(due_in_days: int = 2) -> dict[str, int]:
             template_name="MemberReservationReminder",
         )
         messages.append(message)
-
-    emails_sent = Mailer.send_mass_templated_email(messages)
+    emails_sent = Mailer.send_bulk_templated_email(
+        messages,
+        template="MemberReservationReminder",
+    )
     return {
         "sent": emails_sent,
         "messages_amount": len(messages),
