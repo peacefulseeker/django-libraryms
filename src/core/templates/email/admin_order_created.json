@@ -1,0 +1,8 @@
+{
+    "Template": {
+        "TemplateName": "AdminOrderCreated",
+        "SubjectPart": "Book order created",
+        "HtmlPart": "Hi admin!<br />Please process new book order <a href='{{order_url}}' target='_blank'>here</a>",
+        "TextPart": "Hi admin!\r\nPlease process new book order <a href='{{order_url}}' target='_blank'>here</a>"
+    }
+}

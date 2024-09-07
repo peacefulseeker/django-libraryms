@@ -12,8 +12,8 @@ def test_success(mock_mailer):
     result = send_extension_request_received_email.delay(extension_id).get()
 
     assert result["sent"]
-    message: Message = mock_mailer.call_args[0][0]
-    assert message.subject == "New reservation extension request"
-    assert "Hi admin!" in message.body
-    assert "New reservation extension request received" in message.body
-    assert "https://example.com/admin/books/reservationextension/1/change/" in message.body
+    message: Message = mock_mailer.send_templated_email.call_args[0][0]
+    assert message.template_name == "AdminReservationExtensionRequested"
+    assert message.template_data == {
+        "extension_admin_url": "https://example.com/admin/books/reservationextension/1/change/",
+    }

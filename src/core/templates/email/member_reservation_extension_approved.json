@@ -1,0 +1,8 @@
+{
+    "Template": {
+        "TemplateName": "MemberReservationExtensionApproved",
+        "SubjectPart": "Your \"{{ book_title }}\" reservation was approved.",
+        "HtmlPart": "Hi {{member_name}}! <br />Your \"{{book_title}}\" reservation is now extended till {{reservation_term}}. <br />View all your reservations <a href='{{reservations_url}}' target='_blank'>here</a>",
+        "TextPart": "Hi {{member_name}}! \r\nYour \"{{book_title}}\" reservation is now extended till {{reservation_term}}. \r\nView all your reservations <a href='{{reservations_url}}' target='_blank'>here</a>"
+    }
+}

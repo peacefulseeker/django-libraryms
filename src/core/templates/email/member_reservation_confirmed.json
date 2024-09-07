@@ -1,0 +1,8 @@
+{
+    "Template": {
+        "TemplateName": "MemberReservationConfirmed",
+        "SubjectPart": "Book is ready to be issued",
+        "HtmlPart": "Hi {{ member_name }}!<br />\"{{ book_title }}\" book is ready to be picked up. <br /> Your Reservation ID: {{ reservations_id }} <br />View all your reservations <a href='{{ reservations_url }}' target='_blank'>here</a>",
+        "TextPart": "Hi {{ member_name }}!\r\n\"{{ book_title }}\" book is ready to be picked up. \r\n Your Reservation ID: {{ reservations_id }} \r\nView all your reservations <a href='{{ reservations_url }}' target='_blank'>here</a>"
+    }
+}

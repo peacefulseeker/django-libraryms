@@ -20,7 +20,11 @@ def test_success(mock_mailer, member_reservation):
     member: Member = member_reservation.member
 
     assert result["sent"]
-    message: Message = mock_mailer.call_args[0][0]
-    assert message.subject == f'Your "{member_reservation.book.title}" reservation was approved.'
-    assert f"Hi {member.first_name}!" in message.body
-    assert f'Your "{member_reservation.book.title}" reservation is now extended till {member_reservation.term}. <br />' in message.body
+    message: Message = mock_mailer.send_templated_email.call_args[0][0]
+    assert message.template_name == "MemberReservationExtensionApproved"
+    assert message.template_data == {
+        "member_name": member.name,
+        "book_title": member_reservation.book.title,
+        "reservation_term": str(member_reservation.term),
+        "reservations_url": "https://example.com/account/reservations/",
+    }

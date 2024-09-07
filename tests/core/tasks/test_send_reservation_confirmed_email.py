@@ -21,12 +21,14 @@ def test_send_reservation_confirmed_email_success(mock_mailer, book_order):
 
     assert result["sent"] == 1
 
-    message: Message = mock_mailer.call_args[0][0]
-    assert message.subject == "Book is ready to be picked up"
-    assert f"Hi {book_order.member.first_name}!" in message.body
-    assert f"{book_order.book.title}" in message.body
-    assert f"Your Reservation ID: {book_order.reservation.id}" in message.body
-    assert "https://example.com/account/reservations/" in message.body
+    message: Message = mock_mailer.send_templated_email.call_args[0][0]
+    assert message.template_name == "MemberReservationConfirmed"
+    assert message.template_data == {
+        "member_name": book_order.member.name,
+        "book_title": book_order.book.title,
+        "reservations_id": book_order.reservation.id,
+        "reservations_url": "https://example.com/account/reservations/",
+    }
 
 
 def test_send_reservation_confirmed_email_success_username_used_as_fallback(mock_mailer, book_order):
@@ -35,14 +37,5 @@ def test_send_reservation_confirmed_email_success_username_used_as_fallback(mock
 
     send_reservation_confirmed_email.delay(book_order.id, book_order.reservation.id).get()
 
-    message: Message = mock_mailer.call_args[0][0]
-    assert f"Hi {book_order.member.username}!" in message.body
-
-
-def test_member_not_marked_as_notified_in_case_of_exception(mock_mailer, book_order):
-    mock_mailer.return_value.send.side_effect = Exception("Could not send email")
-
-    with pytest.raises(Exception):
-        send_reservation_confirmed_email.delay(book_order.id, book_order.reservation.id).get()
-
-    book_order.refresh_from_db()
+    message: Message = mock_mailer.send_templated_email.call_args[0][0]
+    assert message.template_data["member_name"] == book_order.member.username

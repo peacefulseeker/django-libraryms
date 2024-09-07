@@ -1,14 +1,20 @@
-from typing import NamedTuple
+import json
+import logging
+from typing import Any, NamedTuple
 
 import sentry_sdk
 from django.conf import settings
 from django.core.mail import EmailMessage, get_connection
 from django_ses import SESBackend
+from mypy_boto3_ses import SESClient
+from mypy_boto3_ses.type_defs import SendBulkTemplatedEmailResponseTypeDef
+
+logger = logging.getLogger()
 
 
 class Message(NamedTuple):
-    subject: str
-    body: str
+    template_name: str
+    template_data: dict[str, Any] = {}
     from_email: str = settings.AWS_SES_FROM_EMAIL
     to: list[str] | tuple[str] = (settings.AWS_SES_FROM_EMAIL,)
     reply_to: list[str] | tuple[str] = ("noreply@django-libraryms.fly.dev",)
@@ -19,61 +25,79 @@ class HtmlEmailMessage(EmailMessage):
 
 
 class Mailer:
-    def __init__(self, message: Message):
-        self.email = HtmlEmailMessage(
-            subject=message.subject,
-            body=Mailer.compact_body(message.body),
-            from_email=message.from_email,
-            to=message.to,
-            reply_to=message.reply_to,
-        )
-
-    def send(self) -> int:
-        """
-        The return value will be the number of successfully delivered messages
-        (which can be 0 or 1 since it can only send one message).
-        """
-        return self.email.send()
-
     @classmethod
-    def compact_body(cls, body: str) -> str:
-        "Strips whitespaces before/after and within each body line"
-
-        return "".join([line.strip() for line in body.split("\n")])
-
-    @classmethod
-    def send_mass_mail(cls, messages: list[Message], fail_silently: bool = False) -> int:
+    def send_templated_email(cls, message: Message) -> int:
         """
-        Extends Django's send_mass_mail() to support sending mass emails as html by default.
+        Sends templated email using Amazon SES or prints to console if not using SES.
         """
 
-        connection: SESBackend = get_connection(fail_silently=fail_silently)
-        html_messages = [
-            HtmlEmailMessage(
-                subject=message.subject,
-                body=cls.compact_body(message.body),
-                from_email=message.from_email,
-                to=message.to,
-                connection=connection,
+        backend: SESBackend = get_connection()
+        if not hasattr(backend, "connection"):
+            logger.info(f"Sending '{message.template_name}' email to {message.to}")
+            return 1
+
+        num_sent = 0
+        new_conn_created = backend.open()
+        try:
+            ses_client: SESClient = backend.connection
+            ses_client.send_templated_email(
+                Source=message.from_email,
+                Destination={
+                    "ToAddresses": message.to,
+                },
+                ReplyToAddresses=message.reply_to,
+                Template=message.template_name,
+                TemplateData=json.dumps(message.template_data),
             )
-            for message in messages
-        ]
-        emails_sent = connection.send_messages(html_messages)
+            num_sent += 1
+            logger.info(f"Sent '{message.template_name}' email to {message.to}")
+        except Exception as exc:
+            sentry_sdk.capture_exception(exc)
 
-        if fail_silently:
-            failed_delivery = [m for m in html_messages if m.extra_headers.get("status", 200) != 200]
-            for failed_email in failed_delivery:
-                sentry_sdk.capture_message(
-                    "Failed to send reminder email",
-                    extra={
-                        "status": failed_email.extra_headers["status"],
-                        "message": failed_email.extra_headers["message"],
-                        "reason": failed_email.extra_headers["reason"],
-                        "error_message": failed_email.extra_headers["error_message"],
-                        "error_code": failed_email.extra_headers["error_code"],
-                    },
-                )
-            # TODO: add failure emailure deliveries for retry in separate periodict task
-            # .e.g by saving all context in FailedEmail model
+        if new_conn_created:
+            backend.close()
 
-        return emails_sent
+        return num_sent
+
+    @classmethod
+    def send_bulk_templated_email(cls, messages: list[Message], template: str) -> int:
+        backend: SESBackend = get_connection()
+        if not hasattr(backend, "connection"):
+            logger.info(f"Sending '{template}' email to [{[', '.join(message.to) for message in messages]}]")
+            return len(messages)
+
+        num_sent = 0
+        new_conn_created = backend.open()
+        try:
+            ses_client: SESClient = backend.connection
+            response: SendBulkTemplatedEmailResponseTypeDef = ses_client.send_bulk_templated_email(
+                Source=Message._field_defaults["from_email"],
+                ReplyToAddresses=Message._field_defaults["reply_to"],
+                DefaultTemplateData="{}",
+                Template=template,
+                Destinations=[
+                    {
+                        "Destination": {
+                            "ToAddresses": message.to,
+                        },
+                        "ReplacementTemplateData": json.dumps(message.template_data),
+                    }
+                    for message in messages
+                ],
+            )
+
+            for message in response["Status"]:
+                if message["Status"] == "Success":
+                    num_sent += 1
+                else:
+                    sentry_sdk.capture_message(
+                        f"Failed to deliver email. Status: {message['Status']}, Error: {message['Error']}",
+                        level="error",
+                    )
+        except Exception as exc:
+            sentry_sdk.capture_exception(exc)
+
+        if new_conn_created:
+            backend.close()
+
+        return num_sent
