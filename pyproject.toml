@@ -54,18 +54,17 @@ ruff = "^0.5.1"
 toml-sort = "^0.23.1"
 
 [tool.coverage.report]
+exclude_also = [
+    "if DEBUG",
+    "if TYPE_CHECKING",
+    "if settings.DEBUG",
+]
 omit = [
     "*/migrations/*",
     "src/core/conf/*",
     "src/core/middleware/sql.py",
     "src/core/wsgi.py",
 ]
-exclude_also = [
-    "if TYPE_CHECKING",
-    "if settings.DEBUG",
-    "if DEBUG",
-]
-
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
