@@ -1,7 +1,7 @@
 from typing import Any
 from urllib.parse import urljoin
 
-import requests
+import requests  # type: ignore[import-untyped]
 from celery import Task as BaseTask
 from celery import shared_task
 from celery_singleton import Singleton

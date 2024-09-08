@@ -111,7 +111,6 @@ files = [
 botocore-stubs = "*"
 mypy-boto3-s3 = {version = ">=1.35.0,<1.36.0", optional = true, markers = "extra == \"s3\""}
 mypy-boto3-ses = {version = ">=1.35.0,<1.36.0", optional = true, markers = "extra == \"ses\""}
-mypy-boto3-sesv2 = {version = ">=1.35.0,<1.36.0", optional = true, markers = "extra == \"sesv2\""}
 types-s3transfer = "*"
 typing-extensions = {version = ">=4.1.0", markers = "python_version < \"3.12\""}
 
@@ -1650,20 +1649,6 @@ files = [
 typing-extensions = {version = ">=4.1.0", markers = "python_version < \"3.12\""}
 
 [[package]]
-name = "mypy-boto3-sesv2"
-version = "1.35.0"
-description = "Type annotations for boto3.SESV2 1.35.0 service generated with mypy-boto3-builder 7.26.0"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "mypy_boto3_sesv2-1.35.0-py3-none-any.whl", hash = "sha256:6c0e44c1521b6f505edee9b416a2b78b3c2cfa5f69bab34bec71f15758a3e39a"},
-    {file = "mypy_boto3_sesv2-1.35.0.tar.gz", hash = "sha256:6caad4ec7b9f69f534125b74e532d9acfc9cb3793110774970aa7a8b0581ede9"},
-]
-
-[package.dependencies]
-typing-extensions = {version = ">=4.1.0", markers = "python_version < \"3.12\""}
-
-[[package]]
 name = "mypy-extensions"
 version = "1.0.0"
 description = "Type system extensions for programs checked with the mypy type checker."
@@ -2324,20 +2309,6 @@ files = [
 ]
 
 [[package]]
-name = "types-requests"
-version = "2.32.0.20240907"
-description = "Typing stubs for requests"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "types-requests-2.32.0.20240907.tar.gz", hash = "sha256:ff33935f061b5e81ec87997e91050f7b4af4f82027a7a7a9d9aaea04a963fdf8"},
-    {file = "types_requests-2.32.0.20240907-py3-none-any.whl", hash = "sha256:1d1e79faeaf9d42def77f3c304893dea17a97cae98168ac69f3cb465516ee8da"},
-]
-
-[package.dependencies]
-urllib3 = ">=2"
-
-[[package]]
 name = "types-s3transfer"
 version = "0.10.2"
 description = "Type annotations and code completion for s3transfer"
@@ -2429,4 +2400,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "11acad8d851e1972a68034a2b49d518ba49dd0154ee57b8f7416aaadee3a14c1"
+content-hash = "501f3ea3f2d7795a1bc46b8c33a7f2be5479aee013c00afe56419d3e9f924b00"

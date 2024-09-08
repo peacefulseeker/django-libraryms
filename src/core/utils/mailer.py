@@ -1,15 +1,17 @@
 import json
 import logging
-from typing import Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import sentry_sdk
 from django.conf import settings
 from django.core.mail import EmailMessage, get_connection
 from django_ses import SESBackend
-from mypy_boto3_ses import SESClient
-from mypy_boto3_ses.type_defs import SendBulkTemplatedEmailResponseTypeDef
 
 logger = logging.getLogger()
+
+if TYPE_CHECKING:
+    from mypy_boto3_ses import SESClient
+    from mypy_boto3_ses.type_defs import SendBulkTemplatedEmailResponseTypeDef
 
 
 class Message(NamedTuple):
@@ -39,7 +41,7 @@ class Mailer:
         num_sent = 0
         new_conn_created = backend.open()
         try:
-            ses_client: SESClient = backend.connection
+            ses_client: "SESClient" = backend.connection
             ses_client.send_templated_email(
                 Source=message.from_email,
                 Destination={
@@ -70,7 +72,7 @@ class Mailer:
         new_conn_created = backend.open()
         try:
             ses_client: SESClient = backend.connection
-            response: SendBulkTemplatedEmailResponseTypeDef = ses_client.send_bulk_templated_email(
+            response: "SendBulkTemplatedEmailResponseTypeDef" = ses_client.send_bulk_templated_email(
                 Source=Message._field_defaults["from_email"],
                 ReplyToAddresses=Message._field_defaults["reply_to"],
                 DefaultTemplateData="{}",
