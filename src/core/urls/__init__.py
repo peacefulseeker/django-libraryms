@@ -14,10 +14,10 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    from debug_toolbar.toolbar import debug_toolbar_urls  # pragma: no cover
+    from debug_toolbar.toolbar import debug_toolbar_urls
 
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # pragma: no cover
-    urlpatterns += debug_toolbar_urls()  # pragma: no cover
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += debug_toolbar_urls()
 
 urlpatterns += [
     path("", VueAppView.as_view(), name="app_home"),

@@ -60,6 +60,12 @@ omit = [
     "src/core/middleware/sql.py",
     "src/core/wsgi.py",
 ]
+exclude_also = [
+    "if TYPE_CHECKING",
+    "if settings.DEBUG",
+    "if DEBUG",
+]
+
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"

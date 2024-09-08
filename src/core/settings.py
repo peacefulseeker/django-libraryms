@@ -28,4 +28,4 @@ include(
 )
 
 if DEBUG:
-    include("conf/debug_toolbar.py")  # pragma: no cover
+    include("conf/debug_toolbar.py")
