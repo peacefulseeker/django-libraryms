@@ -13,6 +13,8 @@ INSTALLED_APPS = [
     "django_filters",
     "django_celery_results",
     "django_celery_beat",
+    "drf_spectacular",
+    # "drf_spectacular_sidecar", # TODO: not sure actually needed.
     "rest_framework",
     "rest_framework_simplejwt",
     "simple_history",

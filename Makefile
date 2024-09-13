@@ -43,7 +43,7 @@ test:
 testwithcoverage:
 	$(testwithcoverage)
 
-testwithhtmlcoverage:
+testwithcoveragehtml:
 	$(testwithcoverage) --cov-report=html:htmlcov
 
 opencoverage:
@@ -61,6 +61,11 @@ lint:
 	poetry run toml-sort pyproject.toml --check
 	poetry run mypy src
 
+validate_schema:
+	$(manage) spectacular --file schema.yaml --validate
+
+generate_schema:
+	$(manage) spectacular --color --file schema.yaml
 
 # docker
 celery_restart:

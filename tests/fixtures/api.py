@@ -33,12 +33,24 @@ def as_another_member(authenticated_client, another_member) -> APIClient:
 
 
 @pytest.fixture
+def as_admin_client(authenticated_client, admin_user) -> APIClient:
+    return authenticated_client(admin_user)
+
+
+@pytest.fixture
+def as_librarian_staff_client(authenticated_client, librarian_staff) -> APIClient:
+    return authenticated_client(librarian_staff)
+
+
+@pytest.fixture
 def as_admin(client, admin_user) -> APIClient:
+    """For admin area"""
     client.force_login(user=admin_user)
     return client
 
 
 @pytest.fixture
 def as_librarian_staff(client, librarian_staff) -> APIClient:
+    """For admin area"""
     client.force_login(user=librarian_staff)
     return client

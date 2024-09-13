@@ -1,8 +1,16 @@
+from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
 from apps.books.models import Author, Book, Publisher, Reservation
 from apps.books.models.book import Order
 from apps.users.models import User
+
+DetailInlineSerializer = inline_serializer(
+    "DetailInline",
+    fields={
+        "detail": serializers.CharField(),
+    },
+)
 
 
 class SerializerMixin(serializers.ModelSerializer):

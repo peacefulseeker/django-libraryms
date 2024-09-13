@@ -4,12 +4,12 @@ from django.db import transaction
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
-from rest_framework import filters, generics
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema, inline_serializer
+from rest_framework import filters, generics, serializers
 from rest_framework import status as status_codes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.books.api.serializers import (
     BookEnqueuedByMemberSerializer,
@@ -17,6 +17,7 @@ from apps.books.api.serializers import (
     BookMemberSerializer,
     BookSerializer,
     BooksReservedByMemberSerializer,
+    DetailInlineSerializer,
 )
 from apps.books.const import OrderStatus
 from apps.books.models import Book
@@ -84,10 +85,78 @@ class BookDetailView(ViewSetMixin, generics.RetrieveAPIView):
         return queryset
 
 
-class BookOrderView(APIView):
+@extend_schema(
+    request=None,
+)
+class BookOrderView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="book_order_create",
+        responses={
+            status_codes.HTTP_200_OK: OpenApiResponse(
+                inline_serializer(
+                    "BookOrderSuccessSerializer",
+                    fields={
+                        "detail": serializers.CharField(),
+                        "book_id": serializers.IntegerField(),
+                        "order_id": serializers.IntegerField(),
+                    },
+                ),
+                examples=[
+                    OpenApiExample(
+                        "Book reserved",
+                        value={
+                            "detail": "Order created and book reserved",
+                            "book_id": 1,
+                            "order_id": 1,
+                        },
+                    ),
+                    OpenApiExample(
+                        "Book put in queue",
+                        value={
+                            "detail": "Order created and put in queue",
+                        },
+                    ),
+                ],
+            ),
+            status_codes.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response=DetailInlineSerializer,
+                examples=[
+                    OpenApiExample(
+                        "Book is not available",
+                        value={
+                            "detail": "Book is not available",
+                        },
+                    ),
+                    OpenApiExample(
+                        "Maximum number of reservations reached",
+                        value={
+                            "detail": "Maximum number of reservations reached",
+                        },
+                    ),
+                    OpenApiExample(
+                        "Book is already reserved",
+                        value={
+                            "detail": "Book is already reserved",
+                        },
+                    ),
+                    OpenApiExample(
+                        "Book is already in queue",
+                        value={
+                            "detail": "Book is already in queue",
+                        },
+                    ),
+                ],
+            ),
+        },
+    )
     def post(self, request: Request, book_id: int) -> Response:
+        """
+        Places a book order and reserves it for for an authenticated member if books is available,
+        otherwise places an order to a book queue.
+        """
+
         if self._max_reservations_reached(request.user):
             return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("Maximum number of reservations reached")})
 
@@ -105,7 +174,24 @@ class BookOrderView(APIView):
 
         return Response({"detail": message, "order_id": order.id, "book_id": book_id})
 
+    @extend_schema(
+        operation_id="book_order_cancel",
+        responses={
+            status_codes.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description="Reservation cancelled",
+            ),
+            status_codes.HTTP_404_NOT_FOUND: OpenApiResponse(
+                response=DetailInlineSerializer,
+                description="No cancellable order found",
+            ),
+        },
+    )
     def delete(self, request: Request, book_id: int) -> Response:
+        """
+        Cancels a book reservation or order for a authenticated member
+        if cancellable order exists.
+        """
+
         return self._cancel_order(book_id, request.user)
 
     def _cancel_order(self, book_id: int, member: Member) -> Response:
@@ -113,7 +199,7 @@ class BookOrderView(APIView):
             order = self._cancellable_order(book_id, member).select_related("book", "reservation").get()
             order.cancel()
         except Order.DoesNotExist:
-            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No cancellable order found")})
+            return Response(status=status_codes.HTTP_404_NOT_FOUND, data={"detail": _("No cancellable order found")})
 
         return Response(status=status_codes.HTTP_204_NO_CONTENT)
 
@@ -149,14 +235,46 @@ class BookOrderView(APIView):
         return book.enqueued_orders.count() >= Order.MAX_QUEUED_ORDERS_ALLOWED
 
 
-class BookReservationExtendView(APIView):
+@extend_schema(
+    request=None,
+)
+class BookReservationExtendView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="request_reservation_extension",
+        responses={
+            status_codes.HTTP_200_OK: OpenApiResponse(
+                response=DetailInlineSerializer,
+                description="Reservation extended",
+            ),
+            status_codes.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response=DetailInlineSerializer,
+                examples=[
+                    OpenApiExample(
+                        "Extension already requested",
+                        value={
+                            "detail": "Reservation extension already requested",
+                        },
+                    ),
+                    OpenApiExample(
+                        "Can not be extended",
+                        value={
+                            "detail": "Reservation cannot be extended",
+                        },
+                    ),
+                ],
+            ),
+        },
+    )
     def post(self, request: Request, book_id: int) -> Response:
+        """
+        Requests a reservation extension for for current member book reservation.
+        """
         try:
             reservation: Reservation = Reservation.objects.with_extensions().get(book=book_id, member=request.user)
         except Reservation.DoesNotExist:
-            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No reservation found")})
+            return Response(status=status_codes.HTTP_404_NOT_FOUND, data={"detail": _("No reservation found")})
 
         if reservation.has_requested_extension:
             return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("Reservation extension already requested")})
@@ -169,11 +287,38 @@ class BookReservationExtendView(APIView):
 
         return Response(status=status_codes.HTTP_200_OK, data={"detail": _("Reservation extension requested")})
 
+    @extend_schema(
+        operation_id="cancel_reservation_extension",
+        responses={
+            status_codes.HTTP_200_OK: OpenApiResponse(
+                response=DetailInlineSerializer,
+                description="Reservation extension cancelled",
+                examples=[
+                    OpenApiExample(
+                        "No more extensions left",
+                        value={
+                            "detail": "You have no more extensions available for this book",
+                        },
+                    ),
+                    OpenApiExample(
+                        "1 extension left",
+                        value={
+                            "detail": "You have 1 more extension available for this book",
+                        },
+                    ),
+                ],
+            ),
+            status_codes.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response=DetailInlineSerializer,
+                description="No cancellable reservation extension found",
+            ),
+        },
+    )
     def delete(self, request: Request, book_id: int) -> Response:
         try:
             reservation: Reservation = Reservation.objects.with_requested_extensions().get(book=book_id, member=request.user)
         except Reservation.DoesNotExist:
-            return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No reservation found")})
+            return Response(status=status_codes.HTTP_404_NOT_FOUND, data={"detail": _("No reservation found")})
 
         if not reservation.requested_extensions:
             return Response(status=status_codes.HTTP_400_BAD_REQUEST, data={"detail": _("No cancellable reservation extension found")})
