@@ -2,6 +2,7 @@ from typing import Any, Protocol
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
@@ -47,16 +48,19 @@ class CookieTokenMixin(WithAPIViewProtocol):
             del response.data["refresh"]
 
 
+@extend_schema(description="Obtains the access token based on the credentials provided in the request.")
 class CookieTokenObtainPairView(CookieTokenMixin, TokenObtainPairView):
     serializer_class = CookieTokenObtainSerializer  # type: ignore[assignment]
     throttle_classes = [AnonRateThrottle]
 
+    @extend_schema(description="Deletes the refresh token cookie from request.")
     def delete(self, request: Request) -> Response:
         response = Response(data={}, status=HTTP_204_NO_CONTENT)
         response.delete_cookie(settings.SIMPLE_JWT["REFRESH_TOKEN_COOKIE_NAME"])
         return response
 
 
+@extend_schema(description="Refreshes the access token based on refresh cookie in request.")
 class CookieTokenRefreshView(CookieTokenMixin, TokenRefreshView):
     serializer_class = CookieTokenRefreshSerializer  # type: ignore[assignment]
     throttle_classes = [AnonRateThrottle]
@@ -68,7 +72,7 @@ class MemberRegistrationRequestView(generics.CreateAPIView):
     throttle_classes = [AnonRateThrottle]
 
 
-class MemberProfileView(generics.RetrieveUpdateAPIView):
+class MemberProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserProfileSerializer
 

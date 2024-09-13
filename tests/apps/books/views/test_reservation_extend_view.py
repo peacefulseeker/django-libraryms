@@ -40,7 +40,7 @@ class TestReservationExtendView:
     def test_reservation_not_found(self, as_another_member, member_reservation: Reservation):
         response: Response = as_another_member.post(self.url)
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.data["detail"] == "No reservation found"
 
         assert member_reservation.extensions.count() == 0
@@ -74,7 +74,7 @@ class TestReservationExtendCancelView:
     def test_reservation_not_found(self, as_another_member, member_reservation):
         response: Response = as_another_member.delete(self.url)
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.data["detail"] == "No reservation found"
 
     def test_no_requested_extension_exists(self, as_member, member_reservation):

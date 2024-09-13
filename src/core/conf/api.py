@@ -23,6 +23,7 @@ REST_FRAMEWORK = {
         "password_reset": THROTTLING_PASSWORD_RESET_RATE,
         "password_reset_confirm": THROTTLING_PASSWORD_RESET_CONFIRM_RATE,
     },
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
@@ -31,4 +32,11 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_COOKIE_SAMESITE": "strict",
     "REFRESH_TOKEN_COOKIE_NAME": "refresh_token",
     "REFRESH_TOKEN_COOKIE_SECURE": env("REFRESH_TOKEN_COOKIE_SECURE"),
+}
+
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Django Library MS API",
+    "SERVE_INCLUDE_SCHEMA": False,  # excludes /docs from schema
+    "VERSION": "1.0.0",
 }
