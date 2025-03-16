@@ -42,6 +42,7 @@ jobs:
       postgres:
         image: postgres:16
         env:
+          PGPORT: 5433
           POSTGRES_DB: test_web_libraryms
           POSTGRES_PASSWORD: postgres
           PGUSER: postgres # default for healthcheck
