@@ -36,16 +36,16 @@ boto3-stubs = {extras = ["s3", "ses"], version = "^1.35.14"}
 django-debug-toolbar = "^4.4.6"
 mixer = "^7.2.2"
 mypy = "^1.11.2"
+pytest = "8.3.5"
 pytest-cov = "^5.0.0"
 pytest-deadfixtures = "^2.2.1"
+pytest-django = "4.10.0"
 pytest-env = "^1.1.5"
 pytest-freezegun = "^0.4.2"
 pytest-mock = "^3.14.0"
 pytest-xdist = "^3.6.1"
 ruff = "^0.5.1"
 toml-sort = "^0.23.1"
-pytest-django = "4.10.0"
-pytest = "8.3.5"
 
 [tool.coverage.report]
 exclude_also = [
@@ -69,18 +69,18 @@ addopts = [
     "-p no:warnings",
 ]
 env = [
-    "DJANGO_SETTINGS_MODULE = core.settings",
     "CELERY_ALWAYS_EAGER = 1",
     "CI = 1",
     "DEFAULT_FILE_STORAGE = django.core.files.storage.memory.InMemoryStorage",
     "DISABLE_THROTTLING = 1",
+    "DJANGO_SETTINGS_MODULE = core.settings",
     "PRODUCTION_URL = https://example.com",
     "THROTTLING_ANON_RATE = 3/minute",
 ]
 python_files = "test*.py"
 pythonpath = [
     ".",
-    "src"
+    "src",
 ]
 
 [tool.ruff]
