@@ -1,14 +1,6 @@
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core>=1.8.3"]
-
 [tool.poetry]
-authors = ["Alexey Vorobyov <alexey.vorobyov.s@gmail.com>"]
-description = "Library management system"
 name = "django-libms"
 package-mode = false
-readme = "README.md"
-version = "0.1.0"
 
 [tool.poetry.dependencies]
 Django = "^5.0"
@@ -46,13 +38,14 @@ mixer = "^7.2.2"
 mypy = "^1.11.2"
 pytest-cov = "^5.0.0"
 pytest-deadfixtures = "^2.2.1"
-pytest-django = "^4.8.0"
-pytest-env = "^1.1.3"
+pytest-env = "^1.1.5"
 pytest-freezegun = "^0.4.2"
 pytest-mock = "^3.14.0"
 pytest-xdist = "^3.6.1"
 ruff = "^0.5.1"
 toml-sort = "^0.23.1"
+pytest-django = "4.10.0"
+pytest = "8.3.5"
 
 [tool.coverage.report]
 exclude_also = [
@@ -68,7 +61,6 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.settings"
 addopts = [
     "--capture=no",  # ouputs print statements / db warnings(e.g. Integrity errors)
     "--maxfail=1",
@@ -77,6 +69,7 @@ addopts = [
     "-p no:warnings",
 ]
 env = [
+    "DJANGO_SETTINGS_MODULE = core.settings",
     "CELERY_ALWAYS_EAGER = 1",
     "CI = 1",
     "DEFAULT_FILE_STORAGE = django.core.files.storage.memory.InMemoryStorage",
@@ -85,7 +78,10 @@ env = [
     "THROTTLING_ANON_RATE = 3/minute",
 ]
 python_files = "test*.py"
-pythonpath = ". src"
+pythonpath = [
+    ".",
+    "src"
+]
 
 [tool.ruff]
 line-length = 160

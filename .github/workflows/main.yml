@@ -63,7 +63,7 @@ jobs:
         uses: ./.github/actions/build
 
       - name: test with coverage
-        run: make testwithcoverage
+        run: DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_web_libraryms make testwithcoverage
 
       - name: Generate coverage badge
         if: github.ref == 'refs/heads/main'

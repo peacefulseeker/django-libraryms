@@ -1,15 +1,15 @@
-import django
+import sys
+
 import pytest
 
-# this allows to run pytest --help / pytest --version without erorrs :shrug:
-django.setup()
-
-
-pytest_plugins = [
-    "tests.fixtures.api",
-    "tests.fixtures.users",
-    "tests.fixtures.books",
-]
+# When running any of the following commands, we skip loading any fixtures
+# which usually lead to unwanted django setup related issues
+if not any(arg in sys.argv for arg in ['--help', '--version', '-h']):
+    pytest_plugins = [
+        "tests.fixtures.api",
+        "tests.fixtures.users",
+        "tests.fixtures.books",
+    ]
 
 
 # speeding up user creation with explicitly set password
