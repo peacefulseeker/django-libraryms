@@ -46,7 +46,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           PGUSER: postgres # default for healthcheck
         ports:
-          - 5432:5432
+          - 5433:5433
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -63,7 +63,7 @@ jobs:
         uses: ./.github/actions/build
 
       - name: test with coverage
-        run: DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_web_libraryms make testwithcoverage
+        run: make testwithcoverage
 
       - name: Generate coverage badge
         if: github.ref == 'refs/heads/main'

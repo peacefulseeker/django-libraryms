@@ -20,6 +20,8 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     env_file: .env.docker.dev
+    ports:
+      - 5433:5433
     healthcheck:
       test: pg_isready
       interval: 1s

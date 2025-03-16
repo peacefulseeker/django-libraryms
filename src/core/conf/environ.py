@@ -25,5 +25,3 @@ else:
 
 if envpath.exists():
     env.read_env(envpath)
-
-print(env.str("DATABASE_URL"))
