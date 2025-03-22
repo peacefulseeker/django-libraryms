@@ -6,22 +6,32 @@ testwithcoverage = $(test) \
 		--cov-report=term-missing:skip-covered \
 		--cov-fail-under=90
 
-PORT := 7070
+APP_SERVER_PORT := 7070
+DATE=$(shell date +%d-%m-%Y)
+PG_DUMP_REMOTE="dump-remote-$(DATE).sql"
+PG_DUMP_LOCAL="dump-local-$(DATE).sql"
+
+# AUTOLOADS ENV VARIABLES
+-include .env
+export $(shell sed 's/=.*//' .env)
 
 server:
-	$(manage) runserver $(PORT)
+	$(manage) runserver $(APP_SERVER_PORT)
 
 s:
 	make server
 
 prodserver:
-	poetry run gunicorn core.wsgi:application --chdir src --workers 2 -b localhost:$(PORT) -e DEBUG=false
+	poetry run gunicorn core.wsgi:application --chdir src --workers 2 -b localhost:$(APP_SERVER_PORT) -e DEBUG=false
 
 shell:
 	$(manage) shell
 
 sqldebugshell:
 	$(manage) debugsqlshell
+
+dbshell:
+	$(manage) dbshell
 
 static:
 	$(manage) collectstatic --no-input
@@ -84,3 +94,35 @@ upbuild:
 
 upbuildnocache:
 	docker compose up -d --build --force-recreate
+
+# POSTGRES(local and remote)
+# Proxies connections to a Fly Machine through a WireGuard tunnel.(remote:local)
+# autoselects first available machine
+pgproxy:
+	fly proxy 15432:5432 --app django-libraryms-db
+
+# connect to proxied db
+pgconnectremote:
+	PGPASSWORD=${PGPASSWORD_REMOTE} psql -h localhost -p 15432 -d django_libraryms -U postgres
+
+# or `manage.py dbshell` will do natively
+pgconnectlocal:
+	PGPASSWORD=${PGPASSWORD_LOCAL} psql -h localhost -U postgres -d  web_libraryms -p 5433
+
+# Dumps fly db django_libraryms to local file
+pgdumpremote:
+	PGPASSWORD=${PGPASSWORD_REMOTE} pg_dump -h localhost -p 15432 -U postgres django_libraryms > db/$(PG_DUMP_REMOTE)
+
+# Dumps local db django_libraryms to local file
+pgdumplocal:
+	PGPASSWORD=${PGPASSWORD_LOCAL} pg_dump -h localhost -p 5433 -U postgres web_libraryms > db/$(PG_DUMP_LOCAL)
+
+# Load local dump to remote(through proxy) fly pg django_libraryms database
+# change source to load(PG_DUMP_REMOTE to PG_DUMP_LOCAL)
+pgloadremote:
+	PGPASSWORD=${PGPASSWORD_REMOTE} psql -h localhost -p 15432 -U postgres django_libraryms < db/$(PG_DUMP_REMOTE)
+
+# Loads local dump to locally running postgres db(web_libraryms)
+# change source to load(PG_DUMP_REMOTE to PG_DUMP_LOCAL)
+pgloadlocal:
+	PGPASSWORD=${PGPASSWORD_LOCAL} psql -h localhost -U postgres -d web_libraryms -p 5433 < db/$(PG_DUMP_REMOTE)
