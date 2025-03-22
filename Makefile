@@ -74,6 +74,11 @@ celery_restart:
 up:
 	docker compose up -d
 
+# essential for main development
+upwebdb:
+	docker compose up web db -d
+
+# up all services in compose
 upbuild:
 	docker compose up -d --build
 

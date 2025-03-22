@@ -1,4 +1,13 @@
-#! /bin/sh
+#!/bin/sh
 
+# Default port with environment variable override capability
+PORT=${PORT:-7070}
+
+# Override from command line if provided
+if [ "$1" != "" ]; then
+    PORT=$1
+fi
+
+echo "Starting server on port ${PORT}..."
 python src/manage.py migrate
 python src/manage.py runserver 0.0.0.0:7070
