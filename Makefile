@@ -10,6 +10,8 @@ APP_SERVER_PORT := 7070
 DATE=$(shell date +%d-%m-%Y)
 PG_DUMP_REMOTE="dump-remote-$(DATE).sql"
 PG_DUMP_LOCAL="dump-local-$(DATE).sql"
+PROD_IMAGE_NAME="django-library-web-prod"
+PROD_IMAGE_TAG="latest"
 
 # AUTOLOADS ENV VARIABLES
 -include .env
@@ -77,7 +79,7 @@ validate_schema:
 generate_schema:
 	$(manage) spectacular --color --file schema.yaml
 
-# docker
+# DOCKER & COMPPOSE
 celery_restart:
 	docker compose restart celery_beat celery_worker
 
@@ -94,6 +96,28 @@ upbuild:
 
 upbuildnocache:
 	docker compose up -d --build --force-recreate
+
+dockerprodbuild:
+	docker build . -t ${PROD_IMAGE_NAME}:${PROD_IMAGE_TAG} --no-cache
+
+# NOTE: when loading from .env ENV vars such ALLOWED_HOSTS should NOT contain quotes around the values
+# DATABASE_URL is based on the db service in compose and default shared netework
+dockerprodrun:
+	docker run --name ${PROD_IMAGE_NAME} -d -p 8000:8000 \
+		--network django-libraryms_default \
+		-e DEBUG=false \
+		-e ALLOWED_HOSTS="localhost" \
+		-e DATABASE_URL="postgres://postgres:postgres@db:5433/web_libraryms" \
+		--env-file=src/core/.env ${PROD_IMAGE_NAME}:${PROD_IMAGE_TAG}
+
+dockerprodexec:
+	docker exec -it ${PROD_IMAGE_NAME} /bin/bash
+
+dockerprodlogs:
+	docker logs ${PROD_IMAGE_NAME} -f
+
+dockerprodremove:
+	docker rm -f ${PROD_IMAGE_NAME}
 
 # POSTGRES(local and remote)
 # Proxies connections to a Fly Machine through a WireGuard tunnel.(remote:local)

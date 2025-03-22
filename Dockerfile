@@ -1,13 +1,23 @@
 ARG PYTHON_VERSION=3.11-slim-bullseye
 
-from python:${PYTHON_VERSION} as poetry-deps-export
+FROM python:${PYTHON_VERSION} as poetry-deps-export
     WORKDIR /
 
-    RUN pip install poetry
+    ENV POETRY_VERSION=2.1.1
+
+    # Install dependencies first (changes less frequently)
     COPY pyproject.toml poetry.lock /
-    RUN poetry config virtualenvs.create false
-    RUN poetry install --no-root --no-interaction
-    RUN poetry export --without-hashes --format=requirements.txt --output requirements.txt
+
+    # Then install system and Python packages
+    RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpq-dev \
+        build-essential \
+        && rm -rf /var/lib/apt/lists/* \
+        && pip install --upgrade pip \
+        && pip install poetry==${POETRY_VERSION} poetry-plugin-export==1.9.0 \
+        && poetry config virtualenvs.create false \
+        && poetry install --no-root --no-interaction \
+        && poetry export --without-hashes --format=requirements.txt --output requirements.txt
 
 FROM python:${PYTHON_VERSION} as backend-build
 
@@ -16,9 +26,9 @@ FROM python:${PYTHON_VERSION} as backend-build
 
     RUN useradd --user-group --system --no-log-init --create-home appuser
 
-    RUN apt-get update && apt-get install -y \
+    RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev \
-        gcc \
+        build-essential \
         && rm -rf /var/lib/apt/lists/*
 
     COPY --from=poetry-deps-export /requirements.txt /
@@ -27,16 +37,15 @@ FROM python:${PYTHON_VERSION} as backend-build
 FROM backend-build as app
     WORKDIR /app
 
-    COPY src /app/src
+    # Copy files and set ownership in one step
+    COPY --chown=appuser:appuser src /app/src
 
-    RUN python src/manage.py collectstatic --no-input
-
-    RUN chown -R appuser .
+    # Run collectstatic as the appuser
     USER appuser
-
+    RUN python src/manage.py collectstatic --no-input
 
 FROM app as web
     EXPOSE 8000
 
-    HEALTHCHECK CMD curl -f http://localhost/ --header "Referer: healtcheck.django-libraryms.fly.dev" || exit 1
+    HEALTHCHECK CMD curl -f http://localhost/ --header "Referer: healthcheck.django-libraryms.fly.dev" || exit 1
     CMD python -m gunicorn --bind :8000 --chdir src --workers 2 core.wsgi:application
