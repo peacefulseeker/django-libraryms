@@ -10,6 +10,7 @@ __pycache__
 !.env.sample
 
 db/dump*
+db/backup/
 
 staticfiles/
 static/

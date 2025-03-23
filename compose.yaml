@@ -63,3 +63,4 @@ services:
 
 volumes:
   postgres-data:
+    name: django-libraryms_postgres-data

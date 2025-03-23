@@ -149,4 +149,4 @@ pgloadremote:
 # Loads local dump to locally running postgres db(web_libraryms)
 # change source to load(PG_DUMP_REMOTE to PG_DUMP_LOCAL)
 pgloadlocal:
-	PGPASSWORD=${PGPASSWORD_LOCAL} psql -h localhost -U postgres -d web_libraryms -p 5433 < db/$(PG_DUMP_REMOTE)
+	PGPASSWORD=${PGPASSWORD_LOCAL} psql -h localhost -U postgres -d web_libraryms -p 5433 < db/$(PG_DUMP_LOCAL)
