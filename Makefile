@@ -10,6 +10,7 @@ APP_SERVER_PORT := 7070
 DATE=$(shell date +%d-%m-%Y)
 PG_DUMP_REMOTE="dump-remote-$(DATE).sql"
 PG_DUMP_LOCAL="dump-local-$(DATE).sql"
+PG_REMOTE_APP_NAME="django-libraryms-db-pg-17"
 PROD_IMAGE_NAME="django-library-web-prod"
 PROD_IMAGE_TAG="latest"
 
@@ -123,7 +124,7 @@ dockerprodremove:
 # Proxies connections to a Fly Machine through a WireGuard tunnel.(remote:local)
 # autoselects first available machine
 pgproxy:
-	fly proxy 15432:5432 --app django-libraryms-db
+	fly proxy 15432:5432 --app ${PG_REMOTE_APP_NAME}
 
 # connect to proxied db
 pgconnectremote:
@@ -144,7 +145,7 @@ pgdumplocal:
 # Load local dump to remote(through proxy) fly pg django_libraryms database
 # change source to load(PG_DUMP_REMOTE to PG_DUMP_LOCAL)
 pgloadremote:
-	PGPASSWORD=${PGPASSWORD_REMOTE} psql -h localhost -p 15432 -U postgres django_libraryms < db/$(PG_DUMP_REMOTE)
+	PGPASSWORD=${PGPASSWORD_REMOTE} psql -h localhost -p 15432 -U postgres django_libraryms < db/dump-remote-20250323_125824.sql
 
 # Loads local dump to locally running postgres db(web_libraryms)
 # change source to load(PG_DUMP_REMOTE to PG_DUMP_LOCAL)
