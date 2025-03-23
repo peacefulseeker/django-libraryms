@@ -80,7 +80,7 @@ validate_schema:
 generate_schema:
 	$(manage) spectacular --color --file schema.yaml
 
-# DOCKER & COMPPOSE
+# DOCKER & COMPOSE
 celery_restart:
 	docker compose restart celery_beat celery_worker
 
