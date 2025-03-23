@@ -41,11 +41,9 @@ def test_spa_view_props(client, mock_data, expected):
         assert response.context["FRONTEND_ASSETS_URL"] == "/static/frontend/"
 
 
-def test_frontend_assets_url_from_env(client):
-    import os
-
-    os.environ["FRONTEND_ASSETS_VERSION"] = "timestamp_hash"
-    os.environ["AWS_S3_CUSTOM_DOMAIN"] = "cdn.example.com"
+def test_frontend_assets_url_from_env(client, monkeypatch):
+    monkeypatch.setenv("FRONTEND_ASSETS_VERSION", "timestamp_hash")
+    monkeypatch.setenv("AWS_S3_CUSTOM_DOMAIN", "cdn.example.com")
 
     response = client.get("/")
 

@@ -2,6 +2,7 @@
 .vscode/
 **/*.env
 .env.docker.dev
+.env.ci
 .git/
 .github/
 .tool-versions
@@ -14,6 +15,7 @@
 .pytest_cache/
 __pycache__/
 *.md
+
 
 demo/
 tests/

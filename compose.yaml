@@ -3,11 +3,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: /start_web
+    command: /app/scripts/start_web
     volumes:
-      - .:/app
+      - ./src:/app/src
     ports:
-      - 7004:7070
+      - 7004:7070 # Host:Container
+    environment:
+      - PORT=7070
     env_file: .env.docker.dev
     depends_on:
       db:
@@ -20,6 +22,8 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     env_file: .env.docker.dev
+    ports:
+      - 5433:5433
     healthcheck:
       test: pg_isready
       interval: 1s
@@ -33,9 +37,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: /start_celery_worker
+    command: /app/scripts/start_celery_worker
     volumes:
-      - .:/app
+      - ./src:/app/src
     env_file: .env.docker.dev
     depends_on:
       redis:
@@ -47,9 +51,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: /start_celery_beat
+    command: /app/scripts/start_celery_beat
     volumes:
-      - .:/app
+      - ./src:/app/src
     env_file: .env.docker.dev
     depends_on:
       redis:
@@ -59,3 +63,4 @@ services:
 
 volumes:
   postgres-data:
+    name: django-libraryms_postgres-data

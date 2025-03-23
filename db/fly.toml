@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for django-libraryms-db on 2024-08-23T18:30:12+03:00
+# fly.toml app configuration file generated for django-libraryms-db-pg-17 on 2025-03-23T13:19:40+02:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'django-libraryms-db'
+app = 'django-libraryms-db-pg-17'
 primary_region = 'waw'
 
 [env]
@@ -66,3 +66,4 @@ primary_region = 'waw'
 [[metrics]]
   port = 9187
   path = '/metrics'
+  https = false

@@ -7,8 +7,10 @@ __pycache__
 .DS_Store
 .env*
 !.env.docker.sample
+!.env.sample
 
 db/dump*
+db/backup/
 
 staticfiles/
 static/

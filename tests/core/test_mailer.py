@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from src.core.utils.mailer import Mailer, Message
+from core.utils.mailer import Mailer, Message
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def sample_message() -> Message:
 
 @pytest.fixture
 def mock_backend(mocker):
-    backend = mocker.patch("src.core.utils.mailer.get_connection")
+    backend = mocker.patch("core.utils.mailer.get_connection")
     backend.connection = backend.return_value.connection
     backend.send_templated_email = backend.connection.send_templated_email
     backend.send_bulk_templated_email = backend.connection.send_bulk_templated_email
@@ -29,17 +29,17 @@ def mock_backend(mocker):
 
 @pytest.fixture
 def mock_sentry_capture_exception(mocker):
-    return mocker.patch("src.core.utils.mailer.sentry_sdk.capture_exception")
+    return mocker.patch("core.utils.mailer.sentry_sdk.capture_exception")
 
 
 @pytest.fixture
 def mock_sentry_capture_message(mocker):
-    return mocker.patch("src.core.utils.mailer.sentry_sdk.capture_message")
+    return mocker.patch("core.utils.mailer.sentry_sdk.capture_message")
 
 
 @pytest.fixture
 def mock_logger(mocker):
-    return mocker.patch("src.core.utils.mailer.logger")
+    return mocker.patch("core.utils.mailer.logger")
 
 
 def test_send_templated_email(sample_message: Message, mock_backend):

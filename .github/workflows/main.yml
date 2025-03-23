@@ -40,13 +40,14 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
+          PGPORT: 5433
           POSTGRES_DB: test_web_libraryms
           POSTGRES_PASSWORD: postgres
           PGUSER: postgres # default for healthcheck
         ports:
-          - 5432:5432
+          - 5433:5433
         options: >-
           --health-cmd pg_isready
           --health-interval 10s

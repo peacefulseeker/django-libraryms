@@ -1,28 +1,40 @@
 FROM python:3.11-slim-bookworm
 
-# Makefile commands
-RUN apt-get update && apt-get install make
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    make \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-ENV POETRY_VERSION=1.8.3
+WORKDIR /app
+
+# Setup Poetry
+ENV POETRY_VERSION=2.1.1
 ENV POETRY_VIRTUALENVS_CREATE=false
 ENV POETRY_VIRTUALENVS_IN_PROJECT=false
 ENV PIP_ROOT_USER_ACTION=ignore
 
-RUN pip install --upgrade pip
-RUN pip install poetry==${POETRY_VERSION}
+RUN pip install --upgrade pip && \
+    pip install poetry==${POETRY_VERSION}
 
-COPY pyproject.toml poetry.lock .
+# Copy dependency files
+COPY pyproject.toml poetry.lock /app/
 
-
-WORKDIR /app
-
+# Install dependencies
 RUN poetry install --with dev
 
-COPY ./scripts/local/start_web /start_web
-RUN chmod +x /start_web
+# Setup scripts
+COPY ./scripts/local/start_web /app/scripts/
+COPY ./scripts/local/start_celery_worker /app/scripts/
+COPY ./scripts/local/start_celery_beat /app/scripts/
+RUN chmod +x /app/scripts/start_web \
+    /app/scripts/start_celery_worker \
+    /app/scripts/start_celery_beat
 
-COPY ./scripts/local/start_celery_worker /start_celery_worker
-RUN chmod +x /start_celery_worker
+# Create and switch non-root user
+RUN useradd --user-group --system --no-log-init --create-home appuser && \
+    chown -R appuser:appuser /app
+COPY --chown=appuser:appuser ./src /app/src
+USER appuser
 
-COPY ./scripts/local/start_celery_beat /start_celery_beat
-RUN chmod +x /start_celery_beat
+CMD ["/app/scripts/start_web"]
