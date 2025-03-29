@@ -8,7 +8,7 @@ on:
       - '**.md'
       - '.tool-versions'
       - '.gitignore'
-    #   - '.dockerignore'
+      - '.vscode/**'
       - 'demo/**'
   pull_request:
     branches:

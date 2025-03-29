@@ -6,6 +6,9 @@
             "source.organizeImports": "explicit"
         }
     },
+    "git.autoRepositoryDetection": false,
+    "open-in-browser.default": "chrome",
+    "workbench.externalBrowser": "chrome",
     "python.analysis.exclude": [
         "**/__pycache__",
         ".ruff_cache",
